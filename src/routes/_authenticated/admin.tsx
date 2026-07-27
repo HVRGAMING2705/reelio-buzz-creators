@@ -1545,6 +1545,7 @@ function SettingsModal({
           </div>
         </div>
 
+        <RateLimitsSection draft={draft} setDraft={setDraft} />
 
 
         <div className="mt-6 pt-4 border-t border-white/10">
