@@ -468,6 +468,7 @@ function Index() {
           </a>
           <nav aria-label="Primary" className="hidden md:flex items-center gap-8 lg:gap-14 text-[11px] lg:text-[12px] tracking-[0.28em] uppercase font-body font-medium">
             <a href="#services" className="hover:text-[color:var(--reelio-red)] transition-colors">Services</a>
+            <a href="#reel" className="hover:text-[color:var(--reelio-red)] transition-colors">Reel</a>
             <a href="#niches" className="hover:text-[color:var(--reelio-red)] transition-colors">Niches</a>
             <a href="#package" className="hover:text-[color:var(--reelio-red)] transition-colors">Package</a>
             <a href="#contact" className="hover:text-[color:var(--reelio-red)] transition-colors">Contact</a>
