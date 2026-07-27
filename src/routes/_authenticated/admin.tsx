@@ -445,18 +445,29 @@ function AdminPage() {
           qc.invalidateQueries({ queryKey: ["bookings"] });
           const s = settingsRef.current;
           if (!s.realtimeEnabled || isQuietNow(s)) return;
-          toast.success("New booking submission", {
-            description: `${b.name}${b.brand ? ` · ${b.brand}` : ""} — ${b.service ?? "—"}`,
-            duration: 10000,
-            action: {
-              label: "View details",
-              onClick: () => {
-                markAllSeenRef.current?.();
-                navigate({ to: "/bookings/$id", params: { id: b.id } });
-              },
-            },
-
-          });
+          toast.custom(
+            (t) => (
+              <button
+                onClick={() => {
+                  toast.dismiss(t);
+                  markAllSeenRef.current?.();
+                  navigate({ to: "/bookings/$id", params: { id: b.id } });
+                }}
+                className="w-full text-left rounded-xl border border-white/10 bg-black/90 backdrop-blur-xl shadow-2xl px-4 py-3 hover:bg-white/10 transition-colors"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-sm font-medium text-white">New booking · {b.name}</p>
+                  <span className="text-[10px] uppercase tracking-wider text-red-400 shrink-0">View →</span>
+                </div>
+                <p className="text-xs text-white/70 mt-0.5 truncate">
+                  {b.brand ? `${b.brand} · ` : ""}
+                  {b.service ?? "New submission"}
+                  {b.budget ? ` · ${b.budget}` : ""}
+                </p>
+              </button>
+            ),
+            { duration: 10000 },
+          );
         },
       )
       .subscribe();
