@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from "motion/react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 
 type Props = {
@@ -15,27 +16,81 @@ const services = [
   "Meta Ads / Digital Marketing",
   "Outreach & Growth",
   "Models & Creators",
-];
+] as const;
 
-const budgets = ["< ₹25k", "₹25k – ₹50k", "₹50k – ₹1L", "₹1L+"];
+const budgets = ["< ₹25k", "₹25k – ₹50k", "₹50k – ₹1L", "₹1L+"] as const;
+
+const COOLDOWN_MS = 60_000;
+const MIN_FILL_MS = 2_500;
+const LAST_KEY = "reelio_last_booking_at";
+
+// Basic spam heuristics
+const URL_RE = /(https?:\/\/|www\.)/gi;
+const REPEAT_RE = /(.)\1{9,}/; // 10+ same char in a row
+const containsUrls = (s: string) => (s.match(URL_RE)?.length ?? 0) >= 2;
+
+const schema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(2, "Please enter your name")
+    .max(80, "Name is too long")
+    .regex(/^[\p{L}\p{M}'.\- ]+$/u, "Use letters only"),
+  brand: z.string().trim().max(120, "Brand name is too long").optional().or(z.literal("")),
+  email: z.string().trim().toLowerCase().email("Enter a valid email").max(160),
+  phone: z
+    .string()
+    .trim()
+    .min(7, "Enter a valid phone")
+    .max(20, "Phone is too long")
+    .regex(/^[+\d][\d\s\-()]{6,19}$/, "Digits, spaces, +, -, () only"),
+  service: z.enum(services, { errorMap: () => ({ message: "Pick a service" }) }),
+  budget: z.enum(budgets, { errorMap: () => ({ message: "Pick a budget" }) }),
+  niche: z.string().trim().max(80, "Niche is too long").optional().or(z.literal("")),
+  message: z
+    .string()
+    .trim()
+    .max(1500, "Keep it under 1500 characters")
+    .refine((v) => !REPEAT_RE.test(v), "Looks like spam")
+    .refine((v) => !containsUrls(v), "Please avoid multiple links")
+    .optional()
+    .or(z.literal("")),
+});
+
+type FormShape = {
+  name: string;
+  brand: string;
+  email: string;
+  phone: string;
+  service: (typeof services)[number];
+  budget: (typeof budgets)[number];
+  niche: string;
+  message: string;
+};
+
+const emptyForm: FormShape = {
+  name: "",
+  brand: "",
+  email: "",
+  phone: "",
+  service: services[0],
+  budget: budgets[1],
+  niche: "",
+  message: "",
+};
 
 export function BookingModal({ open, onClose }: Props) {
   const [step, setStep] = useState<"form" | "sent">("form");
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [form, setForm] = useState({
-    name: "",
-    brand: "",
-    email: "",
-    phone: "",
-    service: services[0],
-    budget: budgets[1],
-    niche: "",
-    message: "",
-  });
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof FormShape, string>>>({});
+  const [form, setForm] = useState<FormShape>(emptyForm);
+  const [honeypot, setHoneypot] = useState(""); // hidden field — bots fill it
+  const openedAtRef = useRef<number>(0);
 
   useEffect(() => {
     if (!open) return;
+    openedAtRef.current = Date.now();
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     document.addEventListener("keydown", onKey);
     document.body.style.overflow = "hidden";
@@ -45,43 +100,87 @@ export function BookingModal({ open, onClose }: Props) {
     };
   }, [open, onClose]);
 
-  const set = <K extends keyof typeof form>(k: K, v: (typeof form)[K]) =>
+  const set = <K extends keyof FormShape>(k: K, v: FormShape[K]) => {
     setForm((f) => ({ ...f, [k]: v }));
+    setFieldErrors((fe) => (fe[k] ? { ...fe, [k]: undefined } : fe));
+  };
+
+  const charCount = form.message.length;
+  const remainingCooldown = useMemo(() => {
+    if (typeof window === "undefined") return 0;
+    const last = Number(localStorage.getItem(LAST_KEY) ?? 0);
+    return Math.max(0, COOLDOWN_MS - (Date.now() - last));
+  }, [open, submitting]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitting(true);
     setErrorMsg(null);
+
+    // 1. Honeypot — silent success to avoid tipping off bots
+    if (honeypot.trim() !== "") {
+      setStep("sent");
+      return;
+    }
+
+    // 2. Minimum time on form
+    if (Date.now() - openedAtRef.current < MIN_FILL_MS) {
+      setErrorMsg("Please take a moment to review your details.");
+      return;
+    }
+
+    // 3. Cooldown between submissions on this device
+    const last = Number(localStorage.getItem(LAST_KEY) ?? 0);
+    if (Date.now() - last < COOLDOWN_MS) {
+      const s = Math.ceil((COOLDOWN_MS - (Date.now() - last)) / 1000);
+      setErrorMsg(`You've just submitted a request. Try again in ${s}s.`);
+      return;
+    }
+
+    // 4. Schema validation
+    const parsed = schema.safeParse(form);
+    if (!parsed.success) {
+      const errs: Partial<Record<keyof FormShape, string>> = {};
+      for (const issue of parsed.error.issues) {
+        const key = issue.path[0] as keyof FormShape | undefined;
+        if (key && !errs[key]) errs[key] = issue.message;
+      }
+      setFieldErrors(errs);
+      setErrorMsg("Please fix the highlighted fields.");
+      return;
+    }
+
+    setSubmitting(true);
+    const v = parsed.data;
     const { error } = await supabase.from("bookings").insert({
-      name: form.name,
-      brand: form.brand || null,
-      email: form.email,
-      phone: form.phone,
-      service: form.service,
-      budget: form.budget,
-      niche: form.niche || null,
-      message: form.message || null,
+      name: v.name,
+      brand: v.brand || null,
+      email: v.email,
+      phone: v.phone,
+      service: v.service,
+      budget: v.budget,
+      niche: v.niche || null,
+      message: v.message || null,
     });
     setSubmitting(false);
     if (error) {
       setErrorMsg("Couldn't send — please try again.");
       return;
     }
+    try {
+      localStorage.setItem(LAST_KEY, String(Date.now()));
+    } catch {
+      /* ignore */
+    }
     setStep("sent");
   };
 
   const reset = () => {
     setStep("form");
-    setForm({
-      name: "",
-      brand: "",
-      email: "",
-      phone: "",
-      service: services[0],
-      budget: budgets[1],
-      niche: "",
-      message: "",
-    });
+    setForm(emptyForm);
+    setFieldErrors({});
+    setErrorMsg(null);
+    setHoneypot("");
+    openedAtRef.current = Date.now();
   };
 
   return (
@@ -136,21 +235,41 @@ export function BookingModal({ open, onClose }: Props) {
                   Tell us about your brand — we'll get back within 24 hours.
                 </p>
 
-                <form onSubmit={submit} className="mt-8 grid gap-4">
+                <form onSubmit={submit} className="mt-8 grid gap-4" noValidate>
+                  {/* Honeypot: hidden from users, visible to naive bots */}
+                  <div
+                    aria-hidden="true"
+                    style={{ position: "absolute", left: "-10000px", top: "auto", width: 1, height: 1, overflow: "hidden" }}
+                  >
+                    <label>
+                      Website
+                      <input
+                        tabIndex={-1}
+                        autoComplete="off"
+                        value={honeypot}
+                        onChange={(e) => setHoneypot(e.target.value)}
+                      />
+                    </label>
+                  </div>
+
                   <div className="grid md:grid-cols-2 gap-4">
-                    <Field label="Your name" required>
+                    <Field label="Your name" required error={fieldErrors.name}>
                       <input
                         required
                         value={form.name}
                         onChange={(e) => set("name", e.target.value)}
+                        maxLength={80}
+                        autoComplete="name"
                         className="input-glass"
                         placeholder="Jane Doe"
                       />
                     </Field>
-                    <Field label="Brand / Company">
+                    <Field label="Brand / Company" error={fieldErrors.brand}>
                       <input
                         value={form.brand}
                         onChange={(e) => set("brand", e.target.value)}
+                        maxLength={120}
+                        autoComplete="organization"
                         className="input-glass"
                         placeholder="Your brand"
                       />
@@ -158,28 +277,35 @@ export function BookingModal({ open, onClose }: Props) {
                   </div>
 
                   <div className="grid md:grid-cols-2 gap-4">
-                    <Field label="Email" required>
+                    <Field label="Email" required error={fieldErrors.email}>
                       <input
                         required
                         type="email"
+                        inputMode="email"
                         value={form.email}
                         onChange={(e) => set("email", e.target.value)}
+                        maxLength={160}
+                        autoComplete="email"
                         className="input-glass"
                         placeholder="you@brand.com"
                       />
                     </Field>
-                    <Field label="Phone / WhatsApp" required>
+                    <Field label="Phone / WhatsApp" required error={fieldErrors.phone}>
                       <input
                         required
+                        type="tel"
+                        inputMode="tel"
                         value={form.phone}
                         onChange={(e) => set("phone", e.target.value)}
+                        maxLength={20}
+                        autoComplete="tel"
                         className="input-glass"
                         placeholder="+91 90000 00000"
                       />
                     </Field>
                   </div>
 
-                  <Field label="Service you're interested in">
+                  <Field label="Service you're interested in" error={fieldErrors.service}>
                     <div className="flex flex-wrap gap-2">
                       {services.map((s) => (
                         <button
@@ -196,7 +322,7 @@ export function BookingModal({ open, onClose }: Props) {
                     </div>
                   </Field>
 
-                  <Field label="Monthly budget">
+                  <Field label="Monthly budget" error={fieldErrors.budget}>
                     <div className="flex flex-wrap gap-2">
                       {budgets.map((b) => (
                         <button
@@ -213,26 +339,36 @@ export function BookingModal({ open, onClose }: Props) {
                     </div>
                   </Field>
 
-                  <Field label="Niche / Industry">
+                  <Field label="Niche / Industry" error={fieldErrors.niche}>
                     <input
                       value={form.niche}
                       onChange={(e) => set("niche", e.target.value)}
+                      maxLength={80}
                       className="input-glass"
                       placeholder="e.g. Fashion, Café, Fitness…"
                     />
                   </Field>
 
-                  <Field label="Anything we should know?">
+                  <Field
+                    label={`Anything we should know? (${charCount}/1500)`}
+                    error={fieldErrors.message}
+                  >
                     <textarea
                       value={form.message}
                       onChange={(e) => set("message", e.target.value)}
                       rows={4}
+                      maxLength={1500}
                       className="input-glass resize-none"
                       placeholder="Goals, timelines, references…"
                     />
                   </Field>
 
-                  {errorMsg && <p className="text-sm text-red-300">{errorMsg}</p>}
+                  {errorMsg && <p className="text-sm text-red-300" role="alert">{errorMsg}</p>}
+                  {remainingCooldown > 0 && !errorMsg && (
+                    <p className="text-[11px] opacity-60">
+                      Cooldown active — you can submit again shortly.
+                    </p>
+                  )}
 
                   <motion.button
                     whileHover={{ scale: 1.02 }}
@@ -243,6 +379,10 @@ export function BookingModal({ open, onClose }: Props) {
                   >
                     {submitting ? "Sending…" : "Send booking request →"}
                   </motion.button>
+
+                  <p className="text-[10px] opacity-50 text-center">
+                    Protected by spam detection. We never share your details.
+                  </p>
                 </form>
               </>
             ) : (
@@ -290,10 +430,12 @@ export function BookingModal({ open, onClose }: Props) {
 function Field({
   label,
   required,
+  error,
   children,
 }: {
   label: string;
   required?: boolean;
+  error?: string;
   children: React.ReactNode;
 }) {
   return (
@@ -302,6 +444,7 @@ function Field({
         {label} {required && <span className="opacity-60">*</span>}
       </span>
       {children}
+      {error && <span className="mt-1 block text-[11px] text-red-300">{error}</span>}
     </label>
   );
 }
