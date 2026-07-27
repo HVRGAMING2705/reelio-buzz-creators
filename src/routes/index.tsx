@@ -355,6 +355,9 @@ function Index() {
         </motion.div>
       </section>
 
+      {/* ============ MOTION SHOWCASE ============ */}
+      <MotionShowcase />
+
       {/* ============ SERVICES ============ */}
       <section id="services" className="relative mx-auto max-w-7xl px-5 md:px-10 py-24 md:py-36">
         <div className="flex items-end justify-between flex-wrap gap-6 mb-14 reveal">
