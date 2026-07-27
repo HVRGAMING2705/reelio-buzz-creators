@@ -65,6 +65,20 @@ function isQuietNow(s: NotifSettings, d = new Date()) {
   return start < end ? now >= start && now < end : now >= start || now < end;
 }
 
+function formatNextTransition(s: NotifSettings, d: Date, quietActive: boolean): string | null {
+  if (!s.quietEnabled) return null;
+  const target = quietActive ? s.quietEnd : s.quietStart;
+  const [h, m] = target.split(":").map(Number);
+  if (Number.isNaN(h) || Number.isNaN(m)) return null;
+  const next = new Date(d);
+  next.setSeconds(0, 0);
+  next.setHours(h, m, 0, 0);
+  if (next <= d) next.setDate(next.getDate() + 1);
+  return next.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
+
+
 type Booking = Tables<"bookings">;
 type Profile = Tables<"profiles">;
 
@@ -1153,8 +1167,25 @@ function SettingsModal({
 }) {
   const [draft, setDraft] = useState<NotifSettings>(settings);
   useEffect(() => { if (open) setDraft(settings); }, [open, settings]);
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    if (!open) return;
+    const t = setInterval(() => setNow(new Date()), 15000);
+    return () => clearInterval(t);
+  }, [open]);
   if (!open) return null;
-  const quietActive = isQuietNow(draft);
+  const quietActive = isQuietNow(draft, now);
+  const willDeliver = draft.realtimeEnabled && !quietActive;
+  const nextTransition = draft.quietEnabled
+    ? formatNextTransition(draft, now, quietActive)
+    : null;
+  const statusReason = !draft.realtimeEnabled
+    ? "Realtime alerts are turned off."
+    : quietActive
+      ? `Quiet hours active${nextTransition ? ` — resumes at ${nextTransition}` : ""}.`
+      : draft.quietEnabled && nextTransition
+        ? `Alerts on — quiet hours begin at ${nextTransition}.`
+        : "Alerts on — notifications will be sent immediately.";
   return (
     <div
       className="fixed inset-0 z-40 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
@@ -1170,6 +1201,35 @@ function SettingsModal({
             <h2 className="text-xl">Settings</h2>
           </div>
           <button onClick={onClose} className="opacity-60 hover:opacity-100" aria-label="Close">✕</button>
+        </div>
+
+        <div
+          className={`rounded-xl border px-4 py-3 mb-4 flex items-start gap-3 transition-colors ${
+            willDeliver
+              ? "border-emerald-500/40 bg-emerald-500/10"
+              : "border-amber-500/40 bg-amber-500/10"
+          }`}
+          aria-live="polite"
+        >
+          <span
+            className={`mt-1 h-2.5 w-2.5 rounded-full shrink-0 ${
+              willDeliver
+                ? "bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.9)] animate-pulse"
+                : "bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.9)]"
+            }`}
+            aria-hidden
+          />
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-sm font-medium">
+                {willDeliver ? "Notifications will be sent right now" : "Notifications are paused right now"}
+              </p>
+              <span className="text-[10px] uppercase tracking-[0.2em] opacity-60 shrink-0">
+                {now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+              </span>
+            </div>
+            <p className="text-xs opacity-75 mt-0.5">{statusReason}</p>
+          </div>
         </div>
 
         <p className="text-[10px] uppercase tracking-[0.3em] opacity-50 mt-2 mb-1">Notifications</p>
