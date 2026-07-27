@@ -380,10 +380,6 @@ function NotificationsBell({
     return out;
   }, [filteredNotifications, notifLimit]);
 
-  const recent = useMemo(
-    () => filteredNotifications.slice(0, notifLimit),
-    [filteredNotifications, notifLimit]
-  );
   const hasMoreNotifications = recent.length < filteredNotifications.length;
 
   const availableNotifServices = useMemo(
