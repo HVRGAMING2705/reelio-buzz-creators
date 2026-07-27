@@ -169,14 +169,15 @@ function NotificationsBell({
                 {unreadCount > 0 ? `${unreadCount} new booking${unreadCount === 1 ? "" : "s"}` : "You're all caught up"}
               </p>
             </div>
-            {unreadCount > 0 && (
-              <button
-                onClick={() => onMarkAllSeen()}
-                className="text-[10px] uppercase tracking-[0.2em] opacity-70 hover:opacity-100"
-              >
-                Mark read
-              </button>
-            )}
+            <button
+              onClick={() => onMarkAllSeen()}
+              className={`text-[10px] uppercase tracking-[0.2em] opacity-70 hover:opacity-100 transition-opacity ${
+                unreadCount > 0 ? "" : "opacity-40 hover:opacity-60"
+              }`}
+              aria-label="Mark all notifications as read"
+            >
+              Mark all as read
+            </button>
           </div>
           <div className="px-4 py-3 border-b border-white/10 bg-white/[0.03]">
             <div className="flex items-center gap-2 flex-wrap">
