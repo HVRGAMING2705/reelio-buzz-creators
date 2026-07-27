@@ -183,7 +183,7 @@ function firePushNotification(title: string, body?: string, tag?: string) {
   if (typeof window === "undefined" || !("Notification" in window)) return;
   if (Notification.permission !== "granted") return;
   try {
-    new Notification(title, { body, tag, icon: "/favicon.ico" });
+    new Notification(title, { body, tag, icon: "/favicon.png" });
   } catch { /* ignore */ }
 }
 
