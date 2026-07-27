@@ -430,27 +430,36 @@ function Index() {
       <header
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
           scrolled
-            ? "glass-dark border-b border-white/10 shadow-[0_10px_40px_-20px_oklch(0_0_0/0.6)]"
+            ? "glass-dark border border-white/10 shadow-[0_25px_50px_-12px_oklch(0_0_0/0.8)] md:top-4 md:left-5 md:right-5 lg:top-6 lg:left-8 lg:right-8 md:rounded-[2rem]"
             : "bg-transparent"
         }`}
       >
 
-        <div className="mx-auto max-w-[1600px] px-4 sm:px-6 md:px-8 lg:px-10 h-20 md:h-28 lg:h-32 flex items-center justify-between gap-6 md:gap-8 lg:gap-12">
+        <div className="mx-auto max-w-[1600px] px-4 sm:px-6 md:px-8 lg:px-10 h-24 md:h-32 lg:h-40 flex items-center justify-between gap-6 md:gap-8 lg:gap-12">
           <a
             href="#top"
             aria-label="Reelio — back to top"
-            className="flex items-center justify-center shrink-0 w-14 h-14 md:w-20 md:h-20 lg:w-24 lg:h-24 -my-1 md:-my-3 lg:-my-4"
+            className="group relative flex items-center justify-center shrink-0 w-20 h-20 md:w-28 md:h-28 lg:w-32 lg:h-32 -my-2 md:-my-4 lg:-my-5"
           >
+            {/* Red ambient glow */}
+            <div
+              aria-hidden="true"
+              className="absolute -inset-2 md:-inset-3 rounded-[2rem] bg-[color:var(--reelio-red)] blur-2xl opacity-10 group-hover:opacity-25 transition-opacity duration-500 pointer-events-none"
+            />
+            <div
+              aria-hidden="true"
+              className="absolute -inset-1 md:-inset-2 rounded-[1.5rem] bg-[color:var(--reelio-red)] blur-lg opacity-0 group-hover:opacity-15 transition-opacity duration-500 pointer-events-none"
+            />
             <img
               src={logoMark512.url}
               srcSet={logoSrcSet}
               sizes={logoSizes}
               alt=""
-              width={96}
-              height={96}
+              width={128}
+              height={128}
               decoding="async"
               fetchPriority="high"
-              className="w-full h-full object-contain block"
+              className="relative w-full h-full object-contain block transition-transform duration-300 group-hover:scale-105"
             />
           </a>
           <nav aria-label="Primary" className="hidden md:flex items-center gap-8 lg:gap-14 text-[11px] lg:text-[12px] tracking-[0.28em] uppercase font-body font-medium">
