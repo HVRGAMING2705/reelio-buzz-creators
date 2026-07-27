@@ -1068,6 +1068,14 @@ function AdminPage() {
             >
               Blocked
             </Link>
+            <Link
+              to="/security"
+              className="rounded-full glass px-3 py-2 text-[10px] uppercase tracking-[0.2em] hover:bg-white/10"
+              title="Captcha verification failures"
+            >
+              Security
+            </Link>
+
 
             <button
               onClick={() => setSettingsOpen(true)}
