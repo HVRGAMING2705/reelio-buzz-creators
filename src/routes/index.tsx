@@ -123,6 +123,7 @@ function Index() {
   return (
     <div className="relative min-h-screen bg-background text-foreground overflow-hidden">
       <CursorGlow />
+      <BookingModal open={bookingOpen} onClose={() => setBookingOpen(false)} />
 
       {/* Scroll progress bar */}
       <motion.div
