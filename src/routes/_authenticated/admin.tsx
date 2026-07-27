@@ -172,6 +172,51 @@ function NotificationsBell({
               </button>
             )}
           </div>
+          <div className="px-4 py-3 border-b border-white/10 bg-white/[0.03]">
+            <div className="flex items-center gap-2 flex-wrap">
+              <label className="flex items-center gap-1.5 text-xs cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  className="h-3.5 w-3.5 accent-red-500"
+                  checked={notifUnreadOnly}
+                  onChange={(e) => setNotifUnreadOnly(e.target.checked)}
+                />
+                Unread
+              </label>
+              <select
+                value={notifStatus}
+                onChange={(e) => setNotifStatus(e.target.value as "all" | Status)}
+                className="text-xs rounded-full bg-white/5 border border-white/10 px-2 py-1"
+                aria-label="Filter by status"
+              >
+                <option value="all">All statuses</option>
+                {STATUSES.map((s) => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+              <select
+                value={notifSort}
+                onChange={(e) => setNotifSort(e.target.value as "newest" | "oldest")}
+                className="text-xs rounded-full bg-white/5 border border-white/10 px-2 py-1"
+                aria-label="Sort order"
+              >
+                <option value="newest">Newest</option>
+                <option value="oldest">Oldest</option>
+              </select>
+              {activeNotifFilters && (
+                <button
+                  onClick={() => {
+                    setNotifStatus("all");
+                    setNotifUnreadOnly(false);
+                    setNotifSort("newest");
+                  }}
+                  className="text-[10px] uppercase tracking-[0.15em] opacity-70 hover:opacity-100 ml-auto"
+                >
+                  Reset
+                </button>
+              )}
+            </div>
+          </div>
           {recent.length === 0 ? (
             <div className="px-4 py-8 text-center text-sm opacity-60">No bookings yet</div>
           ) : (
