@@ -1060,6 +1060,10 @@ function AdminPage() {
                 markAllBookingsRead(ids);
                 markAllSeen();
               }}
+              onMarkAllUnread={(ids) => {
+                markAllBookingsUnread(ids);
+              }}
+              onMarkUnread={(id) => markUnreadByBookingId(id)}
               onOpen={(id) => {
                 markReadByBookingId(id);
                 navigate({ to: "/bookings/$id", params: { id } });
