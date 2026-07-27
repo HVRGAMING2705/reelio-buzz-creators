@@ -446,7 +446,7 @@ function Index() {
             <a href="#package" className="hover:text-[color:var(--reelio-red)] transition-colors">Package</a>
             <a href="#contact" className="hover:text-[color:var(--reelio-red)] transition-colors">Contact</a>
           </nav>
-          <div className="flex items-center gap-2 md:gap-3">
+          <div className="flex items-center gap-3 md:gap-4">
             {user ? (
               <Link
                 to="/admin"
