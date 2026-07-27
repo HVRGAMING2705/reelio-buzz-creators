@@ -372,18 +372,18 @@ function NotificationsBell({
 
   // Infinite scroll: load more notifications when the sentinel enters view
   useEffect(() => {
-    if (!open || !sentinelRef.current || !hasMoreNotifications) return;
+    if (!open || !sentinelRef.current || !hasMoreNotifications || loadingMore || loadMoreError) return;
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0]?.isIntersecting) {
-          setNotifLimit((n) => n + 8);
+          loadMoreNotifications();
         }
       },
       { root: scrollRef.current, threshold: 0.1 },
     );
     observer.observe(sentinelRef.current);
     return () => observer.disconnect();
-  }, [open, hasMoreNotifications, notifLimit]);
+  }, [open, hasMoreNotifications, notifLimit, loadingMore, loadMoreError, loadMoreNotifications]);
 
   const activeNotifFilters =
     notifStatus !== "all" ||
