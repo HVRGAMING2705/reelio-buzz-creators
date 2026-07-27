@@ -252,7 +252,9 @@ export type Database = {
           form: string | null
           id: string
           ip_hash: string | null
+          page_url: string | null
           reason: string
+          referrer: string | null
           user_agent: string | null
         }
         Insert: {
@@ -263,7 +265,9 @@ export type Database = {
           form?: string | null
           id?: string
           ip_hash?: string | null
+          page_url?: string | null
           reason?: string
+          referrer?: string | null
           user_agent?: string | null
         }
         Update: {
@@ -274,7 +278,9 @@ export type Database = {
           form?: string | null
           id?: string
           ip_hash?: string | null
+          page_url?: string | null
           reason?: string
+          referrer?: string | null
           user_agent?: string | null
         }
         Relationships: []
