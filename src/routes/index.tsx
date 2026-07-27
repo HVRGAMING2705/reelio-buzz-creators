@@ -33,7 +33,10 @@ export const Route = createFileRoute("/")({
         content: "Reels, shoots, editing, ads and outreach — one crew shipping weekly.",
       },
     ],
-    links: [{ rel: "canonical", href: "/" }],
+    links: [
+      { rel: "canonical", href: "/" },
+      { rel: "preload", as: "image", href: logoMark.url, fetchpriority: "high" },
+    ],
     scripts: [
       {
         type: "application/ld+json",
@@ -413,7 +416,15 @@ function Index() {
 
         <div className="mx-auto max-w-[1600px] px-4 sm:px-6 md:px-8 lg:px-10 h-14 md:h-16 lg:h-20 grid grid-cols-[minmax(0,auto)_1fr_auto] md:flex items-center md:justify-between gap-4 md:gap-6 lg:gap-10">
           <a href="#top" className="flex items-center shrink-0 -my-2 md:-my-4">
-            <img src={logoMark.url} alt="Reelio" className="h-9 md:h-14 lg:h-16 w-auto object-contain block" />
+            <img
+              src={logoMark.url}
+              alt="Reelio"
+              width={320}
+              height={96}
+              decoding="async"
+              fetchPriority="high"
+              className="h-9 md:h-14 lg:h-16 w-auto object-contain block"
+            />
           </a>
           <nav className="hidden md:flex items-center gap-8 lg:gap-12 text-[11px] lg:text-[12px] tracking-[0.28em] uppercase font-body font-medium">
             <a href="#services" className="hover:text-[color:var(--reelio-red)] transition-colors">Services</a>
@@ -429,7 +440,7 @@ function Index() {
               >
                 <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/10 overflow-hidden text-[10px]">
                   {user.avatar_url ? (
-                    <img src={user.avatar_url} alt="" className="h-full w-full object-cover" />
+                    <img src={user.avatar_url} alt="" loading="lazy" decoding="async" width={24} height={24} className="h-full w-full object-cover" />
                   ) : (
                     user.email?.[0]?.toUpperCase() ?? "U"
                   )}
@@ -749,7 +760,7 @@ function Index() {
       <footer className="border-t border-white/15 py-10">
         <div className="mx-auto max-w-[1600px] px-5 sm:px-8 md:px-10 lg:px-14 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <img src={logoMark.url} alt="Reelio" className="h-5 w-auto object-contain" />
+            <img src={logoMark.url} alt="Reelio" loading="lazy" decoding="async" width={120} height={40} className="h-5 w-auto object-contain" />
             <span className="font-body text-[10px] uppercase tracking-[0.3em] text-white/40">
               © {year} Reelio Studio · Issue №{issue}
             </span>
