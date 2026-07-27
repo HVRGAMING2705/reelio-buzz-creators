@@ -169,6 +169,43 @@ const tooMany = (retryAfterSec: number, message: string) =>
     },
   });
 
+// ---- Hashing helpers for blocked-submission logs ----
+const hashSalt = () => process.env.SUPABASE_SERVICE_ROLE_KEY?.slice(0, 32) ?? "reelio-block-log";
+const shortHash = (v: string) =>
+  createHash("sha256").update(`${hashSalt()}:${v}`).digest("hex").slice(0, 16);
+const emailDomainOf = (e: string) => {
+  const i = e.lastIndexOf("@");
+  return i >= 0 ? e.slice(i + 1).toLowerCase() : null;
+};
+
+type BlockLog = {
+  reason: "ip_rate_limit" | "email_rate_limit" | "captcha_missing" | "captcha_failed";
+  ip?: string;
+  email?: string;
+  windowLabel?: string;
+  maxAllowed?: number;
+  retryAfterSec?: number;
+  userAgent?: string | null;
+};
+async function logBlocked(entry: BlockLog) {
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await supabaseAdmin.from("blocked_submissions").insert({
+      reason: entry.reason,
+      ip_hash: entry.ip ? shortHash(entry.ip) : null,
+      email_hash: entry.email ? shortHash(entry.email) : null,
+      email_domain: entry.email ? emailDomainOf(entry.email) : null,
+      window_label: entry.windowLabel ?? null,
+      max_allowed: entry.maxAllowed ?? null,
+      retry_after_sec: entry.retryAfterSec ?? null,
+      user_agent: entry.userAgent ?? null,
+    });
+  } catch {
+    // Best-effort; never fail the request because of logging.
+  }
+}
+
+
 // Tiny in-process cache so we don't hit the DB on every submission.
 let cachedLimits: { buckets: { ip: Bucket[]; email: Bucket[] }; at: number } | null = null;
 const LIMITS_TTL_MS = 30_000;
