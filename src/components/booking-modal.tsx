@@ -11,6 +11,7 @@ import {
   loadHCaptchaScript,
   type CaptchaConfig,
 } from "@/lib/captcha-config";
+import { trackEvent, trackFormSubmit } from "@/lib/analytics";
 
 type Props = {
   open: boolean;
@@ -297,11 +298,13 @@ export function BookingModal({ open, onClose }: Props) {
           }
           setCaptchaToken(null);
         }
+        trackEvent("form_submit_error", { form: "booking", status: res.status, reason: field ?? msg });
         return;
       }
     } catch {
       setSubmitting(false);
       setErrorMsg("Network error — please try again.");
+      trackEvent("form_submit_error", { form: "booking", reason: "network" });
       return;
     }
     try {
@@ -309,6 +312,7 @@ export function BookingModal({ open, onClose }: Props) {
     } catch {
       /* ignore */
     }
+    trackFormSubmit("booking", { service: form.service, budget: form.budget });
     setStep("sent");
   };
 

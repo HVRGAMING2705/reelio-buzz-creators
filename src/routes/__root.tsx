@@ -12,6 +12,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { supabase } from "@/integrations/supabase/client";
+import { initAnalytics, trackPageview } from "@/lib/analytics";
 
 function NotFoundComponent() {
   return (
@@ -132,6 +133,17 @@ function RootComponent() {
       data.subscription.unsubscribe();
     };
   }, [queryClient, router]);
+
+  useEffect(() => {
+    initAnalytics();
+    // Initial pageview
+    trackPageview(router.state.location.pathname);
+    // Subsequent client-side navigations
+    const unsub = router.subscribe("onResolved", ({ toLocation }) => {
+      trackPageview(toLocation.pathname);
+    });
+    return () => unsub();
+  }, [router]);
 
   return (
     <QueryClientProvider client={queryClient}>

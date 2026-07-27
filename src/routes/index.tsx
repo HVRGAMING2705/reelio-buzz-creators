@@ -5,6 +5,7 @@ import logoMark from "@/assets/reelio-logo-mark.png.asset.json";
 import { useReveal } from "@/hooks/use-reveal";
 import { BookingModal } from "@/components/booking-modal";
 import { supabase } from "@/integrations/supabase/client";
+import { trackClick, trackFormSubmit, trackEvent } from "@/lib/analytics";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -174,18 +175,19 @@ function ContactForm() {
     ev.preventDefault();
     if (!validate()) {
       setStatus({ kind: "error", message: "Please fix the highlighted fields." });
+      trackEvent("form_submit_error", { form: "contact", reason: "validation" });
       return;
     }
     setStatus({ kind: "submitting" });
     try {
       const win = window.open(GOOGLE_FORM_URL, "_blank", "noopener,noreferrer");
       if (!win) throw new Error("Popup blocked. Please allow popups or use the direct link below.");
+      trackFormSubmit("contact", { destination: "google_form" });
       setStatus({ kind: "success" });
     } catch (err) {
-      setStatus({
-        kind: "error",
-        message: err instanceof Error ? err.message : "Something went wrong. Try the direct link below.",
-      });
+      const message = err instanceof Error ? err.message : "Something went wrong. Try the direct link below.";
+      setStatus({ kind: "error", message });
+      trackEvent("form_submit_error", { form: "contact", reason: "popup_blocked" });
     }
   };
 
@@ -444,7 +446,7 @@ function Index() {
             )}
             <button
               type="button"
-              onClick={() => setBookingOpen(true)}
+              onClick={() => { trackClick("open_booking_modal"); setBookingOpen(true); }}
               className="btn-red !py-2.5 !px-4 md:!px-5 !text-[10px]"
             >
               Book a call
@@ -498,7 +500,7 @@ function Index() {
                 ads, and grow the room — as one crew.
               </p>
               <div className="mt-6 flex flex-wrap gap-3">
-                <button type="button" onClick={() => setBookingOpen(true)} className="btn-red">
+                <button type="button" onClick={() => { trackClick("open_booking_modal"); setBookingOpen(true); }} className="btn-red">
                   Book a call
                 </button>
                 <a href="#services" className="btn-ghost">See the work</a>
@@ -656,7 +658,7 @@ function Index() {
               </p>
 
               <div className="mt-10 flex flex-wrap gap-3">
-                <button type="button" onClick={() => setBookingOpen(true)} className="btn-red">
+                <button type="button" onClick={() => { trackClick("open_booking_modal"); setBookingOpen(true); }} className="btn-red">
                   Start the intake
                 </button>
                 <a href="#contact" className="btn-ghost">Ask a question</a>
@@ -720,7 +722,7 @@ function Index() {
                 like.
               </p>
               <div className="mt-10 flex flex-wrap gap-3">
-                <button type="button" onClick={() => setBookingOpen(true)} className="btn-red">
+                <button type="button" onClick={() => { trackClick("open_booking_modal"); setBookingOpen(true); }} className="btn-red">
                   Book the call
                 </button>
                 <a href="#contact-form" className="btn-ghost">Send a message</a>
