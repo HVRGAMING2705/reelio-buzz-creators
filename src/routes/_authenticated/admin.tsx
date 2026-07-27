@@ -86,17 +86,33 @@ function AdminPage() {
     navigate({ to: "/auth", replace: true });
   };
 
+  const uniq = (vals: (string | null)[]) =>
+    Array.from(new Set(vals.filter((v): v is string => !!v && v.trim() !== ""))).sort();
+  const services = useMemo(() => uniq((bookings ?? []).map((b) => b.service)), [bookings]);
+  const niches = useMemo(() => uniq((bookings ?? []).map((b) => b.niche)), [bookings]);
+  const budgets = useMemo(() => uniq((bookings ?? []).map((b) => b.budget)), [bookings]);
+
   const filtered = useMemo(() => {
     if (!bookings) return [];
     const q = search.trim().toLowerCase();
+    const name = nameQ.trim().toLowerCase();
+    const from = dateFrom ? new Date(dateFrom).getTime() : null;
+    const to = dateTo ? new Date(dateTo).getTime() + 86_400_000 : null;
     return bookings.filter((b) => {
       if (filter !== "all" && b.status !== filter) return false;
+      if (serviceQ !== "all" && (b.service ?? "") !== serviceQ) return false;
+      if (nicheQ !== "all" && (b.niche ?? "") !== nicheQ) return false;
+      if (budgetQ !== "all" && (b.budget ?? "") !== budgetQ) return false;
+      const t = new Date(b.created_at).getTime();
+      if (from !== null && t < from) return false;
+      if (to !== null && t >= to) return false;
+      if (name && !(b.name ?? "").toLowerCase().includes(name)) return false;
       if (!q) return true;
       return [b.name, b.email, b.brand, b.phone, b.niche, b.service, b.message]
         .filter(Boolean)
         .some((v) => String(v).toLowerCase().includes(q));
     });
-  }, [bookings, filter, search]);
+  }, [bookings, filter, search, nameQ, serviceQ, nicheQ, budgetQ, dateFrom, dateTo]);
 
   const selected = filtered.find((b) => b.id === selectedId) ?? bookings?.find((b) => b.id === selectedId);
 
