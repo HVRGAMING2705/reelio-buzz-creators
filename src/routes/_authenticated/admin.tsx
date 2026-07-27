@@ -130,7 +130,7 @@ function NotificationsBell({
     setNotifLimit(8);
   }, [open, notifStatus, notifUnreadOnly, notifSort]);
 
-  const recent = useMemo(() => {
+  const filteredNotifications = useMemo(() => {
     let list = [...bookings];
     if (notifStatus !== "all") {
       list = list.filter((b) => b.status === notifStatus);
@@ -142,8 +142,14 @@ function NotificationsBell({
       const diff = +new Date(b.created_at) - +new Date(a.created_at);
       return notifSort === "newest" ? diff : -diff;
     });
-    return list.slice(0, 8);
+    return list;
   }, [bookings, lastSeen, notifStatus, notifUnreadOnly, notifSort]);
+
+  const recent = useMemo(
+    () => filteredNotifications.slice(0, notifLimit),
+    [filteredNotifications, notifLimit]
+  );
+  const hasMoreNotifications = recent.length < filteredNotifications.length;
 
   const activeNotifFilters = notifStatus !== "all" || notifUnreadOnly || notifSort !== "newest";
 
