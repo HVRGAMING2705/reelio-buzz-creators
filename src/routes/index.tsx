@@ -435,11 +435,16 @@ function Index() {
             <div className="md:col-span-7">
               <div className="rule-line mb-8" />
               <span className="slug">Included</span>
-              <ul className="mt-8 grid sm:grid-cols-2 lg:grid-cols-2 gap-x-8 lg:gap-x-12">
+              <ul className="mt-8 grid sm:grid-cols-2 gap-4 lg:gap-5">
                 {packageIncludes.map((it, i) => (
-                  <li
+                  <motion.li
                     key={it.title}
-                    className="flex gap-5 py-6 border-b border-white/10"
+                    initial={{ opacity: 0, y: 24 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-60px" }}
+                    transition={{ duration: 0.55, delay: i * 0.05, ease: [0.2, 0.7, 0.2, 1] }}
+                    whileHover={{ y: -4, scale: 1.01 }}
+                    className="liquid-glass flex gap-4 p-5"
                   >
                     <span className="font-display text-2xl text-[color:var(--reelio-red)] tabular-nums pt-1">
                       {String(i + 1).padStart(2, "0")}
@@ -448,13 +453,14 @@ function Index() {
                       <h3 className="font-display text-xl md:text-2xl leading-tight">
                         {it.title}
                       </h3>
-                      <p className="mt-2 font-body text-sm text-white/60 leading-relaxed">
+                      <p className="mt-2 font-body text-sm text-white/70 leading-relaxed">
                         {it.desc}
                       </p>
                     </div>
-                  </li>
+                  </motion.li>
                 ))}
               </ul>
+
             </div>
           </div>
         </div>
