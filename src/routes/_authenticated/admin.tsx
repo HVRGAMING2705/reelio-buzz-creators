@@ -544,6 +544,15 @@ function NotificationsBell({
                             ↺ Reopen
                           </button>
                         )}
+                        {!unread && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); onMarkUnread(b.id); }}
+                            className="text-[10px] uppercase tracking-[0.12em] font-semibold px-2 py-1 rounded-md bg-white/5 text-white/70 border border-white/10 hover:bg-white/10"
+                            title="Mark as unread for later review"
+                          >
+                            Mark unread
+                          </button>
+                        )}
                         <button
                           onClick={(e) => { e.stopPropagation(); setOpen(false); onOpen(b.id); }}
                           className="text-[10px] uppercase tracking-[0.12em] font-semibold px-2 py-1 rounded-md bg-white/5 text-white/80 border border-white/10 hover:bg-white/10 ml-auto"
