@@ -140,6 +140,19 @@ function BookingDetailPage() {
                 <StatusPill status={booking.status as Status} />
               </div>
 
+              {booking.user_id && (
+                <div className="mt-4 inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/5 px-3 py-1.5">
+                  <Avatar profile={profile ?? null} name={booking.name} size={28} />
+                  <div className="text-xs">
+                    <span className="opacity-60">Booked by</span>{" "}
+                    <span className="font-medium">{profile?.display_name || booking.name}</span>
+                    {profile?.display_name && profile.display_name !== booking.name && (
+                      <span className="opacity-60"> · {booking.name}</span>
+                    )}
+                  </div>
+                </div>
+              )}
+
               <div className="mt-6 grid sm:grid-cols-2 gap-4 text-sm">
                 <Row label="Email" value={<a className="underline break-all" href={`mailto:${booking.email}`}>{booking.email}</a>} />
                 <Row label="Phone" value={<a className="underline" href={`tel:${booking.phone}`}>{booking.phone}</a>} />
