@@ -459,6 +459,7 @@ function NotificationsBell({
                   >
                     Load more ({filteredNotifications.length - recent.length} remaining)
                   </button>
+                  <div ref={sentinelRef} className="h-1 w-full" aria-hidden />
                 </div>
               )}
             </ul>
