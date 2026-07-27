@@ -96,13 +96,34 @@ export const Route = createFileRoute("/api/public/bookings")({
         // If HCAPTCHA_SECRET is configured, a valid token is required.
         const hcaptchaSecret = process.env.HCAPTCHA_SECRET;
         if (hcaptchaSecret) {
-          if (!captchaToken) return jsonError(400, "Captcha required");
+          if (!captchaToken) {
+            return new Response(
+              JSON.stringify({ error: "Please complete the captcha to continue.", field: "captcha", code: "captcha_missing" }),
+              { status: 400, headers: { "content-type": "application/json" } },
+            );
+          }
           const ip =
             request.headers.get("cf-connecting-ip") ??
             request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
             undefined;
           const verify = await verifyHCaptcha(hcaptchaSecret, captchaToken, ip);
-          if (!verify.success) return jsonError(403, "Captcha verification failed");
+          if (!verify.success) {
+            const reason = verify.reason || "";
+            let msg = "Captcha verification failed — please try again.";
+            if (reason.includes("expired") || reason.includes("timeout")) {
+              msg = "Captcha expired — please tick the box again.";
+            } else if (reason.includes("already-seen") || reason.includes("already")) {
+              msg = "Captcha already used — please solve it again.";
+            } else if (reason.includes("invalid-input-response") || reason.includes("missing-input-response")) {
+              msg = "Captcha response was invalid — please retry.";
+            } else if (reason.includes("network")) {
+              msg = "Couldn't reach captcha service — check your connection and retry.";
+            }
+            return new Response(
+              JSON.stringify({ error: msg, field: "captcha", code: "captcha_failed", reason }),
+              { status: 403, headers: { "content-type": "application/json" } },
+            );
+          }
         }
 
         const url = process.env.SUPABASE_URL;
