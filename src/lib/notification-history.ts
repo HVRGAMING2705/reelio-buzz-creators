@@ -91,6 +91,11 @@ export function markAllRead() {
   write(getHistory().map((e) => ({ ...e, read: true })));
 }
 
+export function markFilteredRead(ids: string[]) {
+  const idSet = new Set(ids);
+  write(getHistory().map((e) => (idSet.has(e.id) ? { ...e, read: true } : e)));
+}
+
 export function markReadByBookingId(bookingId: string) {
   addReadBooking(bookingId);
   const list = getHistory();
