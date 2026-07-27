@@ -441,6 +441,15 @@ function NotificationsBell({
                   </button>
                   <button
                     onClick={() => {
+                      onMarkAllUnread(Array.from(selectedIds));
+                      setSelectedIds(new Set());
+                    }}
+                    className="text-[10px] uppercase tracking-[0.15em] font-semibold text-white/70 hover:text-white"
+                  >
+                    Mark selected unread
+                  </button>
+                  <button
+                    onClick={() => {
                       onMarkAllRead(Array.from(selectedIds));
                       setSelectedIds(new Set());
                     }}
