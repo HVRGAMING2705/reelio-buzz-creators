@@ -7,7 +7,9 @@ import type { Tables } from "@/integrations/supabase/types";
 import { logNotification } from "@/lib/notification-history";
 
 const LAST_SEEN_KEY = "reelio.admin.lastSeenBookingAt";
-const SETTINGS_KEY = "reelio.admin.notifSettings";
+const SETTINGS_KEY_BASE = "reelio.admin.notifSettings";
+const settingsKeyFor = (userId: string | null) =>
+  userId ? `${SETTINGS_KEY_BASE}:${userId}` : SETTINGS_KEY_BASE;
 
 type NotifFrequency = "instant" | "1m" | "5m";
 
