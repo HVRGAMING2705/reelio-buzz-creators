@@ -469,8 +469,9 @@ function Index() {
         </div>
       </header>
 
+      <main id="main">
       {/* ============ MASTHEAD / HERO ============ */}
-      <section id="top" className="relative pt-28 md:pt-36 lg:pt-44 pb-16 md:pb-24 lg:pb-32">
+      <section id="top" aria-label="Introduction" className="relative pt-28 md:pt-36 lg:pt-44 pb-16 md:pb-24 lg:pb-32">
         <div className="mx-auto max-w-[1600px] px-5 sm:px-8 md:px-10 lg:px-14">
           {/* issue bar */}
           <div className="flex items-end justify-between gap-4 pb-6 border-b border-white/15">
@@ -550,13 +551,13 @@ function Index() {
       </section>
 
       {/* ============ MARQUEE / TICKER ============ */}
-      <section className="relative py-4 md:py-5 border-y border-white/15 bg-[color:var(--reelio-red)] overflow-hidden liquid-shine">
+      <section aria-hidden="true" className="relative py-4 md:py-5 border-y border-white/15 bg-[color:var(--reelio-red)] overflow-hidden liquid-shine">
 
         <div className="flex whitespace-nowrap animate-marquee font-display text-xl md:text-3xl tracking-[-0.01em]">
           {[...marqueeItems, ...marqueeItems, ...marqueeItems].map((it, i) => (
             <span key={i} className="flex items-center gap-8 md:gap-12 pr-8 md:pr-12 text-white">
               {it}
-              <span className="text-white/50">✦</span>
+              <span className="text-white/60">✦</span>
             </span>
           ))}
         </div>
@@ -758,21 +759,22 @@ function Index() {
           </div>
         </div>
       </section>
+      </main>
 
       {/* ============ COLOPHON / FOOTER ============ */}
       <footer className="border-t border-white/15 py-10">
         <div className="mx-auto max-w-[1600px] px-5 sm:px-8 md:px-10 lg:px-14 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <img src={logoMark.url} alt="Reelio" loading="lazy" decoding="async" width={120} height={40} className="h-5 w-auto object-contain" />
-            <span className="font-body text-[10px] uppercase tracking-[0.3em] text-white/40">
+            <img src={logoMark.url} alt="" loading="lazy" decoding="async" width={120} height={40} className="h-5 w-auto object-contain" />
+            <span className="font-body text-[10px] uppercase tracking-[0.3em] text-white/70">
               © {year} Reelio Studio · Issue №{issue}
             </span>
           </div>
-          <div className="flex items-center gap-6 font-body text-[10px] uppercase tracking-[0.3em] text-white/40">
+          <nav aria-label="Footer" className="flex items-center gap-6 font-body text-[10px] uppercase tracking-[0.3em] text-white/70">
             <a href="#services" className="hover:text-white">Services</a>
             <a href="#package" className="hover:text-white">Package</a>
             <a href="#contact" className="hover:text-white">Contact</a>
-          </div>
+          </nav>
         </div>
       </footer>
     </div>
