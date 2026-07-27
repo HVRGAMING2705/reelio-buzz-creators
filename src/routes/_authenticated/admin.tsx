@@ -2295,6 +2295,152 @@ function SettingsModal({
   );
 }
 
+function NotificationLogPanel() {
+  const [entries, setEntries] = useState<NotifHistoryEntry[]>(() => getHistory());
+  const [open, setOpen] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<"all" | "delivered" | "suppressed">("all");
+  const [categoryFilter, setCategoryFilter] = useState<"all" | "bookings" | "system">("all");
+
+  useEffect(() => {
+    const unsub = subscribeHistory(() => setEntries(getHistory()));
+    return unsub;
+  }, []);
+
+  const filtered = useMemo(() => {
+    return entries
+      .filter((e) => (statusFilter === "all" ? true : e.status === statusFilter))
+      .filter((e) => (categoryFilter === "all" ? true : e.category === categoryFilter))
+      .slice(0, 25);
+  }, [entries, statusFilter, categoryFilter]);
+
+  const delivered = entries.filter((e) => e.status === "delivered").length;
+  const suppressed = entries.filter((e) => e.status === "suppressed").length;
+
+  const reasonLabel: Record<string, string> = {
+    quiet: "Quiet hours",
+    disabled: "Channel off",
+    category: "Category muted",
+    type: "Type muted",
+  };
+  const kindLabel: Record<NotifHistoryEntry["kind"], string> = {
+    new: "New booking",
+    status: "Status change",
+    note: "Note update",
+    summary: "Summary",
+    test: "Test",
+  };
+
+  const fmt = (ts: number) => {
+    const d = new Date(ts);
+    const now = new Date();
+    const same = d.toDateString() === now.toDateString();
+    const time = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+    return same ? time : `${d.toLocaleDateString([], { month: "short", day: "numeric" })} · ${time}`;
+  };
+
+  return (
+    <div className="mt-6 rounded-xl border border-white/10 bg-black/40">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center justify-between gap-3 px-4 py-3 text-left"
+      >
+        <div className="min-w-0">
+          <p className="text-[10px] uppercase tracking-[0.3em] opacity-50">Recent delivery log</p>
+          <p className="text-sm mt-1">
+            Last {Math.min(entries.length, 25)} notifications
+            <span className="opacity-60"> · {delivered} delivered · {suppressed} suppressed</span>
+          </p>
+        </div>
+        <span className="text-xs opacity-60">{open ? "Hide" : "Show"}</span>
+      </button>
+
+      {open && (
+        <div className="border-t border-white/10 px-4 py-3">
+          <div className="flex flex-wrap items-center gap-2 mb-3">
+            {(["all", "delivered", "suppressed"] as const).map((v) => (
+              <button
+                key={v}
+                type="button"
+                onClick={() => setStatusFilter(v)}
+                className={`text-[10px] uppercase tracking-[0.2em] px-2.5 py-1 rounded-full border ${
+                  statusFilter === v ? "border-red-500/60 bg-red-500/20 text-red-100" : "border-white/10 opacity-70 hover:opacity-100"
+                }`}
+              >
+                {v}
+              </button>
+            ))}
+            <span className="mx-1 opacity-30">·</span>
+            {(["all", "bookings", "system"] as const).map((v) => (
+              <button
+                key={v}
+                type="button"
+                onClick={() => setCategoryFilter(v)}
+                className={`text-[10px] uppercase tracking-[0.2em] px-2.5 py-1 rounded-full border ${
+                  categoryFilter === v ? "border-white/40 bg-white/10" : "border-white/10 opacity-70 hover:opacity-100"
+                }`}
+              >
+                {v}
+              </button>
+            ))}
+            <button
+              type="button"
+              onClick={() => { clearHistory(); toast.success("Log cleared"); }}
+              className="ml-auto text-[10px] uppercase tracking-[0.2em] px-2.5 py-1 rounded-full border border-white/10 hover:bg-white/10"
+            >
+              Clear
+            </button>
+          </div>
+
+          {filtered.length === 0 ? (
+            <p className="text-xs opacity-60 py-6 text-center">
+              No notifications logged yet. Trigger a test above or wait for a new booking.
+            </p>
+          ) : (
+            <ul className="divide-y divide-white/5 max-h-72 overflow-auto -mx-4">
+              {filtered.map((e) => {
+                const delivered = e.status === "delivered";
+                return (
+                  <li key={e.id} className="px-4 py-2.5 flex items-start gap-3 text-xs">
+                    <span
+                      className={`mt-1 h-2 w-2 rounded-full shrink-0 ${
+                        delivered ? "bg-emerald-400" : "bg-amber-400"
+                      }`}
+                      aria-hidden
+                    />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="opacity-70 tabular-nums">{fmt(e.ts)}</span>
+                        <span className="opacity-30">·</span>
+                        <span className="uppercase tracking-[0.2em] text-[9px] opacity-70">{e.category}</span>
+                        <span className="opacity-30">·</span>
+                        <span className="opacity-90">{kindLabel[e.kind] ?? e.kind}</span>
+                      </div>
+                      <p className="mt-0.5 truncate opacity-90">{e.title}</p>
+                      {e.subtitle && <p className="opacity-60 truncate">{e.subtitle}</p>}
+                    </div>
+                    <span
+                      className={`shrink-0 text-[9px] uppercase tracking-[0.2em] px-2 py-0.5 rounded-full ${
+                        delivered
+                          ? "bg-emerald-500/15 text-emerald-200"
+                          : "bg-amber-500/15 text-amber-200"
+                      }`}
+                    >
+                      {delivered ? "delivered" : (e.reason ? reasonLabel[e.reason] ?? e.reason : "suppressed")}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+
 
 function StatusPill({ status }: { status: Status }) {
   const colors: Record<Status, string> = {
