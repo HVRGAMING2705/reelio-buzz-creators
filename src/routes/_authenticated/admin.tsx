@@ -114,7 +114,45 @@ function AdminPage() {
     },
   });
 
-  const signOut = async () => {
+  useEffect(() => {
+    const channel = supabase
+      .channel("admin-bookings-notifications")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "bookings" },
+        (payload) => {
+          const b = payload.new as Booking;
+          if (notifiedIds.current.has(b.id)) return;
+          notifiedIds.current.add(b.id);
+          toast.success("New booking submission", {
+            description: `${b.name}${b.brand ? ` · ${b.brand}` : ""} — ${b.service ?? "—"}`,
+            action: {
+              label: "Open",
+              onClick: () => setSelectedId(b.id),
+            },
+          });
+          qc.invalidateQueries({ queryKey: ["bookings"] });
+        },
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [qc]);
+
+  const unreadCount = useMemo(
+    () => (bookings ?? []).filter((b) => new Date(b.created_at).getTime() > lastSeen).length,
+    [bookings, lastSeen],
+  );
+
+  const markAllSeen = () => {
+    const now = Date.now();
+    setLastSeen(now);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(LAST_SEEN_KEY, String(now));
+    }
+  };
+
     await qc.cancelQueries();
     qc.clear();
     await supabase.auth.signOut();
