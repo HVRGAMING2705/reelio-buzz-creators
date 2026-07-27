@@ -12,6 +12,9 @@ import {
   markAllBookingsUnread,
   getReadBookingIds,
   subscribeHistory,
+  getHistory,
+  clearHistory,
+  type NotifHistoryEntry,
 } from "@/lib/notification-history";
 import { SpamTrendChart } from "@/components/spam-trend-chart";
 import { saveCaptchaConfig, fetchCaptchaConfig } from "@/lib/captcha-config";
