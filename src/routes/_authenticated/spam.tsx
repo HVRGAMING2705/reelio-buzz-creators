@@ -220,16 +220,17 @@ function SpamPage() {
                   <th className="px-4 py-3 text-left">Reason</th>
                   <th className="px-4 py-3 text-left">IP hash</th>
                   <th className="px-4 py-3 text-left">Email / domain</th>
+                  <th className="px-4 py-3 text-left">UA / Referrer</th>
                   <th className="px-4 py-3 text-left">Detail</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
                 {isLoading ? (
-                  <tr><td colSpan={6} className="px-4 py-8 text-center text-white/50">Loading…</td></tr>
+                  <tr><td colSpan={7} className="px-4 py-8 text-center text-white/50">Loading…</td></tr>
                 ) : filtered.length === 0 ? (
-                  <tr><td colSpan={6} className="px-4 py-8 text-center text-white/50">No spam attempts in this range.</td></tr>
+                  <tr><td colSpan={7} className="px-4 py-8 text-center text-white/50">No spam attempts in this range.</td></tr>
                 ) : filtered.map((r) => (
-                  <tr key={r.id} className="hover:bg-white/5">
+                  <tr key={r.id} className="hover:bg-white/5 align-top">
                     <td className="px-4 py-3 whitespace-nowrap text-white/70">{fmt(r.created_at)}</td>
                     <td className="px-4 py-3 whitespace-nowrap text-white/60 uppercase text-[10px] tracking-wider">
                       {r.source === "honeypot" ? "Honeypot" : "Rate limit"}
@@ -247,6 +248,21 @@ function SpamPage() {
                         <code className="font-mono text-xs">{r.email_hash.slice(0, 16)}…</code>
                       ) : "—"}
                       {r.email_domain && <div className="text-[10px] text-white/40">@{r.email_domain}</div>}
+                    </td>
+                    <td className="px-4 py-3 text-xs text-white/60 max-w-[280px]">
+                      {r.user_agent ? (
+                        <div className="truncate" title={r.user_agent}>{r.user_agent}</div>
+                      ) : <div className="text-white/40">no UA</div>}
+                      {r.referrer ? (
+                        <div className="mt-1 truncate text-white/50" title={r.referrer}>
+                          ref: <span className="font-mono">{r.referrer}</span>
+                        </div>
+                      ) : null}
+                      {r.page_url ? (
+                        <div className="mt-1 truncate text-white/40" title={r.page_url}>
+                          on: <span className="font-mono">{r.page_url}</span>
+                        </div>
+                      ) : null}
                     </td>
                     <td className="px-4 py-3 text-white/60 text-xs">
                       {r.source === "rate_limit"
