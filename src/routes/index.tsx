@@ -269,26 +269,35 @@ function Index() {
           </div>
 
           {/* Byline strip */}
-          <div className="mt-16 md:mt-24 grid grid-cols-2 sm:grid-cols-4 gap-6 md:gap-10 lg:gap-14 pt-8 border-t border-white/15">
+          <div className="mt-16 md:mt-24 grid grid-cols-2 sm:grid-cols-4 gap-4 md:gap-6 pt-8 border-t border-white/15">
             {[
               { k: "50+", v: "Brands scaled" },
               { k: "10M+", v: "Reels views" },
               { k: "6", v: "Core services" },
               { k: "24/7", v: "Content engine" },
-            ].map((s) => (
-              <div key={s.v}>
+            ].map((s, i) => (
+              <motion.div
+                key={s.v}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-80px" }}
+                transition={{ duration: 0.7, delay: i * 0.08, ease: [0.2, 0.7, 0.2, 1] }}
+                whileHover={{ y: -4 }}
+                className="liquid-glass p-5 md:p-6"
+              >
                 <div className="font-display text-4xl md:text-6xl lg:text-7xl text-white leading-none">{s.k}</div>
-                <div className="mt-2 font-body text-[10px] md:text-xs uppercase tracking-[0.28em] text-white/50">
+                <div className="mt-2 font-body text-[10px] md:text-xs uppercase tracking-[0.28em] text-white/60">
                   {s.v}
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
 
       {/* ============ MARQUEE / TICKER ============ */}
-      <section className="relative py-4 md:py-5 border-y border-white/15 bg-[color:var(--reelio-red)] overflow-hidden">
+      <section className="relative py-4 md:py-5 border-y border-white/15 bg-[color:var(--reelio-red)] overflow-hidden liquid-shine">
+
         <div className="flex whitespace-nowrap animate-marquee font-display text-xl md:text-3xl tracking-[-0.01em]">
           {[...marqueeItems, ...marqueeItems, ...marqueeItems].map((it, i) => (
             <span key={i} className="flex items-center gap-8 md:gap-12 pr-8 md:pr-12 text-white">
