@@ -1768,24 +1768,37 @@ function SettingsModal({
   const [draft, setDraft] = useState<NotifSettings>(settings);
   useEffect(() => { if (open) setDraft(settings); }, [open, settings]);
   const [now, setNow] = useState(() => new Date());
+  const [pushPerm, setPushPerm] = useState<NotificationPermission | "unsupported">(() => pushPermission());
   useEffect(() => {
     if (!open) return;
+    setPushPerm(pushPermission());
     const t = setInterval(() => setNow(new Date()), 15000);
     return () => clearInterval(t);
   }, [open]);
   if (!open) return null;
   const quietActive = isQuietNow(draft, now);
-  const willDeliver = draft.realtimeEnabled && !quietActive;
+  const anyChannel = draft.channelInApp || draft.channelEmail || draft.channelPush;
+  const activeChannels: string[] = [];
+  if (draft.channelInApp && !quietActive) activeChannels.push("in-app");
+  if (draft.channelEmail) activeChannels.push("email");
+  if (draft.channelPush && !quietActive && pushPerm === "granted") activeChannels.push("push");
+  const willDeliver = anyChannel && activeChannels.length > 0;
   const nextTransition = draft.quietEnabled
     ? formatNextTransition(draft, now, quietActive)
     : null;
-  const statusReason = !draft.realtimeEnabled
-    ? "Realtime alerts are turned off."
-    : quietActive
+  const statusReason = !anyChannel
+    ? "All delivery channels are turned off."
+    : quietActive && activeChannels.length === 0
       ? `Quiet hours active${nextTransition ? ` — resumes at ${nextTransition}` : ""}.`
-      : draft.quietEnabled && nextTransition
-        ? `Alerts on — quiet hours begin at ${nextTransition}.`
-        : "Alerts on — notifications will be sent immediately.";
+      : quietActive
+        ? `Quiet hours active — only ${activeChannels.join(" + ")} will deliver.`
+        : activeChannels.length === 0
+          ? draft.channelPush && pushPerm !== "granted"
+            ? "Push is enabled but browser permission hasn't been granted."
+            : "No channels are active right now."
+          : `Delivering via ${activeChannels.join(" + ")}${
+              draft.quietEnabled && nextTransition ? ` — quiet hours begin at ${nextTransition}` : ""
+            }.`;
   return (
     <div
       className="fixed inset-0 z-40 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
