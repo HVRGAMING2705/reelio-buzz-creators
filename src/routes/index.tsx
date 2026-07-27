@@ -466,13 +466,13 @@ function Index() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-80px" }}
           transition={{ type: "spring", stiffness: 80 }}
-          className="glass conic-border rounded-[2.5rem] p-6 md:p-14 relative overflow-hidden"
+          className="conic-border rounded-[2.5rem] p-6 md:p-14 relative overflow-hidden bg-[color:var(--reelio-red)] shadow-[var(--shadow-red-glow)]"
         >
           <motion.div
             animate={{ x: [0, 60, -30, 0], y: [0, -30, 40, 0] }}
             transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
             className="absolute -top-24 -right-24 h-72 w-72 rounded-full blur-3xl opacity-60"
-            style={{ background: "radial-gradient(circle, oklch(1 0 0 / 0.4), transparent 70%)" }}
+            style={{ background: "radial-gradient(circle, oklch(1 0 0 / 0.5), transparent 70%)" }}
           />
           <div className="relative">
             <p className="text-[10px] uppercase tracking-[0.4em] opacity-80">💎 Monthly Plan</p>
