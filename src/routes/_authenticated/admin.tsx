@@ -458,7 +458,7 @@ function NotificationsBell({
           ) : (
             <ul className="divide-y divide-white/5">
               {recent.map((b) => {
-                const unread = new Date(b.created_at).getTime() > lastSeen;
+                const unread = new Date(b.created_at).getTime() > lastSeen && !readIds.has(b.id);
                 const checked = selectedIds.has(b.id);
                 return (
                   <li key={b.id} className="group flex items-center gap-1 px-4 py-3 hover:bg-white/5">
