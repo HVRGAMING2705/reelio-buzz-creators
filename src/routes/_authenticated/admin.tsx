@@ -311,7 +311,7 @@ function NotificationsBell({
               </p>
             </div>
             <button
-              onClick={() => onMarkAllSeen()}
+              onClick={() => onMarkAllRead(filteredNotifications.map((b) => b.id))}
               className={`text-[10px] uppercase tracking-[0.2em] opacity-70 hover:opacity-100 transition-opacity ${
                 unreadCount > 0 ? "" : "opacity-40 hover:opacity-60"
               }`}
@@ -436,13 +436,7 @@ function NotificationsBell({
                   </button>
                   <button
                     onClick={() => {
-                      const maxTs = Math.max(
-                        ...Array.from(selectedIds)
-                          .map((id) => recent.find((b) => b.id === id))
-                          .filter(Boolean)
-                          .map((b) => new Date(b!.created_at).getTime())
-                      );
-                      onMarkAllSeen(maxTs);
+                      onMarkAllRead(Array.from(selectedIds));
                       setSelectedIds(new Set());
                     }}
                     className="text-[10px] uppercase tracking-[0.15em] font-semibold text-red-400 hover:text-red-300"
@@ -1057,7 +1051,10 @@ function AdminPage() {
               bookings={bookingsWithProfiles}
               lastSeen={lastSeen}
               unreadCount={unreadCount}
-              onMarkAllSeen={markAllSeen}
+              onMarkAllRead={(ids) => {
+                markAllBookingsRead(ids);
+                markAllSeen();
+              }}
               onOpen={(id) => {
                 markReadByBookingId(id);
                 navigate({ to: "/bookings/$id", params: { id } });
