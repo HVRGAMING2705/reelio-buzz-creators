@@ -122,6 +122,9 @@ const DEFAULT_SETTINGS: NotifSettings = {
   notifyNoteUpdate: false,
   frequency: "instant",
   rateLimits: DEFAULT_RATE_LIMIT_CONFIG,
+  captchaBurstEnabled: true,
+  captchaBurstThreshold: 3,
+  captchaBurstWindowMin: 10,
 };
 
 const FREQUENCY_MS: Record<NotifFrequency, number> = {
