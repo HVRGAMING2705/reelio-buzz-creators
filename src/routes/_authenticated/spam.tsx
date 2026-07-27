@@ -28,6 +28,8 @@ type Item = {
   attempted_email?: string | null;
   form?: string | null;
   user_agent?: string | null;
+  referrer?: string | null;
+  page_url?: string | null;
   window_label?: string | null;
   max_allowed?: number | null;
   retry_after_sec?: number | null;
@@ -96,6 +98,8 @@ function SpamPage() {
         attempted_email: r.attempted_email,
         form: r.form,
         user_agent: r.user_agent,
+        referrer: (r as { referrer?: string | null }).referrer ?? null,
+        page_url: (r as { page_url?: string | null }).page_url ?? null,
       }));
       const blocks: Item[] = (b.data ?? []).map((r) => ({
         id: `b_${r.id}`,
@@ -125,6 +129,9 @@ function SpamPage() {
         (r.email_hash ?? "").toLowerCase().includes(needle) ||
         (r.email_domain ?? "").toLowerCase().includes(needle) ||
         (r.attempted_email ?? "").toLowerCase().includes(needle) ||
+        (r.user_agent ?? "").toLowerCase().includes(needle) ||
+        (r.referrer ?? "").toLowerCase().includes(needle) ||
+        (r.page_url ?? "").toLowerCase().includes(needle) ||
         r.reason.toLowerCase().includes(needle)
       );
     });
@@ -197,7 +204,7 @@ function SpamPage() {
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Search reason, email, domain, hash…"
+            placeholder="Search reason, email, domain, hash, UA, referrer…"
             className="min-w-[220px] flex-1 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs placeholder:text-white/40 focus:border-white/30 focus:outline-none"
           />
           <span className="text-xs text-white/50">{filtered.length} row{filtered.length === 1 ? "" : "s"}</span>
@@ -213,16 +220,17 @@ function SpamPage() {
                   <th className="px-4 py-3 text-left">Reason</th>
                   <th className="px-4 py-3 text-left">IP hash</th>
                   <th className="px-4 py-3 text-left">Email / domain</th>
+                  <th className="px-4 py-3 text-left">UA / Referrer</th>
                   <th className="px-4 py-3 text-left">Detail</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
                 {isLoading ? (
-                  <tr><td colSpan={6} className="px-4 py-8 text-center text-white/50">Loading…</td></tr>
+                  <tr><td colSpan={7} className="px-4 py-8 text-center text-white/50">Loading…</td></tr>
                 ) : filtered.length === 0 ? (
-                  <tr><td colSpan={6} className="px-4 py-8 text-center text-white/50">No spam attempts in this range.</td></tr>
+                  <tr><td colSpan={7} className="px-4 py-8 text-center text-white/50">No spam attempts in this range.</td></tr>
                 ) : filtered.map((r) => (
-                  <tr key={r.id} className="hover:bg-white/5">
+                  <tr key={r.id} className="hover:bg-white/5 align-top">
                     <td className="px-4 py-3 whitespace-nowrap text-white/70">{fmt(r.created_at)}</td>
                     <td className="px-4 py-3 whitespace-nowrap text-white/60 uppercase text-[10px] tracking-wider">
                       {r.source === "honeypot" ? "Honeypot" : "Rate limit"}
@@ -240,6 +248,21 @@ function SpamPage() {
                         <code className="font-mono text-xs">{r.email_hash.slice(0, 16)}…</code>
                       ) : "—"}
                       {r.email_domain && <div className="text-[10px] text-white/40">@{r.email_domain}</div>}
+                    </td>
+                    <td className="px-4 py-3 text-xs text-white/60 max-w-[280px]">
+                      {r.user_agent ? (
+                        <div className="truncate" title={r.user_agent}>{r.user_agent}</div>
+                      ) : <div className="text-white/40">no UA</div>}
+                      {r.referrer ? (
+                        <div className="mt-1 truncate text-white/50" title={r.referrer}>
+                          ref: <span className="font-mono">{r.referrer}</span>
+                        </div>
+                      ) : null}
+                      {r.page_url ? (
+                        <div className="mt-1 truncate text-white/40" title={r.page_url}>
+                          on: <span className="font-mono">{r.page_url}</span>
+                        </div>
+                      ) : null}
                     </td>
                     <td className="px-4 py-3 text-white/60 text-xs">
                       {r.source === "rate_limit"

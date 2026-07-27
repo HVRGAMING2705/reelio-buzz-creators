@@ -6,6 +6,8 @@ const bodySchema = z.object({
   reason: z.string().trim().max(64).optional(),
   email: z.string().trim().max(200).optional(),
   form: z.string().trim().max(64).optional(),
+  referrer: z.string().trim().max(2048).optional(),
+  page_url: z.string().trim().max(2048).optional(),
 });
 
 function shortHash(input: string) {
@@ -47,6 +49,9 @@ export const Route = createFileRoute("/api/public/spam-attempts")({
         const ip = clientIp(request);
         const email = payload.email?.trim().toLowerCase() || undefined;
         const userAgent = request.headers.get("user-agent");
+        const headerReferrer = request.headers.get("referer") || request.headers.get("referrer");
+        const referrer = (payload.referrer || headerReferrer || null)?.slice(0, 2048) ?? null;
+        const pageUrl = payload.page_url?.slice(0, 2048) ?? null;
 
         try {
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -57,6 +62,8 @@ export const Route = createFileRoute("/api/public/spam-attempts")({
             email_domain: emailDomainOf(email),
             attempted_email: email ?? null,
             user_agent: userAgent,
+            referrer,
+            page_url: pageUrl,
             form: payload.form ?? "booking",
           });
         } catch {

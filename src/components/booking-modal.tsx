@@ -203,6 +203,8 @@ export function BookingModal({ open, onClose }: Props) {
             reason: "honeypot",
             email: form.email || undefined,
             form: "booking",
+            referrer: typeof document !== "undefined" ? document.referrer || undefined : undefined,
+            page_url: typeof window !== "undefined" ? window.location.href : undefined,
           }),
           keepalive: true,
         });
