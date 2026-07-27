@@ -264,7 +264,7 @@ function Index() {
           </motion.div>
 
           {/* Orbit + logo */}
-          <div className="relative mt-24 mx-auto h-64 md:h-80 max-w-2xl hidden md:block">
+          <div className="relative mt-16 md:mt-24 mx-auto h-64 md:h-80 max-w-2xl block">
             <div className="absolute inset-0 grid place-items-center">
               <motion.img
                 animate={{ rotate: [0, 6, -6, 0] }}
