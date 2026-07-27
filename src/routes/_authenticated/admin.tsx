@@ -1153,8 +1153,25 @@ function SettingsModal({
 }) {
   const [draft, setDraft] = useState<NotifSettings>(settings);
   useEffect(() => { if (open) setDraft(settings); }, [open, settings]);
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    if (!open) return;
+    const t = setInterval(() => setNow(new Date()), 15000);
+    return () => clearInterval(t);
+  }, [open]);
   if (!open) return null;
-  const quietActive = isQuietNow(draft);
+  const quietActive = isQuietNow(draft, now);
+  const willDeliver = draft.realtimeEnabled && !quietActive;
+  const nextTransition = draft.quietEnabled
+    ? formatNextTransition(draft, now, quietActive)
+    : null;
+  const statusReason = !draft.realtimeEnabled
+    ? "Realtime alerts are turned off."
+    : quietActive
+      ? `Quiet hours active${nextTransition ? ` — resumes at ${nextTransition}` : ""}.`
+      : draft.quietEnabled && nextTransition
+        ? `Alerts on — quiet hours begin at ${nextTransition}.`
+        : "Alerts on — notifications will be sent immediately.";
   return (
     <div
       className="fixed inset-0 z-40 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
