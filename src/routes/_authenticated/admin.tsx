@@ -6,7 +6,7 @@ import type { Tables } from "@/integrations/supabase/types";
 
 type Booking = Tables<"bookings">;
 
-const STATUSES = ["new", "contacted", "booked", "closed"] as const;
+const STATUSES = ["new", "confirmed", "canceled"] as const;
 type Status = (typeof STATUSES)[number];
 
 export const Route = createFileRoute("/_authenticated/admin")({
@@ -356,9 +356,8 @@ function AdminPage() {
 function StatusPill({ status }: { status: Status }) {
   const colors: Record<Status, string> = {
     new: "bg-blue-500/20 text-blue-200",
-    contacted: "bg-yellow-500/20 text-yellow-200",
-    booked: "bg-green-500/20 text-green-200",
-    closed: "bg-white/10 text-white/70",
+    confirmed: "bg-green-500/20 text-green-200",
+    canceled: "bg-red-500/20 text-red-200",
   };
   return (
     <span className={`text-[10px] uppercase tracking-[0.2em] px-2 py-0.5 rounded-full ${colors[status] ?? colors.new}`}>
