@@ -166,7 +166,7 @@ function NotificationsBell({
             </div>
             {unreadCount > 0 && (
               <button
-                onClick={onMarkAllSeen}
+                onClick={() => onMarkAllSeen()}
                 className="text-[10px] uppercase tracking-[0.2em] opacity-70 hover:opacity-100"
               >
                 Mark read
