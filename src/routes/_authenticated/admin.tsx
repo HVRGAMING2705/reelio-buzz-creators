@@ -6,7 +6,7 @@ import type { Tables } from "@/integrations/supabase/types";
 
 type Booking = Tables<"bookings">;
 
-const STATUSES = ["new", "contacted", "booked", "closed"] as const;
+const STATUSES = ["new", "confirmed", "canceled"] as const;
 type Status = (typeof STATUSES)[number];
 
 export const Route = createFileRoute("/_authenticated/admin")({
