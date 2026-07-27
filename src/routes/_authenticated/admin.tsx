@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { logNotification } from "@/lib/notification-history";
-import { saveCaptchaConfig } from "@/lib/captcha-config";
+import { saveCaptchaConfig, fetchCaptchaConfig } from "@/lib/captcha-config";
 
 const LAST_SEEN_KEY = "reelio.admin.lastSeenBookingAt";
 const SETTINGS_KEY_BASE = "reelio.admin.notifSettings";
