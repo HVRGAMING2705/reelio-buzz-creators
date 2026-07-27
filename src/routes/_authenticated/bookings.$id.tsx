@@ -320,38 +320,87 @@ function BookingDetailPage() {
                 <p className="text-[10px] uppercase tracking-[0.25em] opacity-70">
                   Activity & confirmation history
                 </p>
-                <span className="text-[10px] opacity-50">{events?.length ?? 0} events</span>
+                <span className="text-[10px] opacity-50">
+                  {(events?.length ?? 0) + (blocks?.length ?? 0)} events
+                  {blocks && blocks.length > 0 && (
+                    <span className="ml-2 text-red-300/80">· {blocks.length} security</span>
+                  )}
+                </span>
               </div>
-              {!events || events.length === 0 ? (
-                <p className="text-sm opacity-60">No events recorded yet.</p>
-              ) : (
-                <ol className="relative border-l border-white/15 ml-2 space-y-4">
-                  {events.map((ev) => (
-                    <li key={ev.id} className="pl-4 relative">
-                      <span className="absolute -left-[6px] top-1.5 w-2.5 h-2.5 rounded-full bg-white/70 shadow-[0_0_10px_rgba(255,255,255,0.6)]" />
-                      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                        <span className="text-sm">{eventLabel(ev)}</span>
-                        <span className="text-[10px] uppercase tracking-[0.2em] opacity-50">
-                          {new Date(ev.created_at).toLocaleString()}
-                        </span>
-                      </div>
-                      {(ev.from_value || ev.to_value) && ev.event_type !== "note_updated" && (
-                        <p className="text-xs opacity-70 mt-1">
-                          {ev.from_value ? <><span className="opacity-60">from</span> {ev.from_value} </> : null}
-                          {ev.to_value ? <><span className="opacity-60">→</span> {ev.to_value}</> : null}
-                        </p>
-                      )}
-                      {ev.event_type === "note_updated" && ev.to_value && (
-                        <p className="text-xs opacity-70 mt-1 whitespace-pre-wrap">"{ev.to_value}"</p>
-                      )}
-                    </li>
-                  ))}
-                </ol>
-              )}
+              {(() => {
+                const items: TimelineItem[] = [
+                  ...(events ?? []).map((ev) => ({ kind: "event" as const, at: ev.created_at, ev })),
+                  ...(blocks ?? []).map((block) => ({ kind: "block" as const, at: block.created_at, block })),
+                ].sort((a, b) => (a.at < b.at ? 1 : -1));
+
+                if (items.length === 0) {
+                  return <p className="text-sm opacity-60">No events recorded yet.</p>;
+                }
+                return (
+                  <ol className="relative border-l border-white/15 ml-2 space-y-4">
+                    {items.map((it) =>
+                      it.kind === "event" ? (
+                        <li key={`e-${it.ev.id}`} className="pl-4 relative">
+                          <span className="absolute -left-[6px] top-1.5 w-2.5 h-2.5 rounded-full bg-white/70 shadow-[0_0_10px_rgba(255,255,255,0.6)]" />
+                          <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                            <span className="text-sm">{eventLabel(it.ev)}</span>
+                            <span className="text-[10px] uppercase tracking-[0.2em] opacity-50">
+                              {new Date(it.ev.created_at).toLocaleString()}
+                            </span>
+                          </div>
+                          {(it.ev.from_value || it.ev.to_value) && it.ev.event_type !== "note_updated" && (
+                            <p className="text-xs opacity-70 mt-1">
+                              {it.ev.from_value ? <><span className="opacity-60">from</span> {it.ev.from_value} </> : null}
+                              {it.ev.to_value ? <><span className="opacity-60">→</span> {it.ev.to_value}</> : null}
+                            </p>
+                          )}
+                          {it.ev.event_type === "note_updated" && it.ev.to_value && (
+                            <p className="text-xs opacity-70 mt-1 whitespace-pre-wrap">"{it.ev.to_value}"</p>
+                          )}
+                        </li>
+                      ) : (
+                        <li key={`b-${it.block.id}`} className="pl-4 relative">
+                          <span className="absolute -left-[6px] top-1.5 w-2.5 h-2.5 rounded-full bg-red-400 shadow-[0_0_10px_rgba(248,113,113,0.7)]" />
+                          <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                            <span className="text-sm text-red-200">{blockLabel(it.block.reason)}</span>
+                            <span className="text-[10px] uppercase tracking-[0.2em] opacity-50">
+                              {new Date(it.block.created_at).toLocaleString()}
+                            </span>
+                          </div>
+                          <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[11px] opacity-70">
+                            {it.block.window_label && (
+                              <span>window <span className="font-mono">{it.block.window_label}</span></span>
+                            )}
+                            {it.block.max_allowed != null && (
+                              <span>max <span className="font-mono">{it.block.max_allowed}</span></span>
+                            )}
+                            {it.block.retry_after_sec != null && (
+                              <span>retry after <span className="font-mono">{it.block.retry_after_sec}s</span></span>
+                            )}
+                            {it.block.ip_hash && (
+                              <span>ip <span className="font-mono">{it.block.ip_hash.slice(0, 8)}…</span></span>
+                            )}
+                            {it.block.email_domain && (
+                              <span>@{it.block.email_domain}</span>
+                            )}
+                          </div>
+                          {it.block.user_agent && (
+                            <p className="text-[10px] opacity-50 mt-1 truncate" title={it.block.user_agent}>
+                              {it.block.user_agent}
+                            </p>
+                          )}
+                        </li>
+                      ),
+                    )}
+                  </ol>
+                );
+              })()}
               <p className="mt-4 text-[10px] opacity-40">
+                Security events (captcha failures, rate limits) attributed by attempted email hash.
                 Email confirmations will appear here once a sender domain is configured.
               </p>
             </section>
+
 
             <div className="flex justify-end">
               <button
