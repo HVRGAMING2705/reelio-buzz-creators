@@ -6,6 +6,8 @@ const bodySchema = z.object({
   reason: z.string().trim().max(64).optional(),
   email: z.string().trim().max(200).optional(),
   form: z.string().trim().max(64).optional(),
+  referrer: z.string().trim().max(2048).optional(),
+  page_url: z.string().trim().max(2048).optional(),
 });
 
 function shortHash(input: string) {
