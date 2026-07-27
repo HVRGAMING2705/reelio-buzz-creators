@@ -408,7 +408,11 @@ function AdminPage() {
               lastSeen={lastSeen}
               unreadCount={unreadCount}
               onMarkAllSeen={markAllSeen}
-              onOpen={(id) => navigate({ to: "/bookings/$id", params: { id } })}
+              onOpen={(id) => {
+                markAllSeen();
+                navigate({ to: "/bookings/$id", params: { id } });
+              }}
+
             />
             <button
               onClick={() => setSettingsOpen(true)}
