@@ -51,6 +51,7 @@ const DEFAULT_SETTINGS: NotifSettings = {
   notifyStatusChange: true,
   notifyNoteUpdate: false,
   frequency: "instant",
+  rateLimits: DEFAULT_RATE_LIMIT_CONFIG,
 };
 
 const FREQUENCY_MS: Record<NotifFrequency, number> = {
