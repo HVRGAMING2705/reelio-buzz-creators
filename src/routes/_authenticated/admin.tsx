@@ -24,6 +24,12 @@ function AdminPage() {
   const qc = useQueryClient();
   const [filter, setFilter] = useState<"all" | Status>("all");
   const [search, setSearch] = useState("");
+  const [nameQ, setNameQ] = useState("");
+  const [serviceQ, setServiceQ] = useState("all");
+  const [nicheQ, setNicheQ] = useState("all");
+  const [budgetQ, setBudgetQ] = useState("all");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const { data: bookings, isLoading, error } = useQuery({
@@ -80,17 +86,33 @@ function AdminPage() {
     navigate({ to: "/auth", replace: true });
   };
 
+  const uniq = (vals: (string | null)[]) =>
+    Array.from(new Set(vals.filter((v): v is string => !!v && v.trim() !== ""))).sort();
+  const services = useMemo(() => uniq((bookings ?? []).map((b) => b.service)), [bookings]);
+  const niches = useMemo(() => uniq((bookings ?? []).map((b) => b.niche)), [bookings]);
+  const budgets = useMemo(() => uniq((bookings ?? []).map((b) => b.budget)), [bookings]);
+
   const filtered = useMemo(() => {
     if (!bookings) return [];
     const q = search.trim().toLowerCase();
+    const name = nameQ.trim().toLowerCase();
+    const from = dateFrom ? new Date(dateFrom).getTime() : null;
+    const to = dateTo ? new Date(dateTo).getTime() + 86_400_000 : null;
     return bookings.filter((b) => {
       if (filter !== "all" && b.status !== filter) return false;
+      if (serviceQ !== "all" && (b.service ?? "") !== serviceQ) return false;
+      if (nicheQ !== "all" && (b.niche ?? "") !== nicheQ) return false;
+      if (budgetQ !== "all" && (b.budget ?? "") !== budgetQ) return false;
+      const t = new Date(b.created_at).getTime();
+      if (from !== null && t < from) return false;
+      if (to !== null && t >= to) return false;
+      if (name && !(b.name ?? "").toLowerCase().includes(name)) return false;
       if (!q) return true;
       return [b.name, b.email, b.brand, b.phone, b.niche, b.service, b.message]
         .filter(Boolean)
         .some((v) => String(v).toLowerCase().includes(q));
     });
-  }, [bookings, filter, search]);
+  }, [bookings, filter, search, nameQ, serviceQ, nicheQ, budgetQ, dateFrom, dateTo]);
 
   const selected = filtered.find((b) => b.id === selectedId) ?? bookings?.find((b) => b.id === selectedId);
 
@@ -146,8 +168,58 @@ function AdminPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search name, email, brand, niche…"
-            className="input-glass mb-4"
+            className="input-glass mb-3"
           />
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2 mb-3">
+            <input
+              value={nameQ}
+              onChange={(e) => setNameQ(e.target.value)}
+              placeholder="Filter by name"
+              className="input-glass"
+            />
+            <select value={serviceQ} onChange={(e) => setServiceQ(e.target.value)} className="input-glass">
+              <option value="all">All services</option>
+              {services.map((s) => <option key={s} value={s}>{s}</option>)}
+            </select>
+            <select value={nicheQ} onChange={(e) => setNicheQ(e.target.value)} className="input-glass">
+              <option value="all">All niches</option>
+              {niches.map((s) => <option key={s} value={s}>{s}</option>)}
+            </select>
+            <select value={budgetQ} onChange={(e) => setBudgetQ(e.target.value)} className="input-glass">
+              <option value="all">All budgets</option>
+              {budgets.map((s) => <option key={s} value={s}>{s}</option>)}
+            </select>
+            <input
+              type="date"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+              className="input-glass"
+              aria-label="From date"
+            />
+            <input
+              type="date"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+              className="input-glass"
+              aria-label="To date"
+            />
+          </div>
+
+          <div className="flex items-center justify-between mb-4 text-xs opacity-70">
+            <span>{filtered.length} result{filtered.length === 1 ? "" : "s"}</span>
+            {(nameQ || serviceQ !== "all" || nicheQ !== "all" || budgetQ !== "all" || dateFrom || dateTo || search) && (
+              <button
+                onClick={() => {
+                  setNameQ(""); setServiceQ("all"); setNicheQ("all");
+                  setBudgetQ("all"); setDateFrom(""); setDateTo(""); setSearch("");
+                }}
+                className="uppercase tracking-[0.2em] hover:text-white"
+              >
+                Clear filters
+              </button>
+            )}
+          </div>
 
           {isLoading && <p className="opacity-70">Loading…</p>}
           {error && (
