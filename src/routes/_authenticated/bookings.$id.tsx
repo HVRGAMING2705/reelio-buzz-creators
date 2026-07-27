@@ -412,6 +412,11 @@ function TimelineSection({
   const [filter, setFilter] = useState<FilterKind>("all");
   const [from, setFrom] = useState<string>("");
   const [to, setTo] = useState<string>("");
+  const [detail, setDetail] = useState<
+    | { kind: "captcha"; cap: CaptchaEventRow }
+    | { kind: "block"; block: BlockRow }
+    | null
+  >(null);
 
   const fromMs = from ? new Date(from).getTime() : -Infinity;
   const toMs = to ? new Date(to).getTime() + 24 * 60 * 60 * 1000 - 1 : Infinity;
