@@ -235,7 +235,7 @@ function ProgressRing() {
 
 /* ---------- Section ---------- */
 export function MotionShowcase() {
-  const tiles: { title: string; hint: string; render: () => JSX.Element }[] = [
+  const tiles: { title: string; hint: string; render: () => React.ReactElement }[] = [
     { title: "Liquid Blob", hint: "SVG goo filter + motion", render: () => <LiquidBlob /> },
     { title: "Spotlight", hint: "Cursor-follow gradient", render: () => <SpotlightCard /> },
     { title: "Ripple", hint: "Click to spawn", render: () => <RipplePad /> },
