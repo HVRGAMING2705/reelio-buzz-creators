@@ -368,18 +368,18 @@ function Index() {
       </section>
 
       {/* ============ PACKAGE / PRICING SPREAD ============ */}
-      <section id="package" className="relative py-24 md:py-40">
-        <div className="mx-auto max-w-[1400px] px-5 md:px-10">
-          <div className="grid md:grid-cols-12 gap-8 md:gap-12">
+      <section id="package" className="relative py-24 md:py-32 lg:py-40">
+        <div className="mx-auto max-w-[1600px] px-5 sm:px-8 md:px-10 lg:px-14">
+          <div className="grid md:grid-cols-12 gap-8 md:gap-12 lg:gap-16">
             {/* left column — the "cover" */}
             <div className="md:col-span-5 md:sticky md:top-28 self-start">
               <span className="slug">§ The Package</span>
-              <h2 className="mt-6 font-display text-6xl md:text-8xl leading-[0.88]">
+              <h2 className="mt-6 font-display text-6xl md:text-8xl lg:text-9xl leading-[0.88]">
                 Reelio<br />
                 <span className="text-[color:var(--reelio-red)]">Monthly.</span>
               </h2>
               <div className="mt-10 flex items-baseline gap-3">
-                <span className="font-display text-6xl md:text-8xl leading-none">₹50K</span>
+                <span className="font-display text-6xl md:text-8xl lg:text-9xl leading-none">₹50K</span>
                 <span className="font-body text-sm uppercase tracking-[0.25em] text-white/50">
                   / month
                 </span>
