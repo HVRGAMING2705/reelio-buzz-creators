@@ -796,6 +796,7 @@ function AdminPage() {
           notifiedIds.current.add(b.id);
           prevBookings.current.set(b.id, b);
           qc.invalidateQueries({ queryKey: ["bookings"] });
+          if (!settingsRef.current.categoryBookings) return;
           if (!settingsRef.current.notifyNewBooking) return;
           enqueueEvent({ kind: "new", booking: b });
         },
@@ -809,6 +810,7 @@ function AdminPage() {
           prevBookings.current.set(next.id, next);
           qc.invalidateQueries({ queryKey: ["bookings"] });
           if (!prev) return;
+          if (!settingsRef.current.categoryBookings) return;
           if (prev.status !== next.status && settingsRef.current.notifyStatusChange) {
             enqueueEvent({ kind: "status", booking: next, from: prev.status, to: next.status });
           }
