@@ -3,6 +3,13 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import type { User } from "@supabase/supabase-js";
+import {
+  CAPTCHA_CONFIG_KEY,
+  DEFAULT_CAPTCHA_CONFIG,
+  loadCaptchaConfig,
+  loadHCaptchaScript,
+  type CaptchaConfig,
+} from "@/lib/captcha-config";
 
 type Props = {
   open: boolean;
@@ -88,7 +95,57 @@ export function BookingModal({ open, onClose }: Props) {
   const [form, setForm] = useState<FormShape>(emptyForm);
   const [honeypot, setHoneypot] = useState(""); // hidden field — bots fill it
   const [user, setUser] = useState<User | null>(null);
+  const [captchaCfg, setCaptchaCfg] = useState<CaptchaConfig>(() => loadCaptchaConfig());
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const captchaContainerRef = useRef<HTMLDivElement | null>(null);
+  const captchaWidgetIdRef = useRef<string | null>(null);
   const openedAtRef = useRef<number>(0);
+
+  const captchaActive = captchaCfg.enabled && !!captchaCfg.siteKey;
+
+  // Keep captcha config in sync with admin settings (this tab + other tabs).
+  useEffect(() => {
+    const refresh = () => setCaptchaCfg(loadCaptchaConfig());
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === CAPTCHA_CONFIG_KEY) refresh();
+    };
+    window.addEventListener("storage", onStorage);
+    window.addEventListener("reelio:captcha-config", refresh as EventListener);
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("reelio:captcha-config", refresh as EventListener);
+    };
+  }, []);
+
+  // Render / re-render hCaptcha widget while modal is open and captcha is enabled.
+  useEffect(() => {
+    if (!open || step !== "form") return;
+    if (!captchaActive) {
+      setCaptchaToken(null);
+      captchaWidgetIdRef.current = null;
+      return;
+    }
+    let cancelled = false;
+    loadHCaptchaScript()
+      .then((hc: any) => {
+        if (cancelled || !captchaContainerRef.current) return;
+        // Reset any previous render (site key changed, re-opened, etc.)
+        captchaContainerRef.current.innerHTML = "";
+        captchaWidgetIdRef.current = hc.render(captchaContainerRef.current, {
+          sitekey: captchaCfg.siteKey,
+          theme: "dark",
+          callback: (token: string) => setCaptchaToken(token),
+          "expired-callback": () => setCaptchaToken(null),
+          "error-callback": () => setCaptchaToken(null),
+        });
+      })
+      .catch(() => {
+        setErrorMsg("Couldn't load captcha — please refresh and try again.");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [open, step, captchaActive, captchaCfg.siteKey]);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setUser(data.user ?? null));
@@ -162,6 +219,14 @@ export function BookingModal({ open, onClose }: Props) {
       return;
     }
 
+    // 5. hCaptcha (only when admin enabled it with a site key)
+    if (captchaActive && !captchaToken) {
+      setErrorMsg("Please complete the captcha to continue.");
+      return;
+    }
+
+
+
     setSubmitting(true);
     const v = parsed.data;
     const insertPayload = {
@@ -195,6 +260,13 @@ export function BookingModal({ open, onClose }: Props) {
     setFieldErrors({});
     setErrorMsg(null);
     setHoneypot("");
+    setCaptchaToken(null);
+    if (captchaActive && typeof window !== "undefined") {
+      const hc = (window as any).hcaptcha;
+      if (hc && captchaWidgetIdRef.current) {
+        try { hc.reset(captchaWidgetIdRef.current); } catch { /* ignore */ }
+      }
+    }
     openedAtRef.current = Date.now();
   };
 
@@ -384,6 +456,15 @@ export function BookingModal({ open, onClose }: Props) {
                       placeholder="Goals, timelines, references…"
                     />
                   </Field>
+
+                  {captchaActive && (
+                    <div>
+                      <span className="block text-[10px] uppercase tracking-[0.25em] opacity-80 mb-2">
+                        Verify you're human
+                      </span>
+                      <div ref={captchaContainerRef} className="min-h-[78px]" />
+                    </div>
+                  )}
 
                   {errorMsg && <p className="text-sm text-red-300" role="alert">{errorMsg}</p>}
                   {remainingCooldown > 0 && !errorMsg && (

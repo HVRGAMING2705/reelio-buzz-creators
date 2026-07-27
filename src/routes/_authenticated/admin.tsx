@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { logNotification } from "@/lib/notification-history";
+import { saveCaptchaConfig } from "@/lib/captcha-config";
 
 const LAST_SEEN_KEY = "reelio.admin.lastSeenBookingAt";
 const SETTINGS_KEY_BASE = "reelio.admin.notifSettings";
@@ -612,6 +613,9 @@ function AdminPage() {
     if (typeof window !== "undefined") {
       window.localStorage.setItem(settingsKeyFor(userId), JSON.stringify(next));
     }
+    // Mirror captcha config to a global (non per-user) key so the public
+    // booking form can react to the toggle regardless of which admin saved.
+    saveCaptchaConfig({ enabled: next.captchaEnabled, siteKey: next.hcaptchaSiteKey });
   };
 
 
