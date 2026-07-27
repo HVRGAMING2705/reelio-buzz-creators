@@ -38,6 +38,123 @@ function exportBookingsCsv(rows: Booking[]) {
   URL.revokeObjectURL(url);
 }
 
+function timeAgo(iso: string) {
+  const s = Math.max(1, Math.floor((Date.now() - new Date(iso).getTime()) / 1000));
+  if (s < 60) return `${s}s ago`;
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  const d = Math.floor(h / 24);
+  return `${d}d ago`;
+}
+
+function NotificationsBell({
+  bookings, lastSeen, unreadCount, onMarkAllSeen, onOpen,
+}: {
+  bookings: Booking[];
+  lastSeen: number;
+  unreadCount: number;
+  onMarkAllSeen: () => void;
+  onOpen: (id: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDoc = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, [open]);
+
+  const recent = useMemo(
+    () => [...bookings]
+      .sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at))
+      .slice(0, 8),
+    [bookings],
+  );
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="relative rounded-full glass px-3 py-2 text-sm hover:bg-white/10"
+        aria-label={`Notifications${unreadCount ? ` (${unreadCount} new)` : ""}`}
+        aria-expanded={open}
+      >
+        <span aria-hidden>🔔</span>
+        {unreadCount > 0 && (
+          <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center shadow-[0_0_12px_rgba(239,68,68,0.8)] animate-pulse">
+            {unreadCount > 99 ? "99+" : unreadCount}
+          </span>
+        )}
+      </button>
+      {open && (
+        <div className="absolute right-0 mt-2 w-[340px] max-h-[70vh] overflow-auto rounded-2xl border border-white/10 bg-black/90 backdrop-blur-xl shadow-2xl z-30">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.3em] opacity-60">Notifications</p>
+              <p className="text-sm">
+                {unreadCount > 0 ? `${unreadCount} new booking${unreadCount === 1 ? "" : "s"}` : "You're all caught up"}
+              </p>
+            </div>
+            {unreadCount > 0 && (
+              <button
+                onClick={onMarkAllSeen}
+                className="text-[10px] uppercase tracking-[0.2em] opacity-70 hover:opacity-100"
+              >
+                Mark read
+              </button>
+            )}
+          </div>
+          {recent.length === 0 ? (
+            <div className="px-4 py-8 text-center text-sm opacity-60">No bookings yet</div>
+          ) : (
+            <ul className="divide-y divide-white/5">
+              {recent.map((b) => {
+                const unread = new Date(b.created_at).getTime() > lastSeen;
+                return (
+                  <li key={b.id}>
+                    <button
+                      onClick={() => { setOpen(false); onOpen(b.id); }}
+                      className="w-full text-left px-4 py-3 hover:bg-white/5 flex gap-3 items-start"
+                    >
+                      <span
+                        className={`mt-1.5 h-2 w-2 rounded-full shrink-0 ${
+                          unread ? "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.9)]" : "bg-white/20"
+                        }`}
+                        aria-hidden
+                      />
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-sm truncate">
+                            {b.name}
+                            {b.brand ? <span className="opacity-60"> · {b.brand}</span> : null}
+                          </p>
+                          <span className="text-[10px] opacity-60 shrink-0">{timeAgo(b.created_at)}</span>
+                        </div>
+                        <p className="text-xs opacity-70 truncate">
+                          {b.service || "New submission"}
+                          {b.budget ? ` · ${b.budget}` : ""}
+                        </p>
+                      </div>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({
     meta: [
@@ -213,19 +330,13 @@ function AdminPage() {
                 No admin role
               </span>
             )}
-            <button
-              onClick={markAllSeen}
-              className="relative rounded-full glass px-3 py-2 text-sm hover:bg-white/10"
-              aria-label={`Notifications${unreadCount ? ` (${unreadCount} new)` : ""}`}
-              title={unreadCount ? `${unreadCount} new since last check` : "No new bookings"}
-            >
-              <span aria-hidden>🔔</span>
-              {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center shadow-[0_0_12px_rgba(239,68,68,0.8)] animate-pulse">
-                  {unreadCount > 99 ? "99+" : unreadCount}
-                </span>
-              )}
-            </button>
+            <NotificationsBell
+              bookings={bookings ?? []}
+              lastSeen={lastSeen}
+              unreadCount={unreadCount}
+              onMarkAllSeen={markAllSeen}
+              onOpen={(id) => navigate({ to: "/bookings/$id", params: { id } })}
+            />
             <button
               onClick={signOut}
               className="rounded-full glass px-4 py-2 uppercase tracking-[0.2em] text-[10px]"
