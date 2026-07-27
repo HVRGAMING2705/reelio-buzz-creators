@@ -91,6 +91,7 @@ export function BookingModal({ open, onClose }: Props) {
   const [step, setStep] = useState<"form" | "sent">("form");
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [captchaError, setCaptchaError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof FormShape, string>>>({});
   const [form, setForm] = useState<FormShape>(emptyForm);
   const [honeypot, setHoneypot] = useState(""); // hidden field — bots fill it
@@ -134,9 +135,9 @@ export function BookingModal({ open, onClose }: Props) {
         captchaWidgetIdRef.current = hc.render(captchaContainerRef.current, {
           sitekey: captchaCfg.siteKey,
           theme: "dark",
-          callback: (token: string) => setCaptchaToken(token),
-          "expired-callback": () => setCaptchaToken(null),
-          "error-callback": () => setCaptchaToken(null),
+          callback: (token: string) => { setCaptchaToken(token); setCaptchaError(null); },
+          "expired-callback": () => { setCaptchaToken(null); setCaptchaError("Captcha expired — please tick the box again."); },
+          "error-callback": () => { setCaptchaToken(null); setCaptchaError("Captcha widget error — please retry."); },
         });
       })
       .catch(() => {
@@ -221,9 +222,12 @@ export function BookingModal({ open, onClose }: Props) {
 
     // 5. hCaptcha (only when admin enabled it with a site key)
     if (captchaActive && !captchaToken) {
-      setErrorMsg("Please complete the captcha to continue.");
+      const msg = "Please complete the captcha to continue.";
+      setCaptchaError(msg);
+      setErrorMsg(msg);
       return;
     }
+    setCaptchaError(null);
 
 
 
@@ -251,13 +255,18 @@ export function BookingModal({ open, onClose }: Props) {
       setSubmitting(false);
       if (!res.ok) {
         let msg = "Couldn't send — please try again.";
+        let field: string | undefined;
         if (res.status === 400 || res.status === 403) {
           try {
-            const j = (await res.json()) as { error?: string };
+            const j = (await res.json()) as { error?: string; field?: string };
             if (j?.error) msg = j.error;
+            field = j?.field;
           } catch { /* ignore */ }
         }
         setErrorMsg(msg);
+        if (field === "captcha" || res.status === 403) {
+          setCaptchaError(msg);
+        }
         if (captchaActive && typeof window !== "undefined") {
           const hc = (window as any).hcaptcha;
           if (hc && captchaWidgetIdRef.current) {
@@ -285,6 +294,7 @@ export function BookingModal({ open, onClose }: Props) {
     setForm(emptyForm);
     setFieldErrors({});
     setErrorMsg(null);
+    setCaptchaError(null);
     setHoneypot("");
     setCaptchaToken(null);
     if (captchaActive && typeof window !== "undefined") {
@@ -488,7 +498,22 @@ export function BookingModal({ open, onClose }: Props) {
                       <span className="block text-[10px] uppercase tracking-[0.25em] opacity-80 mb-2">
                         Verify you're human
                       </span>
-                      <div ref={captchaContainerRef} className="min-h-[78px]" />
+                      <div
+                        ref={captchaContainerRef}
+                        className={`min-h-[78px] rounded-lg ${captchaError ? "ring-1 ring-red-400/70 p-1" : ""}`}
+                        aria-invalid={!!captchaError}
+                        aria-describedby={captchaError ? "captcha-error" : undefined}
+                      />
+                      {captchaError && (
+                        <p
+                          id="captcha-error"
+                          role="alert"
+                          className="mt-2 text-xs text-red-300 flex items-start gap-1.5"
+                        >
+                          <span aria-hidden>⚠</span>
+                          <span>{captchaError}</span>
+                        </p>
+                      )}
                     </div>
                   )}
 
