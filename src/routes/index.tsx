@@ -315,7 +315,7 @@ function Index() {
                   <span className="hidden sm:block col-span-6 md:col-span-3 font-body text-[11px] lg:text-xs uppercase tracking-[0.25em] text-white/50 group-hover:text-white/90 transition-colors">
                     {s.kicker}
                   </span>
-                  <span className="col-span-12 md:col-span-3 font-body text-sm text-white/60 group-hover:text-white/90 transition-colors">
+                  <span className="col-span-12 sm:col-span-6 md:col-span-3 font-body text-sm lg:text-[15px] text-white/60 group-hover:text-white/90 transition-colors">
                     {s.desc}
                   </span>
                 </a>
