@@ -455,15 +455,26 @@ function NotificationsBell({
                 {unreadCount > 0 ? `${unreadCount} new booking${unreadCount === 1 ? "" : "s"}` : "You're all caught up"}
               </p>
             </div>
-            <button
-              onClick={() => onMarkAllRead(filteredNotifications.map((b) => b.id))}
-              className={`text-[10px] uppercase tracking-[0.2em] opacity-70 hover:opacity-100 transition-opacity ${
-                unreadCount > 0 ? "" : "opacity-40 hover:opacity-60"
-              }`}
-              aria-label="Mark all filtered notifications as read"
-            >
-              Mark filtered as read
-            </button>
+            <div className="flex items-center gap-3">
+              {unreadCount > 0 && (
+                <button
+                  onClick={jumpToFirstUnread}
+                  className="text-[10px] uppercase tracking-[0.2em] text-red-400 hover:text-red-300 transition-opacity font-semibold"
+                  aria-label="Jump to first unread notification"
+                >
+                  Jump to unread
+                </button>
+              )}
+              <button
+                onClick={() => onMarkAllRead(filteredNotifications.map((b) => b.id))}
+                className={`text-[10px] uppercase tracking-[0.2em] opacity-70 hover:opacity-100 transition-opacity ${
+                  unreadCount > 0 ? "" : "opacity-40 hover:opacity-60"
+                }`}
+                aria-label="Mark all filtered notifications as read"
+              >
+                Mark filtered as read
+              </button>
+            </div>
           </div>
           <div className="px-4 py-3 border-b border-white/10 bg-white/[0.03]">
             <div className="flex items-center gap-2 flex-wrap">
