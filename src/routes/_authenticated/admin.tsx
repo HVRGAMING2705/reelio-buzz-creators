@@ -701,14 +701,48 @@ function NotificationsBell({
                 );
               })}
               {hasMoreNotifications && (
-                <div className="px-4 py-3 border-t border-white/10 bg-white/[0.02]">
-                  <button
-                    onClick={() => setNotifLimit((n) => n + 8)}
-                    className="w-full text-center text-xs uppercase tracking-[0.15em] py-2 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 transition-colors"
-                    aria-label="Load older notifications"
-                  >
-                    Load more ({filteredNotifications.length - recent.length} remaining)
-                  </button>
+                <div className="px-4 py-3 border-t border-white/10 bg-white/[0.02] space-y-2">
+                  {loadingMore && (
+                    <ul className="space-y-2" aria-live="polite" aria-busy="true">
+                      {Array.from({ length: 3 }).map((_, i) => (
+                        <li
+                          key={i}
+                          className="flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 animate-pulse"
+                        >
+                          <div className="h-8 w-8 rounded-full bg-white/10" />
+                          <div className="flex-1 space-y-1.5">
+                            <div className="h-3 w-2/3 rounded bg-white/10" />
+                            <div className="h-2.5 w-1/2 rounded bg-white/[0.07]" />
+                          </div>
+                        </li>
+                      ))}
+                      <li className="sr-only">Loading older notifications…</li>
+                    </ul>
+                  )}
+                  {loadMoreError && !loadingMore && (
+                    <div
+                      role="alert"
+                      className="rounded-lg border border-rose-400/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-100 flex items-center justify-between gap-3"
+                    >
+                      <span className="truncate">Couldn’t load older notifications. {loadMoreError}</span>
+                      <button
+                        onClick={loadMoreNotifications}
+                        className="shrink-0 text-[10px] uppercase tracking-[0.15em] font-semibold px-2 py-1 rounded-md bg-white/10 border border-white/20 hover:bg-white/20"
+                      >
+                        Retry
+                      </button>
+                    </div>
+                  )}
+                  {!loadingMore && !loadMoreError && (
+                    <button
+                      onClick={loadMoreNotifications}
+                      disabled={loadingMore}
+                      className="w-full text-center text-xs uppercase tracking-[0.15em] py-2 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                      aria-label="Load older notifications"
+                    >
+                      Load more ({filteredNotifications.length - recent.length} remaining)
+                    </button>
+                  )}
                   <div ref={sentinelRef} className="h-1 w-full" aria-hidden />
                 </div>
               )}
