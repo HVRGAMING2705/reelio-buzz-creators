@@ -375,6 +375,7 @@ function eventLabel(ev: BookingEvent) {
     case "email_sent": return "Confirmation email sent";
     case "email_confirmed": return "Client confirmed via email";
     default: return ev.event_type;
+  }
 }
 
 function captchaLabel(outcome: string) {
@@ -386,7 +387,6 @@ function captchaLabel(outcome: string) {
     case "server_secret_missing": return "Captcha misconfigured";
     default: return `Captcha · ${outcome}`;
   }
-}
 }
 
 function blockLabel(reason: string) {
