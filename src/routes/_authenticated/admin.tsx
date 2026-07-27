@@ -1793,32 +1793,139 @@ function SettingsModal({
           />
         </label>
 
-        <div className={`grid grid-cols-2 gap-3 mt-4 ${draft.quietEnabled ? "" : "opacity-50 pointer-events-none"}`}>
-          <div>
-            <label className="text-[10px] uppercase tracking-[0.25em] opacity-60">From</label>
-            <input
-              type="time"
-              value={draft.quietStart}
-              onChange={(e) => setDraft({ ...draft, quietStart: e.target.value })}
-              className="mt-1 w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-sm"
-            />
-          </div>
-          <div>
-            <label className="text-[10px] uppercase tracking-[0.25em] opacity-60">To</label>
-            <input
-              type="time"
-              value={draft.quietEnd}
-              onChange={(e) => setDraft({ ...draft, quietEnd: e.target.value })}
-              className="mt-1 w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-sm"
-            />
-          </div>
+        <div className={`mt-4 space-y-3 ${draft.quietEnabled ? "" : "opacity-50 pointer-events-none"}`}>
+          {(draft.quietSchedules ?? []).map((sch, idx) => {
+            const invalid = sch.start === sch.end || sch.days.length === 0;
+            const updateSchedule = (patch: Partial<QuietSchedule>) => {
+              const next = [...(draft.quietSchedules ?? [])];
+              next[idx] = { ...sch, ...patch };
+              setDraft({ ...draft, quietSchedules: next });
+            };
+            const toggleDay = (d: number) => {
+              const has = sch.days.includes(d);
+              updateSchedule({
+                days: has ? sch.days.filter((x) => x !== d) : [...sch.days, d].sort(),
+              });
+            };
+            return (
+              <div
+                key={sch.id}
+                className={`rounded-xl border ${invalid ? "border-amber-500/40 bg-amber-500/5" : "border-white/10 bg-white/[0.03]"} p-3`}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-[10px] uppercase tracking-[0.25em] opacity-60">
+                    Schedule {idx + 1}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => updateSchedule({ days: [...ALL_DAYS] })}
+                      className="text-[10px] uppercase tracking-[0.15em] opacity-60 hover:opacity-100"
+                    >
+                      Every day
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => updateSchedule({ days: [1, 2, 3, 4, 5] })}
+                      className="text-[10px] uppercase tracking-[0.15em] opacity-60 hover:opacity-100"
+                    >
+                      Weekdays
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => updateSchedule({ days: [0, 6] })}
+                      className="text-[10px] uppercase tracking-[0.15em] opacity-60 hover:opacity-100"
+                    >
+                      Weekend
+                    </button>
+                    {(draft.quietSchedules ?? []).length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const next = (draft.quietSchedules ?? []).filter((_, i) => i !== idx);
+                          setDraft({ ...draft, quietSchedules: next });
+                        }}
+                        className="text-[10px] uppercase tracking-[0.15em] text-red-400 hover:text-red-300"
+                        aria-label={`Remove schedule ${idx + 1}`}
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-1.5 mb-3" role="group" aria-label="Days of week">
+                  {DAY_LABELS.map((label, dayIdx) => {
+                    const active = sch.days.includes(dayIdx);
+                    return (
+                      <button
+                        key={label}
+                        type="button"
+                        onClick={() => toggleDay(dayIdx)}
+                        aria-pressed={active}
+                        className={`text-[11px] font-medium px-2.5 py-1 rounded-full border transition-colors ${
+                          active
+                            ? "bg-red-500/25 border-red-500/60 text-white"
+                            : "bg-white/5 border-white/10 text-white/60 hover:bg-white/10"
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[10px] uppercase tracking-[0.25em] opacity-60">From</label>
+                    <input
+                      type="time"
+                      value={sch.start}
+                      onChange={(e) => updateSchedule({ start: e.target.value })}
+                      className="mt-1 w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] uppercase tracking-[0.25em] opacity-60">To</label>
+                    <input
+                      type="time"
+                      value={sch.end}
+                      onChange={(e) => updateSchedule({ end: e.target.value })}
+                      className="mt-1 w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-sm"
+                    />
+                  </div>
+                </div>
+                {invalid && (
+                  <p className="text-[11px] text-amber-300/90 mt-2">
+                    {sch.days.length === 0
+                      ? "Pick at least one day for this schedule to apply."
+                      : "Start and end must differ."}
+                  </p>
+                )}
+              </div>
+            );
+          })}
+          <button
+            type="button"
+            onClick={() =>
+              setDraft({
+                ...draft,
+                quietSchedules: [
+                  ...(draft.quietSchedules ?? []),
+                  { id: makeScheduleId(), start: "22:00", end: "08:00", days: [...ALL_DAYS] },
+                ],
+              })
+            }
+            className="w-full rounded-lg border border-dashed border-white/15 px-3 py-2 text-xs uppercase tracking-[0.2em] opacity-70 hover:opacity-100 hover:bg-white/5"
+          >
+            + Add schedule
+          </button>
         </div>
         {draft.quietEnabled && (
           <p className="text-xs opacity-60 mt-2">
             {quietActive ? "Quiet hours are active right now." : "Quiet hours are inactive right now."}
-            {" "}Spans past midnight are supported.
+            {" "}Spans past midnight are supported per schedule.
           </p>
         )}
+
 
         <div className="mt-6 pt-4 border-t border-white/10">
           <p className="text-[10px] uppercase tracking-[0.3em] opacity-50 mb-1">Notification categories</p>
