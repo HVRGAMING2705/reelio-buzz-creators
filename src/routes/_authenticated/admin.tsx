@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
+import { logNotification } from "@/lib/notification-history";
 
 const LAST_SEEN_KEY = "reelio.admin.lastSeenBookingAt";
 const SETTINGS_KEY = "reelio.admin.notifSettings";
