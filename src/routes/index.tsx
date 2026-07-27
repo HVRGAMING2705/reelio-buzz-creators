@@ -1,34 +1,24 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
-import {
-  motion,
-  useScroll,
-  useTransform,
-  useSpring,
-  AnimatePresence,
-  type Variants,
-} from "motion/react";
-import logoAsset from "@/assets/reelio-logo.jpeg.asset.json";
+import { useEffect, useState } from "react";
+import { motion, useScroll, useSpring } from "motion/react";
 import logoMark from "@/assets/reelio-logo-mark.png.asset.json";
 import { useReveal } from "@/hooks/use-reveal";
-import { Magnetic, TiltCard, CursorGlow } from "@/components/motion-fx";
-
 import { BookingModal } from "@/components/booking-modal";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Reelio SMMA — Content, Creators & Growth" },
+      { title: "Reelio SMMA — A Content Studio for Brands That Move" },
       {
         name: "description",
         content:
-          "Reelio is a social media marketing agency delivering content, shoots, reels, ads, and outreach for brands that want to grow.",
+          "Reelio is a cinematic social media studio. Shoots, reels, ads, outreach and growth — one issue, one team, one reel.",
       },
-      { property: "og:title", content: "Reelio SMMA — Content, Creators & Growth" },
+      { property: "og:title", content: "Reelio SMMA — A Content Studio for Brands That Move" },
       {
         property: "og:description",
-        content: "Content creation, photo/video, editing, design, ads and outreach — all under one reel.",
+        content: "A cinematic social media studio. Shoots, reels, ads, outreach and growth.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -38,90 +28,93 @@ export const Route = createFileRoute("/")({
 });
 
 const services = [
-  { icon: "🎬", title: "Content Creation", desc: "High-quality, platform-ready content for Instagram, Reels, and campaigns." },
-  { icon: "📸", title: "Photo & Video", desc: "Brand shoots, products, events, and cinematic visuals that tell your story." },
-  { icon: "✂️", title: "Editing & Design", desc: "Reels, thumbnails, posters, creatives, and brand assets end-to-end." },
-  { icon: "📈", title: "Digital Marketing", desc: "Strategy, Meta ads, content planning, and performance optimization." },
-  { icon: "🤝", title: "Outreach & Growth", desc: "Influencer outreach, brand collaborations, and community growth." },
-  { icon: "🧍", title: "Models & Creators", desc: "Professional models and creators for campaigns, shoots, and promos." },
+  {
+    n: "01",
+    title: "Content Creation",
+    kicker: "Reels · Posts · Stories",
+    desc:
+      "Platform-native reels and posts built for hook, retention and share. We ship weekly at studio pace.",
+  },
+  {
+    n: "02",
+    title: "Photo & Video",
+    kicker: "Brand · Product · Event",
+    desc:
+      "Cinematic shoots with a full crew — camera, light, sound, direction — turning your story into footage worth cutting.",
+  },
+  {
+    n: "03",
+    title: "Editing & Design",
+    kicker: "Reels · Thumbs · Creatives",
+    desc:
+      "Every frame graded, every cut earned. Post, motion and brand design produced under one roof.",
+  },
+  {
+    n: "04",
+    title: "Digital Marketing",
+    kicker: "Meta Ads · Strategy",
+    desc:
+      "Full-funnel Meta ads, weekly content plans, and a growth model tuned to your category — not a dashboard template.",
+  },
+  {
+    n: "05",
+    title: "Outreach & Growth",
+    kicker: "Creators · Collabs",
+    desc:
+      "Influencer outreach, creator collabs and community moves that pull real audiences toward your brand.",
+  },
+  {
+    n: "06",
+    title: "Models & Talent",
+    kicker: "Casting · Direction",
+    desc:
+      "Cast the right face for the right frame. Talent scouting, direction and on-set management, handled.",
+  },
 ];
 
 const niches = [
-  { emoji: "🚀", title: "New Startups", desc: "Brand identity, launch content, and digital visibility from day one." },
-  { emoji: "👗", title: "Fashion Brands", desc: "Campaign shoots, reels, lookbooks, and social media creatives." },
-  { emoji: "☕", title: "Cafés & Food", desc: "Menu shoots, ambience videos, reels, and local audience growth." },
-  { emoji: "💪", title: "Gyms & Fitness", desc: "Transformation videos, trainer content, and performance marketing." },
-  { emoji: "🎪", title: "Event Marketing", desc: "Event coverage, promo reels, after-movies, and digital buzz." },
-];
-
-const packageIncludes = [
-  { icon: "📅", title: "Daily Content", desc: "Posts + Reels every week following our weekly structure." },
-  { icon: "🔥", title: "10–14 Stories / week", desc: "Engaging, on-brand stories that keep audiences hooked." },
-  { icon: "📣", title: "1–3 Meta Ads / week", desc: "Full setup, targeting, and management by our team." },
-  { icon: "⭐", title: "1–5 Highlights / week", desc: "Curated highlight covers and story sets." },
-  { icon: "📷", title: "On-Site Shoots", desc: "Dedicated videographer + photographer. Models on request." },
-  { icon: "🎞️", title: "Editing & Graphics", desc: "Reels, posts, stories, thumbnails, and all graphics." },
-  { icon: "📊", title: "Strategy & Growth", desc: "Content strategy, growth planning, weekly optimization." },
-  { icon: "💼", title: "Outreach Support", desc: "Brand and creator outreach to accelerate growth." },
+  "New Startups",
+  "Fashion Brands",
+  "Cafés & Food",
+  "Gyms & Fitness",
+  "Event Marketing",
+  "Creators",
 ];
 
 const marqueeItems = [
-  "Trend Analysis", "Photography", "Videography", "Editing", "Graphic Design",
-  "Digital Marketing", "Meta Ads", "Outreach", "Models", "Reels",
+  "Reels", "Photography", "Videography", "Editing", "Graphic Design",
+  "Meta Ads", "Outreach", "Casting", "Strategy", "Direction",
 ];
 
-const orbitIcons = ["🎬", "📸", "✂️", "🎨", "📈", "🤝", "⭐", "🚀"];
-
-/* Staggered word reveal */
-function SplitWords({ text, className = "", delay = 0 }: { text: string; className?: string; delay?: number }) {
-  const words = text.split(" ");
-  const container: Variants = {
-    hidden: {},
-    show: { transition: { staggerChildren: 0.08, delayChildren: delay } },
-  };
-  const word: Variants = {
-    hidden: { y: "110%", opacity: 0 },
-    show: { y: 0, opacity: 1, transition: { type: "spring", stiffness: 120, damping: 18 } },
-  };
-  return (
-    <motion.span
-      variants={container}
-      initial="hidden"
-      animate="show"
-      className={`inline-flex flex-wrap gap-x-[0.25em] overflow-hidden ${className}`}
-    >
-      {words.map((w, i) => (
-        <span key={i} className="inline-block overflow-hidden">
-          <motion.span variants={word} className="inline-block">
-            {w}
-          </motion.span>
-        </span>
-      ))}
-    </motion.span>
-  );
-}
+const packageIncludes = [
+  { title: "Daily content", desc: "Posts + reels shipped on the weekly board." },
+  { title: "10–14 stories / week", desc: "On-brand, on-loop, made for the scroll." },
+  { title: "1–3 Meta ads / week", desc: "Setup, targeting, and hands-on management." },
+  { title: "1–5 highlight sets", desc: "Curated covers, structured story sets." },
+  { title: "On-site shoots", desc: "Videographer + photographer. Models on request." },
+  { title: "Editing & graphics", desc: "Reels, posts, thumbnails, campaign creatives." },
+  { title: "Strategy & growth", desc: "Weekly optimization tied to a real target." },
+  { title: "Outreach support", desc: "Brand and creator outreach in the loop." },
+];
 
 function Index() {
   useReveal();
   const [scrolled, setScrolled] = useState(false);
   const [bookingOpen, setBookingOpen] = useState(false);
   const [user, setUser] = useState<{ email?: string; avatar_url?: string | null } | null>(null);
-  const heroRef = useRef<HTMLDivElement>(null);
 
-  const { scrollY } = useScroll();
-  const heroY = useTransform(scrollY, [0, 800], [0, -180]);
-  const heroOpacity = useTransform(scrollY, [0, 500], [1, 0.3]);
-  const heroScale = useTransform(scrollY, [0, 800], [1, 0.94]);
-
-  // Scroll progress bar
   const { scrollYProgress } = useScroll();
   const progress = useSpring(scrollYProgress, { stiffness: 100, damping: 20, restDelta: 0.001 });
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
-      setUser(data.user ? { email: data.user.email, avatar_url: data.user.user_metadata?.avatar_url } : null);
+      setUser(
+        data.user
+          ? { email: data.user.email, avatar_url: data.user.user_metadata?.avatar_url }
+          : null,
+      );
     });
-    const { data } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(
         session?.user
           ? { email: session.user.email, avatar_url: session.user.user_metadata?.avatar_url }
@@ -138,513 +131,373 @@ function Index() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  const year = new Date().getFullYear();
+  const issue = String(year).slice(-2);
+
   return (
-    <div className="relative min-h-screen bg-background text-foreground overflow-hidden">
-      <CursorGlow />
+    <div className="relative min-h-screen bg-background text-foreground">
       <BookingModal open={bookingOpen} onClose={() => setBookingOpen(false)} />
 
-      {/* Scroll progress bar */}
+      {/* scroll progress */}
       <motion.div
         style={{ scaleX: progress, transformOrigin: "0% 50%" }}
-        className="fixed top-0 left-0 right-0 h-[3px] bg-white z-[70]"
+        className="fixed top-0 left-0 right-0 h-[2px] bg-[color:var(--reelio-red)] z-[70]"
       />
 
-      {/* ============ ANIMATED BACKGROUND ============ */}
-      <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-        <div className="absolute inset-0 aurora opacity-90" />
-        <div className="absolute inset-0 cyber-grid opacity-60" />
-        <motion.div
-          animate={{ x: [0, 80, -40, 0], y: [0, -60, 40, 0], scale: [1, 1.15, 0.95, 1] }}
-          transition={{ duration: 22, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -top-40 -left-40 h-[520px] w-[520px] rounded-full blur-3xl opacity-70"
-          style={{ background: "radial-gradient(circle, oklch(0.62 0.24 27 / 0.55) 0%, transparent 70%)" }}
-        />
-        <motion.div
-          animate={{ x: [0, -80, 60, 0], y: [0, 60, -30, 0], scale: [1, 1.2, 0.9, 1] }}
-          transition={{ duration: 28, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute bottom-[-160px] -right-40 h-[600px] w-[600px] rounded-full blur-3xl opacity-60"
-          style={{ background: "radial-gradient(circle, oklch(0.62 0.24 27 / 0.45) 0%, transparent 70%)" }}
-        />
-        <div
-          className="absolute inset-0 opacity-[0.08] mix-blend-overlay"
-          style={{
-            backgroundImage:
-              "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>\")",
-          }}
-        />
-      </div>
-
       {/* ============ NAV ============ */}
-      <motion.header
-        initial={{ y: -80, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ type: "spring", stiffness: 120, damping: 18, delay: 0.1 }}
-        className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 transition-all duration-500 ${
-          scrolled ? "w-[94%] max-w-5xl" : "w-[96%] max-w-6xl"
+      <header
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+          scrolled
+            ? "bg-background/85 backdrop-blur-md border-b border-white/10"
+            : "bg-transparent"
         }`}
       >
-        <div className="glass conic-border rounded-full px-4 md:px-6 h-14 flex items-center justify-between">
-          <a href="#top" className="flex items-center gap-2.5">
-            <motion.img
-              whileHover={{ scale: 1.05 }}
-              transition={{ duration: 0.4 }}
-              src={logoMark.url}
-              alt="Reelio"
-              className="h-7 md:h-8 w-auto object-contain"
-            />
+        <div className="mx-auto max-w-[1400px] px-5 md:px-10 h-16 md:h-20 flex items-center justify-between">
+          <a href="#top" className="flex items-center">
+            <img src={logoMark.url} alt="Reelio" className="h-6 md:h-7 w-auto object-contain" />
           </a>
-          <nav className="hidden md:flex items-center gap-7 text-xs uppercase tracking-[0.25em]">
-            {["services", "niches", "package"].map((l) => (
-              <motion.a
-                key={l}
-                href={`#${l}`}
-                whileHover={{ y: -2 }}
-                className="hover:opacity-80"
-              >
-                {l}
-              </motion.a>
-            ))}
+          <nav className="hidden md:flex items-center gap-10 text-[11px] tracking-[0.28em] uppercase font-body font-medium">
+            <a href="#services" className="hover:text-[color:var(--reelio-red)] transition-colors">Services</a>
+            <a href="#niches" className="hover:text-[color:var(--reelio-red)] transition-colors">Niches</a>
+            <a href="#package" className="hover:text-[color:var(--reelio-red)] transition-colors">Package</a>
+            <a href="#contact" className="hover:text-[color:var(--reelio-red)] transition-colors">Contact</a>
           </nav>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             {user ? (
               <Link
                 to="/admin"
-                className="hidden sm:flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-3 py-1.5 text-xs uppercase tracking-[0.15em] hover:bg-white/10"
+                className="hidden sm:inline-flex items-center gap-2 text-[10px] tracking-[0.25em] uppercase font-body font-semibold hover:text-[color:var(--reelio-red)]"
               >
-                <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/10 overflow-hidden text-[10px]">
+                <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/10 overflow-hidden text-[10px]">
                   {user.avatar_url ? (
                     <img src={user.avatar_url} alt="" className="h-full w-full object-cover" />
                   ) : (
                     user.email?.[0]?.toUpperCase() ?? "U"
                   )}
                 </span>
-                Account
+                Studio
               </Link>
             ) : (
               <Link
                 to="/auth"
-                className="hidden sm:inline-flex rounded-full border border-white/20 bg-white/5 px-4 py-1.5 text-xs uppercase tracking-[0.2em] hover:bg-white/10"
+                className="hidden sm:inline-flex text-[10px] tracking-[0.25em] uppercase font-body font-semibold hover:text-[color:var(--reelio-red)]"
               >
                 Sign in
               </Link>
             )}
-            <Magnetic strength={0.4}>
-              <button
-                type="button"
-                onClick={() => setBookingOpen(true)}
-                className="rounded-full px-4 py-1.5 text-xs uppercase tracking-[0.2em] liquid-shine inline-block bg-[color:var(--reelio-red)] text-white font-bold shadow-[var(--shadow-red-glow)]"
-              >
-                Book a call
-              </button>
-            </Magnetic>
+            <button
+              type="button"
+              onClick={() => setBookingOpen(true)}
+              className="btn-red !py-2.5 !px-4 md:!px-5 !text-[10px]"
+            >
+              Book a call
+            </button>
           </div>
         </div>
-      </motion.header>
+      </header>
 
-      {/* ============ HERO ============ */}
-      <section id="top" ref={heroRef} className="relative pt-36 pb-28 md:pt-48 md:pb-40">
-        <motion.div
-          style={{ y: heroY, opacity: heroOpacity, scale: heroScale }}
-          className="mx-auto max-w-7xl px-5 md:px-10"
-        >
-          <motion.div
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className="inline-flex items-center gap-2 glass-chip rounded-full px-4 py-1.5 text-[10px] uppercase tracking-[0.3em]"
-          >
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full rounded-full bg-white opacity-75 animate-ping" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-white" />
-            </span>
-            Now booking for 2026
-          </motion.div>
-
-          <h1 className="mt-8 text-[19vw] md:text-[9.5vw] leading-[0.85] font-normal tracking-tight drop-shadow-[0_10px_40px_oklch(0.62_0.24_27/0.35)]">
-            <span className="block text-white">
-              <SplitWords text="REELS." delay={0.3} />
-            </span>
-            <span className="block text-white">
-              <SplitWords text="BRANDS." delay={0.45} />
-            </span>
-            <span className="block text-shimmer">
-              <SplitWords text="GROWTH." delay={0.6} />
-            </span>
-          </h1>
-
-          <motion.div
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.9 }}
-            className="mt-12 md:mt-16 grid md:grid-cols-2 gap-8 items-end"
-          >
-            <p className="text-lg md:text-2xl max-w-xl opacity-95 text-balance">
-              Reelio builds the content, shoots the story, runs the ads, and grows the brand — all under one reel.
-            </p>
-            <div className="flex flex-wrap gap-3 md:justify-end">
-              <Magnetic>
-                <button
-                  type="button"
-                  onClick={() => setBookingOpen(true)}
-                  className="group relative inline-flex items-center gap-2 rounded-full bg-[color:var(--reelio-red)] text-white px-6 py-3.5 uppercase tracking-[0.2em] text-xs liquid-shine shadow-[var(--shadow-red-glow)] font-bold"
-                >
-                  Book a call
-                  <motion.span animate={{ x: [0, 4, 0] }} transition={{ duration: 1.8, repeat: Infinity }}>
-                    →
-                  </motion.span>
-                </button>
-              </Magnetic>
-              <Magnetic>
-                <a
-                  href="#services"
-                  className="glass rounded-full px-6 py-3.5 uppercase tracking-[0.2em] text-xs inline-block"
-                >
-                  Explore
-                </a>
-              </Magnetic>
+      {/* ============ MASTHEAD / HERO ============ */}
+      <section id="top" className="relative pt-28 md:pt-36 pb-16 md:pb-24">
+        <div className="mx-auto max-w-[1400px] px-5 md:px-10">
+          {/* issue bar */}
+          <div className="flex items-end justify-between gap-4 pb-6 border-b border-white/15">
+            <div className="flex items-baseline gap-6">
+              <span className="font-display text-xs md:text-sm tracking-[0.3em] text-[color:var(--reelio-red)]">
+                REELIO — ISSUE №{issue}
+              </span>
+              <span className="hidden md:inline font-body text-xs uppercase tracking-[0.28em] text-white/50">
+                Vol. 01 · {year}
+              </span>
             </div>
-          </motion.div>
+            <span className="font-body text-[10px] md:text-xs uppercase tracking-[0.28em] text-white/50">
+              A Cinematic Social Studio
+            </span>
+          </div>
 
-          {/* Orbit + logo */}
-          <div className="relative mt-16 md:mt-24 mx-auto h-64 md:h-80 max-w-2xl block">
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="relative scale-75 md:scale-100 origin-center">
-                {/* Red halo pulse */}
-                <motion.div
-                  animate={{ scale: [1, 1.3, 1], opacity: [0.6, 0.2, 0.6] }}
-                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                  className="absolute left-1/2 top-1/2 h-56 w-56 -translate-x-1/2 -translate-y-1/2 rounded-full blur-2xl"
-                  style={{ background: "radial-gradient(circle, oklch(0.62 0.24 27 / 0.7), transparent 70%)" }}
-                />
-                <motion.img
-                  animate={{ rotate: [0, 6, -6, 0] }}
-                  transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-                  src={logoAsset.url}
-                  alt=""
-                  className="h-32 w-32 rounded-3xl object-cover ring-2 ring-white/40 shadow-[var(--shadow-red-glow)] relative z-10"
-                />
-                <div className="absolute inset-0 orbit pointer-events-none">
-                  {orbitIcons.map((ic, i) => {
-                    const angle = (i / orbitIcons.length) * Math.PI * 2;
-                    const r = 130;
-                    const x = Math.cos(angle) * r;
-                    const y = Math.sin(angle) * r;
-                    return (
-                      <div
-                        key={i}
-                        className="absolute left-1/2 top-1/2 glass-chip rounded-full h-11 w-11 grid place-items-center text-lg"
-                        style={{ transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))` }}
-                      >
-                        {ic}
-                      </div>
-                    );
-                  })}
-                </div>
-                <div
-                  className="absolute left-1/2 top-1/2 h-[280px] w-[280px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-[color:var(--reelio-red)]/40 pointer-events-none"
-                  style={{ boxShadow: "inset 0 0 40px oklch(0.62 0.24 27 / 0.25)" }}
-                />
+          {/* Masthead headline — magazine grid */}
+          <div className="grid md:grid-cols-12 gap-6 md:gap-8 pt-10 md:pt-16">
+            <div className="md:col-span-9">
+              <motion.h1
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.9, ease: [0.2, 0.7, 0.2, 1] }}
+                className="font-display text-[15vw] md:text-[10.5vw] leading-[0.86] tracking-[-0.02em]"
+              >
+                <span className="block">STORIES</span>
+                <span className="block">
+                  <span className="text-[color:var(--reelio-red)]">SHOT.</span>{" "}
+                  <span className="italic font-body font-light lowercase text-white/70 text-[10vw] md:text-[6.5vw]">
+                    cut,
+                  </span>
+                </span>
+                <span className="block">SHIPPED.</span>
+              </motion.h1>
+            </div>
+            <div className="md:col-span-3 flex flex-col justify-end">
+              <span className="slug mb-3">The Lede</span>
+              <p className="font-body text-base md:text-[17px] leading-relaxed text-white/80">
+                Reelio is a social media studio for brands that refuse to look
+                like everyone else. We shoot the story, cut the reel, run the
+                ads, and grow the room — as one crew.
+              </p>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <button type="button" onClick={() => setBookingOpen(true)} className="btn-red">
+                  Book a call
+                </button>
+                <a href="#services" className="btn-ghost">See the work</a>
               </div>
             </div>
           </div>
 
-          {/* Stat cards */}
-          <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+          {/* Byline strip */}
+          <div className="mt-16 md:mt-24 grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-10 pt-8 border-t border-white/15">
             {[
               { k: "50+", v: "Brands scaled" },
               { k: "10M+", v: "Reels views" },
-              { k: "24/7", v: "Content engine" },
               { k: "6", v: "Core services" },
-            ].map((s, i) => (
-              <motion.div
-                key={s.v}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-50px" }}
-                transition={{ delay: i * 0.1, type: "spring", stiffness: 100 }}
-                whileHover={{ y: -6 }}
-                className="glass spotlight rounded-2xl p-5 md:p-6 hover:border-[color:var(--reelio-red)]/60 transition-colors"
-              >
-                <div className="text-3xl md:text-4xl text-[color:var(--reelio-red)] font-bold">{s.k}</div>
-                <div className="mt-1 text-[10px] md:text-xs uppercase tracking-[0.2em] opacity-70 font-bold">{s.v}</div>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
-      </section>
-
-      {/* ============ MARQUEE ============ */}
-      <section className="relative py-6 border-y border-white/15 overflow-hidden glass-dark">
-        <motion.div
-          animate={{ x: ["0%", "-50%"] }}
-          transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
-          className="flex whitespace-nowrap gap-12 text-lg md:text-2xl uppercase tracking-[0.3em] opacity-90"
-        >
-          {[...marqueeItems, ...marqueeItems].map((it, i) => (
-            <span key={i} className="flex items-center gap-12">
-              {it}
-              <motion.span
-                animate={{ rotate: 360 }}
-                transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-                className="opacity-60 inline-block"
-              >
-                ✦
-              </motion.span>
-            </span>
-          ))}
-        </motion.div>
-      </section>
-
-
-      {/* ============ SERVICES ============ */}
-      <section id="services" className="relative mx-auto max-w-7xl px-5 md:px-10 py-24 md:py-36">
-        <div className="flex items-end justify-between flex-wrap gap-6 mb-14 reveal">
-          <div>
-            <p className="text-[10px] uppercase tracking-[0.4em] opacity-80">🚀 What we do</p>
-            <h2 className="mt-4 text-6xl md:text-8xl">
-              Our <span className="text-shimmer">Services</span>
-            </h2>
-          </div>
-          <p className="max-w-md opacity-90 text-lg">
-            End-to-end social media — from the first frame to the final click.
-          </p>
-        </div>
-
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
-          {services.map((s, i) => (
-            <motion.div
-              key={s.title}
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-80px" }}
-              transition={{ delay: i * 0.06, type: "spring", stiffness: 90, damping: 16 }}
-            >
-              <TiltCard className="h-full">
-                <article className="glass spotlight liquid-shine group relative rounded-3xl p-7 md:p-8 h-full overflow-hidden hover:border-[color:var(--reelio-red)]/50 transition-colors">
-                  <div
-                    className="pointer-events-none absolute -top-24 -right-24 h-64 w-64 rounded-full blur-3xl opacity-0 group-hover:opacity-70 transition-opacity duration-500"
-                    style={{ background: "radial-gradient(circle, oklch(0.62 0.24 27 / 0.55), transparent 70%)" }}
-                  />
-                  <div className="flex items-center justify-between relative">
-                    <motion.div
-                      whileHover={{ scale: 1.2, rotate: 8 }}
-                      transition={{ type: "spring", stiffness: 200 }}
-                      className="text-4xl"
-                    >
-                      {s.icon}
-                    </motion.div>
-                    <div className="rounded-md h-8 w-8 grid place-items-center text-[10px] font-bold bg-[color:var(--reelio-red)] text-white tracking-wider shadow-[var(--shadow-red-glow)]">
-                      0{i + 1}
-                    </div>
-                  </div>
-                  <h3 className="mt-10 text-3xl md:text-4xl relative">{s.title}</h3>
-                  <p className="mt-3 opacity-80 leading-relaxed relative">{s.desc}</p>
-                  <div className="mt-8 flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-[color:var(--reelio-red)] font-bold relative">
-                    Learn more
-                    <motion.span
-                      animate={{ x: [0, 4, 0] }}
-                      transition={{ duration: 1.5, repeat: Infinity }}
-                      className="inline-block"
-                    >
-                      →
-                    </motion.span>
-                  </div>
-                </article>
-              </TiltCard>
-            </motion.div>
-          ))}
-        </div>
-      </section>
-
-      {/* ============ NICHES ============ */}
-      <section id="niches" className="relative py-24 md:py-36">
-        <div className="mx-auto max-w-7xl px-5 md:px-10">
-          <div className="reveal">
-            <p className="text-[10px] uppercase tracking-[0.4em] opacity-80">🎯 Niches</p>
-            <h2 className="mt-4 text-6xl md:text-8xl">Who we work with</h2>
-          </div>
-
-          <div className="mt-10 flex flex-wrap gap-3">
-            {["Startups", "Fashion", "Cafés", "Fitness", "Events"].map((n, i) => (
-              <motion.span
-                key={n}
-                initial={{ opacity: 0, scale: 0.6 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.08, type: "spring", stiffness: 200 }}
-                whileHover={{ scale: 1.08, y: -3 }}
-                className="glass-chip rounded-full px-5 py-2 uppercase tracking-[0.25em] text-xs liquid-shine cursor-default"
-              >
-                {n}
-              </motion.span>
-            ))}
-          </div>
-
-          <div className="mt-14 grid md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
-            {niches.map((n, i) => (
-              <motion.div
-                key={n.title}
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-80px" }}
-                transition={{ delay: i * 0.08, type: "spring", stiffness: 90 }}
-              >
-                <TiltCard max={8}>
-                  <article className="glass spotlight rounded-3xl p-7 md:p-8">
-                    <motion.div
-                      animate={{ y: [0, -8, 0] }}
-                      transition={{ duration: 3 + i * 0.4, repeat: Infinity, ease: "easeInOut" }}
-                      className="text-4xl"
-                    >
-                      {n.emoji}
-                    </motion.div>
-                    <h3 className="mt-8 text-2xl md:text-3xl">{n.title}</h3>
-                    <p className="mt-3 opacity-90">{n.desc}</p>
-                  </article>
-                </TiltCard>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ============ PACKAGE ============ */}
-      <section id="package" className="relative mx-auto max-w-7xl px-5 md:px-10 py-24 md:py-36">
-        <motion.div
-          initial={{ opacity: 0, y: 60 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ type: "spring", stiffness: 80 }}
-          className="conic-border rounded-[2.5rem] p-6 md:p-14 relative overflow-hidden bg-[color:var(--reelio-red)] shadow-[var(--shadow-red-glow)]"
-        >
-          <motion.div
-            animate={{ x: [0, 60, -30, 0], y: [0, -30, 40, 0] }}
-            transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute -top-24 -right-24 h-72 w-72 rounded-full blur-3xl opacity-60"
-            style={{ background: "radial-gradient(circle, oklch(1 0 0 / 0.5), transparent 70%)" }}
-          />
-          <div className="relative">
-            <p className="text-[10px] uppercase tracking-[0.4em] opacity-80">💎 Monthly Plan</p>
-            <div className="mt-4 flex flex-wrap items-end justify-between gap-6">
-              <h2 className="text-5xl md:text-8xl">
-                <span className="text-shimmer">Reelio</span> Package
-              </h2>
-              <div className="text-right">
-                <div className="text-5xl md:text-7xl">₹50,000</div>
-                <div className="uppercase tracking-[0.25em] text-[10px] md:text-xs opacity-80 mt-2">
-                  per month · reach focused
+              { k: "24/7", v: "Content engine" },
+            ].map((s) => (
+              <div key={s.v}>
+                <div className="font-display text-4xl md:text-6xl text-white leading-none">{s.k}</div>
+                <div className="mt-2 font-body text-[10px] md:text-xs uppercase tracking-[0.28em] text-white/50">
+                  {s.v}
                 </div>
               </div>
-            </div>
-            <p className="mt-6 max-w-2xl opacity-90 text-lg">
-              Everything a brand needs to stay consistent and grow across Instagram, Facebook, and YouTube.
-            </p>
-
-            <div className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-              {packageIncludes.map((item, i) => (
-                <motion.div
-                  key={item.title}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.05, type: "spring", stiffness: 100 }}
-                  whileHover={{ y: -6, scale: 1.02 }}
-                  className="glass-chip spotlight rounded-2xl p-5"
-                >
-                  <div className="text-2xl">{item.icon}</div>
-                  <h4 className="mt-4 text-lg md:text-xl">{item.title}</h4>
-                  <p className="mt-2 text-xs md:text-sm opacity-90 leading-relaxed">{item.desc}</p>
-                </motion.div>
-              ))}
-            </div>
-
-            <div className="mt-12 flex flex-wrap gap-3">
-              <Magnetic>
-                <button
-                  type="button"
-                  onClick={() => setBookingOpen(true)}
-                  className="group inline-flex items-center gap-2 rounded-full bg-black text-white px-7 py-4 uppercase tracking-[0.2em] text-xs liquid-shine shadow-2xl font-bold"
-                >
-                  Book Reelio Package
-                  <motion.span animate={{ x: [0, 4, 0] }} transition={{ duration: 1.6, repeat: Infinity }}>
-                    →
-                  </motion.span>
-                </button>
-              </Magnetic>
-              <Magnetic>
-                <a
-                  href="#contact"
-                  className="glass rounded-full px-7 py-4 uppercase tracking-[0.2em] text-xs inline-block"
-                >
-                  Talk to us
-                </a>
-              </Magnetic>
-            </div>
-          </div>
-        </motion.div>
-      </section>
-
-      {/* ============ CTA ============ */}
-      <section id="contact" className="relative py-24 md:py-40">
-        <div className="mx-auto max-w-5xl px-5 md:px-10 text-center">
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-[10px] uppercase tracking-[0.4em] opacity-80"
-          >
-            Let's roll the reel
-          </motion.p>
-          <h2 className="mt-6 text-6xl md:text-[8rem] leading-[0.9]">
-            <motion.span
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ type: "spring", stiffness: 80 }}
-              className="block"
-            >
-              Ready to grow
-            </motion.span>
-            <motion.span
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.15, type: "spring", stiffness: 80 }}
-              className="block"
-            >
-              with <span className="text-shimmer">Reelio</span>?
-            </motion.span>
-          </h2>
-          <p className="mt-8 max-w-xl mx-auto text-lg opacity-90">
-            Brands looking to grow, or creators looking to join the team — book a call in one tap.
-          </p>
-
-          <div className="mt-12 inline-flex relative">
-            <span className="absolute inset-0 rounded-full animate-pulse-ring" style={{ boxShadow: "0 0 0 0 oklch(0.62 0.24 27 / 0.6)" }} />
-            <Magnetic strength={0.5}>
-              <button
-                type="button"
-                onClick={() => setBookingOpen(true)}
-                className="relative inline-flex items-center gap-3 rounded-full bg-[color:var(--reelio-red)] text-white px-10 py-5 uppercase tracking-[0.25em] text-sm liquid-shine shadow-[var(--shadow-red-glow)] font-bold"
-              >
-                Book a call
-                <motion.span animate={{ x: [0, 6, 0] }} transition={{ duration: 1.6, repeat: Infinity }} className="text-xl">
-                  →
-                </motion.span>
-              </button>
-            </Magnetic>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* ============ FOOTER ============ */}
-      <footer className="relative border-t border-white/15 glass-dark">
-        <div className="mx-auto max-w-7xl px-5 md:px-10 py-8 flex flex-wrap items-center justify-between gap-4 text-xs uppercase tracking-[0.25em]">
-          <div className="flex items-center gap-3">
-            <img src={logoAsset.url} alt="Reelio" className="h-7 w-7 rounded object-cover" />
-            <span>Reelio SMMA</span>
+      {/* ============ MARQUEE / TICKER ============ */}
+      <section className="relative py-4 md:py-5 border-y border-white/15 bg-[color:var(--reelio-red)] overflow-hidden">
+        <div className="flex whitespace-nowrap animate-marquee font-display text-xl md:text-3xl tracking-[-0.01em]">
+          {[...marqueeItems, ...marqueeItems, ...marqueeItems].map((it, i) => (
+            <span key={i} className="flex items-center gap-8 md:gap-12 pr-8 md:pr-12 text-white">
+              {it}
+              <span className="text-white/50">✦</span>
+            </span>
+          ))}
+        </div>
+      </section>
+
+      {/* ============ SERVICES — CASE INDEX ============ */}
+      <section id="services" className="relative py-24 md:py-40">
+        <div className="mx-auto max-w-[1400px] px-5 md:px-10">
+          <div className="grid md:grid-cols-12 gap-6 md:gap-8 pb-10 md:pb-16 border-b border-white/15">
+            <div className="md:col-span-4">
+              <span className="slug">§ Services</span>
+              <h2 className="mt-6 font-display text-5xl md:text-7xl leading-[0.9]">
+                The<br />
+                <span className="text-[color:var(--reelio-red)]">Index.</span>
+              </h2>
+            </div>
+            <div className="md:col-span-6 md:col-start-7 flex items-end">
+              <p className="font-body text-lg text-white/70 max-w-md">
+                Six departments. One crew. Every service below is built and
+                delivered in-house — no agency-of-agencies, no handoffs.
+              </p>
+            </div>
           </div>
-          <div className="opacity-80">© {new Date().getFullYear()} Reelio. All rights reserved.</div>
+
+          <ul className="divide-y divide-white/15 border-b border-white/15">
+            {services.map((s) => (
+              <li key={s.n} className="case-row group">
+                <a
+                  href="#contact"
+                  className="grid grid-cols-12 items-center gap-4 md:gap-8 py-6 md:py-10 px-2 md:px-4 transition-colors"
+                >
+                  <span className="col-span-2 md:col-span-1 font-display text-2xl md:text-4xl text-white/40 group-hover:text-white transition-colors">
+                    {s.n}
+                  </span>
+                  <span className="col-span-10 md:col-span-5 font-display text-3xl md:text-6xl leading-none group-hover:text-white transition-colors">
+                    {s.title}
+                  </span>
+                  <span className="hidden md:block md:col-span-3 font-body text-[11px] uppercase tracking-[0.25em] text-white/50 group-hover:text-white/90 transition-colors">
+                    {s.kicker}
+                  </span>
+                  <span className="col-span-12 md:col-span-3 font-body text-sm text-white/60 group-hover:text-white/90 transition-colors">
+                    {s.desc}
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      {/* ============ NICHES — EDITORIAL SPREAD ============ */}
+      <section id="niches" className="relative py-24 md:py-40 bg-[color:var(--reelio-red)] text-white">
+        <div className="mx-auto max-w-[1400px] px-5 md:px-10">
+          <div className="grid md:grid-cols-12 gap-6 md:gap-8">
+            <div className="md:col-span-5">
+              <span className="font-body text-[10px] uppercase tracking-[0.3em] font-semibold text-white/80">
+                § Feature
+              </span>
+              <h2 className="mt-4 font-display text-6xl md:text-[8vw] leading-[0.9]">
+                Who we<br />shoot for.
+              </h2>
+            </div>
+            <div className="md:col-span-6 md:col-start-7 flex flex-col justify-end">
+              <p className="font-body text-lg md:text-xl leading-relaxed text-white/90 max-w-lg">
+                We work with brands that treat social as a stage — not a
+                checkbox. If you have a room to fill, a product to move, or a
+                story that hasn't been told properly, you're on the list.
+              </p>
+            </div>
+          </div>
+
+          <ul className="mt-16 md:mt-24 divide-y divide-white/25 border-y border-white/25">
+            {niches.map((n, i) => (
+              <li
+                key={n}
+                className="flex items-baseline justify-between py-6 md:py-10 font-display text-4xl md:text-7xl uppercase tracking-[-0.01em] hover:pl-4 transition-all duration-500"
+              >
+                <span className="flex items-baseline gap-6">
+                  <span className="font-body text-xs md:text-sm text-white/60 tabular-nums">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  {n}
+                </span>
+                <span className="font-body text-xs uppercase tracking-[0.3em] text-white/70">
+                  Booking
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      {/* ============ PACKAGE / PRICING SPREAD ============ */}
+      <section id="package" className="relative py-24 md:py-40">
+        <div className="mx-auto max-w-[1400px] px-5 md:px-10">
+          <div className="grid md:grid-cols-12 gap-8 md:gap-12">
+            {/* left column — the "cover" */}
+            <div className="md:col-span-5 md:sticky md:top-28 self-start">
+              <span className="slug">§ The Package</span>
+              <h2 className="mt-6 font-display text-6xl md:text-8xl leading-[0.88]">
+                Reelio<br />
+                <span className="text-[color:var(--reelio-red)]">Monthly.</span>
+              </h2>
+              <div className="mt-10 flex items-baseline gap-3">
+                <span className="font-display text-6xl md:text-8xl leading-none">₹50K</span>
+                <span className="font-body text-sm uppercase tracking-[0.25em] text-white/50">
+                  / month
+                </span>
+              </div>
+              <p className="mt-4 font-body text-white/60">
+                Or <span className="text-white">₹10,000</span> — starter plan for
+                launching brands. One rate. No performance fees.
+              </p>
+
+              <div className="mt-10 flex flex-wrap gap-3">
+                <button type="button" onClick={() => setBookingOpen(true)} className="btn-red">
+                  Start the intake
+                </button>
+                <a href="#contact" className="btn-ghost">Ask a question</a>
+              </div>
+
+              <div className="mt-10 pt-6 border-t border-white/15">
+                <p className="font-body text-xs uppercase tracking-[0.25em] text-white/40">
+                  Onboarding in 48h · One dedicated crew · Monthly billing
+                </p>
+              </div>
+            </div>
+
+            {/* right column — includes */}
+            <div className="md:col-span-7">
+              <div className="rule-line mb-8" />
+              <span className="slug">Included</span>
+              <ul className="mt-8 grid sm:grid-cols-2 gap-x-8">
+                {packageIncludes.map((it, i) => (
+                  <li
+                    key={it.title}
+                    className="flex gap-5 py-6 border-b border-white/10"
+                  >
+                    <span className="font-display text-2xl text-[color:var(--reelio-red)] tabular-nums pt-1">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <div>
+                      <h3 className="font-display text-xl md:text-2xl leading-tight">
+                        {it.title}
+                      </h3>
+                      <p className="mt-2 font-body text-sm text-white/60 leading-relaxed">
+                        {it.desc}
+                      </p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ============ CONTACT / CTA ============ */}
+      <section id="contact" className="relative py-24 md:py-40 border-t border-white/15">
+        <div className="mx-auto max-w-[1400px] px-5 md:px-10">
+          <div className="grid md:grid-cols-12 gap-8">
+            <div className="md:col-span-8">
+              <span className="slug">§ End Sheet</span>
+              <h2 className="mt-6 font-display text-6xl md:text-[10vw] leading-[0.88]">
+                Roll the<br />
+                <span className="text-[color:var(--reelio-red)]">next reel.</span>
+              </h2>
+              <p className="mt-8 font-body text-lg md:text-xl text-white/70 max-w-2xl">
+                Twenty minutes on a call. We'll walk you through the crew, the
+                pipeline, and what your first month at Reelio actually looks
+                like.
+              </p>
+              <div className="mt-10 flex flex-wrap gap-3">
+                <button type="button" onClick={() => setBookingOpen(true)} className="btn-red">
+                  Book the call
+                </button>
+                <a
+                  href="https://forms.gle/Px5NuE51UrGZMSKx8"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="btn-ghost"
+                >
+                  Open the form
+                </a>
+              </div>
+            </div>
+            <div className="md:col-span-4 flex flex-col justify-end gap-6 pt-10 md:pt-0">
+              <div className="rule-line" />
+              <div>
+                <span className="font-body text-[10px] uppercase tracking-[0.3em] text-white/40">
+                  Studio
+                </span>
+                <p className="mt-2 font-body text-white/80">
+                  Available across India · Remote worldwide
+                </p>
+              </div>
+              <div>
+                <span className="font-body text-[10px] uppercase tracking-[0.3em] text-white/40">
+                  Response
+                </span>
+                <p className="mt-2 font-body text-white/80">
+                  Within 24 hours, weekdays
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ============ COLOPHON / FOOTER ============ */}
+      <footer className="border-t border-white/15 py-10">
+        <div className="mx-auto max-w-[1400px] px-5 md:px-10 flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <img src={logoMark.url} alt="Reelio" className="h-5 w-auto object-contain" />
+            <span className="font-body text-[10px] uppercase tracking-[0.3em] text-white/40">
+              © {year} Reelio Studio · Issue №{issue}
+            </span>
+          </div>
+          <div className="flex items-center gap-6 font-body text-[10px] uppercase tracking-[0.3em] text-white/40">
+            <a href="#services" className="hover:text-white">Services</a>
+            <a href="#package" className="hover:text-white">Package</a>
+            <a href="#contact" className="hover:text-white">Contact</a>
+          </div>
         </div>
       </footer>
     </div>
