@@ -617,7 +617,7 @@ function AdminPage() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [qc, navigate]);
+  }, [qc, navigate, profileMap]);
 
   const unreadCount = useMemo(
     () => (bookings ?? []).filter((b) => new Date(b.created_at).getTime() > lastSeen).length,
