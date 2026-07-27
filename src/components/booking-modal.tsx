@@ -11,6 +11,7 @@ import {
   loadHCaptchaScript,
   type CaptchaConfig,
 } from "@/lib/captcha-config";
+import { trackEvent, trackFormSubmit } from "@/lib/analytics";
 
 type Props = {
   open: boolean;
