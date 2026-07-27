@@ -217,11 +217,12 @@ function Avatar({
 }
 
 function NotificationsBell({
-  bookings, lastSeen, unreadCount, onMarkAllRead, onMarkAllUnread, onMarkUnread, onOpen, onUpdateStatus,
+  bookings, lastSeen, unreadCount, userId, onMarkAllRead, onMarkAllUnread, onMarkUnread, onOpen, onUpdateStatus,
 }: {
   bookings: BookingWithProfile[];
   lastSeen: number;
   unreadCount: number;
+  userId: string | null;
   onMarkAllRead: (ids: string[]) => void;
   onMarkAllUnread: (ids: string[]) => void;
   onMarkUnread: (id: string) => void;
@@ -233,12 +234,26 @@ function NotificationsBell({
   const scrollRef = useRef<HTMLDivElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const [notifStatus, setNotifStatus] = useState<"all" | Status>("all");
-  const [notifUnreadOnly, setNotifUnreadOnly] = useState(false);
-  const [notifTodayOnly, setNotifTodayOnly] = useState(false);
-  const [notifService, setNotifService] = useState<"all" | string>("all");
+  const [notifUnreadOnly, setNotifUnreadOnly] = useState(() => loadNotifFilters(userId).unreadOnly);
+  const [notifTodayOnly, setNotifTodayOnly] = useState(() => loadNotifFilters(userId).todayOnly);
+  const [notifService, setNotifService] = useState<"all" | string>(() => loadNotifFilters(userId).service);
   const [notifSort, setNotifSort] = useState<"newest" | "oldest">("newest");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [notifLimit, setNotifLimit] = useState(8);
+
+  // Persist the three filter choices per user so they survive reloads.
+  useEffect(() => {
+    saveNotifFilters(userId, { unreadOnly: notifUnreadOnly, todayOnly: notifTodayOnly, service: notifService });
+  }, [userId, notifUnreadOnly, notifTodayOnly, notifService]);
+
+  // Sync filters if userId becomes known after initial render (e.g. on first mount).
+  useEffect(() => {
+    if (!userId) return;
+    const stored = loadNotifFilters(userId);
+    setNotifUnreadOnly(stored.unreadOnly);
+    setNotifTodayOnly(stored.todayOnly);
+    setNotifService(stored.service);
+  }, [userId]);
 
   const [readIds, setReadIds] = useState<Set<string>>(() => getReadBookingIds());
   useEffect(() => {
