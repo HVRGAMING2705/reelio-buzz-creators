@@ -9,23 +9,67 @@ import { supabase } from "@/integrations/supabase/client";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Reelio SMMA — A Content Studio for Brands That Move" },
+      { title: "Reelio SMMA — A Cinematic Social Media Studio for Brands" },
       {
         name: "description",
         content:
-          "Reelio is a cinematic social media studio. Shoots, reels, ads, outreach and growth — one issue, one team, one reel.",
+          "Reelio is a cinematic social media agency. Reels, photo/video shoots, editing, Meta ads, outreach and creator growth — one crew, monthly retainer from ₹10K.",
       },
-      { property: "og:title", content: "Reelio SMMA — A Content Studio for Brands That Move" },
+      { name: "keywords", content: "social media agency, SMMA, reels, content creation, Meta ads, influencer outreach, video production India, Reelio" },
+      { property: "og:title", content: "Reelio SMMA — A Cinematic Social Media Studio" },
       {
         property: "og:description",
-        content: "A cinematic social media studio. Shoots, reels, ads, outreach and growth.",
+        content:
+          "Content, shoots, editing, ads and outreach — one crew shipping weekly. Monthly plans from ₹10K.",
       },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: "/" },
+      { property: "og:site_name", content: "Reelio SMMA" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Reelio SMMA — A Cinematic Social Media Studio" },
+      {
+        name: "twitter:description",
+        content: "Reels, shoots, editing, ads and outreach — one crew shipping weekly.",
+      },
+    ],
+    links: [{ rel: "canonical", href: "/" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          name: "Reelio SMMA",
+          description:
+            "Cinematic social media agency delivering content, shoots, editing, ads and creator outreach.",
+          url: "/",
+          logo: "/favicon.png",
+          areaServed: "IN",
+          sameAs: [],
+        }),
+      },
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Service",
+          serviceType: "Social Media Marketing Agency",
+          provider: { "@type": "Organization", name: "Reelio SMMA" },
+          areaServed: "IN",
+          offers: {
+            "@type": "AggregateOffer",
+            priceCurrency: "INR",
+            lowPrice: "10000",
+            highPrice: "50000",
+            offerCount: "2",
+          },
+        }),
+      },
     ],
   }),
   component: Index,
 });
+
 
 const services = [
   {
