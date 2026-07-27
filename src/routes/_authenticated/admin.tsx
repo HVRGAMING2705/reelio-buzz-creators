@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
@@ -244,6 +244,31 @@ function NotificationsBell({
   const [notifSearch, setNotifSearch] = useState("");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [notifLimit, setNotifLimit] = useState(8);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [loadMoreError, setLoadMoreError] = useState<string | null>(null);
+  const loadMoreTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const loadMoreNotifications = useCallback(() => {
+    if (loadingMore) return;
+    setLoadMoreError(null);
+    setLoadingMore(true);
+    if (loadMoreTimer.current) clearTimeout(loadMoreTimer.current);
+    loadMoreTimer.current = setTimeout(() => {
+      try {
+        setNotifLimit((n) => n + 8);
+        setLoadingMore(false);
+      } catch (err) {
+        setLoadingMore(false);
+        setLoadMoreError(err instanceof Error ? err.message : "Failed to load older notifications");
+      }
+    }, 350);
+  }, [loadingMore]);
+
+  useEffect(() => {
+    return () => {
+      if (loadMoreTimer.current) clearTimeout(loadMoreTimer.current);
+    };
+  }, []);
 
   // Persist the filter choices per user so they survive reloads and re-openings.
   useEffect(() => {
@@ -347,18 +372,18 @@ function NotificationsBell({
 
   // Infinite scroll: load more notifications when the sentinel enters view
   useEffect(() => {
-    if (!open || !sentinelRef.current || !hasMoreNotifications) return;
+    if (!open || !sentinelRef.current || !hasMoreNotifications || loadingMore || loadMoreError) return;
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0]?.isIntersecting) {
-          setNotifLimit((n) => n + 8);
+          loadMoreNotifications();
         }
       },
       { root: scrollRef.current, threshold: 0.1 },
     );
     observer.observe(sentinelRef.current);
     return () => observer.disconnect();
-  }, [open, hasMoreNotifications, notifLimit]);
+  }, [open, hasMoreNotifications, notifLimit, loadingMore, loadMoreError, loadMoreNotifications]);
 
   const activeNotifFilters =
     notifStatus !== "all" ||
@@ -676,14 +701,48 @@ function NotificationsBell({
                 );
               })}
               {hasMoreNotifications && (
-                <div className="px-4 py-3 border-t border-white/10 bg-white/[0.02]">
-                  <button
-                    onClick={() => setNotifLimit((n) => n + 8)}
-                    className="w-full text-center text-xs uppercase tracking-[0.15em] py-2 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 transition-colors"
-                    aria-label="Load older notifications"
-                  >
-                    Load more ({filteredNotifications.length - recent.length} remaining)
-                  </button>
+                <div className="px-4 py-3 border-t border-white/10 bg-white/[0.02] space-y-2">
+                  {loadingMore && (
+                    <ul className="space-y-2" aria-live="polite" aria-busy="true">
+                      {Array.from({ length: 3 }).map((_, i) => (
+                        <li
+                          key={i}
+                          className="flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 animate-pulse"
+                        >
+                          <div className="h-8 w-8 rounded-full bg-white/10" />
+                          <div className="flex-1 space-y-1.5">
+                            <div className="h-3 w-2/3 rounded bg-white/10" />
+                            <div className="h-2.5 w-1/2 rounded bg-white/[0.07]" />
+                          </div>
+                        </li>
+                      ))}
+                      <li className="sr-only">Loading older notifications…</li>
+                    </ul>
+                  )}
+                  {loadMoreError && !loadingMore && (
+                    <div
+                      role="alert"
+                      className="rounded-lg border border-rose-400/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-100 flex items-center justify-between gap-3"
+                    >
+                      <span className="truncate">Couldn’t load older notifications. {loadMoreError}</span>
+                      <button
+                        onClick={loadMoreNotifications}
+                        className="shrink-0 text-[10px] uppercase tracking-[0.15em] font-semibold px-2 py-1 rounded-md bg-white/10 border border-white/20 hover:bg-white/20"
+                      >
+                        Retry
+                      </button>
+                    </div>
+                  )}
+                  {!loadingMore && !loadMoreError && (
+                    <button
+                      onClick={loadMoreNotifications}
+                      disabled={loadingMore}
+                      className="w-full text-center text-xs uppercase tracking-[0.15em] py-2 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                      aria-label="Load older notifications"
+                    >
+                      Load more ({filteredNotifications.length - recent.length} remaining)
+                    </button>
+                  )}
                   <div ref={sentinelRef} className="h-1 w-full" aria-hidden />
                 </div>
               )}
