@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
+import { logNotification } from "@/lib/notification-history";
 
 const LAST_SEEN_KEY = "reelio.admin.lastSeenBookingAt";
 const SETTINGS_KEY = "reelio.admin.notifSettings";
@@ -677,7 +678,26 @@ function AdminPage() {
     pendingRef.current = [];
     if (events.length === 0) return;
     const s = settingsRef.current;
-    if (!s.realtimeEnabled || isQuietNow(s)) return;
+    const suppressedReason: "disabled" | "quiet" | null =
+      !s.realtimeEnabled ? "disabled" : isQuietNow(s) ? "quiet" : null;
+    if (suppressedReason) {
+      for (const ev of events) {
+        const b = ev.booking;
+        logNotification({
+          kind: ev.kind,
+          category: "bookings",
+          title:
+            ev.kind === "new" ? `New booking · ${b.name}`
+            : ev.kind === "status" ? `${b.name} · ${ev.from} → ${ev.to}`
+            : `Note updated · ${b.name}`,
+          subtitle: b.brand ?? b.service ?? undefined,
+          bookingId: b.id,
+          status: "suppressed",
+          reason: suppressedReason,
+        });
+      }
+      return;
+    }
 
     if (events.length === 1) {
       const ev = events[0];
@@ -687,6 +707,14 @@ function AdminPage() {
         ev.kind === "new" ? `New booking · ${b.name}`
         : ev.kind === "status" ? `${b.name} · ${ev.from} → ${ev.to}`
         : `Note updated · ${b.name}`;
+      logNotification({
+        kind: ev.kind,
+        category: "bookings",
+        title,
+        subtitle: b.brand ?? b.service ?? undefined,
+        bookingId: b.id,
+        status: "delivered",
+      });
       toast.custom(
         (t) => (
           <div className="w-full rounded-xl border border-white/10 bg-black/90 backdrop-blur-xl shadow-2xl overflow-hidden">
@@ -759,6 +787,13 @@ function AdminPage() {
         counts.status && `${counts.status} status change${counts.status > 1 ? "s" : ""}`,
         counts.note && `${counts.note} note${counts.note > 1 ? "s" : ""}`,
       ].filter(Boolean).join(" · ");
+      logNotification({
+        kind: "summary",
+        category: "bookings",
+        title: `${events.length} booking updates`,
+        subtitle: parts,
+        status: "delivered",
+      });
       toast.custom(
         (t) => (
           <div className="w-full rounded-xl border border-white/10 bg-black/90 backdrop-blur-xl shadow-2xl overflow-hidden">
@@ -796,8 +831,24 @@ function AdminPage() {
           notifiedIds.current.add(b.id);
           prevBookings.current.set(b.id, b);
           qc.invalidateQueries({ queryKey: ["bookings"] });
-          if (!settingsRef.current.categoryBookings) return;
-          if (!settingsRef.current.notifyNewBooking) return;
+          if (!settingsRef.current.categoryBookings) {
+            logNotification({
+              kind: "new", category: "bookings",
+              title: `New booking · ${b.name}`,
+              subtitle: b.brand ?? b.service ?? undefined,
+              bookingId: b.id, status: "suppressed", reason: "category",
+            });
+            return;
+          }
+          if (!settingsRef.current.notifyNewBooking) {
+            logNotification({
+              kind: "new", category: "bookings",
+              title: `New booking · ${b.name}`,
+              subtitle: b.brand ?? b.service ?? undefined,
+              bookingId: b.id, status: "suppressed", reason: "type",
+            });
+            return;
+          }
           enqueueEvent({ kind: "new", booking: b });
         },
       )
@@ -810,12 +861,42 @@ function AdminPage() {
           prevBookings.current.set(next.id, next);
           qc.invalidateQueries({ queryKey: ["bookings"] });
           if (!prev) return;
-          if (!settingsRef.current.categoryBookings) return;
-          if (prev.status !== next.status && settingsRef.current.notifyStatusChange) {
-            enqueueEvent({ kind: "status", booking: next, from: prev.status, to: next.status });
+          const statusChanged = prev.status !== next.status;
+          const noteChanged = (prev.notes ?? "") !== (next.notes ?? "");
+          if (!settingsRef.current.categoryBookings) {
+            if (statusChanged) logNotification({
+              kind: "status", category: "bookings",
+              title: `${next.name} · ${prev.status} → ${next.status}`,
+              bookingId: next.id, status: "suppressed", reason: "category",
+            });
+            if (noteChanged) logNotification({
+              kind: "note", category: "bookings",
+              title: `Note updated · ${next.name}`,
+              bookingId: next.id, status: "suppressed", reason: "category",
+            });
+            return;
           }
-          if ((prev.notes ?? "") !== (next.notes ?? "") && settingsRef.current.notifyNoteUpdate) {
-            enqueueEvent({ kind: "note", booking: next });
+          if (statusChanged) {
+            if (settingsRef.current.notifyStatusChange) {
+              enqueueEvent({ kind: "status", booking: next, from: prev.status, to: next.status });
+            } else {
+              logNotification({
+                kind: "status", category: "bookings",
+                title: `${next.name} · ${prev.status} → ${next.status}`,
+                bookingId: next.id, status: "suppressed", reason: "type",
+              });
+            }
+          }
+          if (noteChanged) {
+            if (settingsRef.current.notifyNoteUpdate) {
+              enqueueEvent({ kind: "note", booking: next });
+            } else {
+              logNotification({
+                kind: "note", category: "bookings",
+                title: `Note updated · ${next.name}`,
+                bookingId: next.id, status: "suppressed", reason: "type",
+              });
+            }
           }
         },
       )
@@ -915,6 +996,13 @@ function AdminPage() {
               }}
               onUpdateStatus={(id, status) => updateStatus.mutate({ id, status })}
             />
+            <Link
+              to="/notifications"
+              className="rounded-full glass px-3 py-2 text-[10px] uppercase tracking-[0.2em] hover:bg-white/10"
+              title="Notification history"
+            >
+              History
+            </Link>
             <button
               onClick={() => setSettingsOpen(true)}
               className="rounded-full glass px-3 py-2 text-sm hover:bg-white/10"
@@ -1411,10 +1499,22 @@ function SettingsModal({
               type="button"
               onClick={() => {
                 if (!draft.realtimeEnabled) {
+                  logNotification({
+                    kind: "test", category: "system",
+                    title: "Test notification · Reelio Admin",
+                    subtitle: "Realtime alerts disabled",
+                    status: "suppressed", reason: "disabled",
+                  });
                   toast.error("Realtime alerts are disabled — no toast will appear.");
                   return;
                 }
                 if (isQuietNow(draft)) {
+                  logNotification({
+                    kind: "test", category: "system",
+                    title: "Test notification · Reelio Admin",
+                    subtitle: "Quiet hours active",
+                    status: "suppressed", reason: "quiet",
+                  });
                   toast.error(
                     `Quiet hours are active${
                       nextTransition ? ` until ${nextTransition}` : ""
@@ -1422,6 +1522,12 @@ function SettingsModal({
                   );
                   return;
                 }
+                logNotification({
+                  kind: "test", category: "system",
+                  title: "Test notification · Reelio Admin",
+                  subtitle: "Delivered preview toast",
+                  status: "delivered",
+                });
                 toast.custom(
                   (t) => (
                     <div className="w-full rounded-xl border border-red-500/40 bg-black/90 backdrop-blur-xl shadow-2xl overflow-hidden">
