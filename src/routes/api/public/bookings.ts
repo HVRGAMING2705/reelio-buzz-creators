@@ -241,6 +241,51 @@ async function loadLimits(url: string, key: string): Promise<{ ip: Bucket[]; ema
   }
 }
 
+// ---- Captcha enabled flag (from app_settings, admin-controlled) ----
+type CaptchaSettingRow = { enabled?: unknown; siteKey?: unknown };
+let cachedCaptcha: { enabled: boolean; siteKey: string; at: number } | null = null;
+const CAPTCHA_TTL_MS = 30_000;
+async function loadCaptchaSetting(
+  url: string,
+  key: string,
+): Promise<{ enabled: boolean; siteKey: string }> {
+  const now = Date.now();
+  if (cachedCaptcha && now - cachedCaptcha.at < CAPTCHA_TTL_MS) {
+    return { enabled: cachedCaptcha.enabled, siteKey: cachedCaptcha.siteKey };
+  }
+  try {
+    const client = createClient<Database>(url, key, {
+      auth: { persistSession: false, autoRefreshToken: false },
+      global: {
+        fetch: (input, init) => {
+          const h = new Headers(init?.headers);
+          if (key.startsWith("sb_") && h.get("Authorization") === `Bearer ${key}`) {
+            h.delete("Authorization");
+          }
+          h.set("apikey", key);
+          return fetch(input, { ...init, headers: h });
+        },
+      },
+    });
+    const { data } = await client
+      .from("app_settings")
+      .select("value")
+      .eq("key", "captcha")
+      .maybeSingle();
+    const v = (data?.value ?? {}) as CaptchaSettingRow;
+    const out = {
+      enabled: !!v.enabled,
+      siteKey: typeof v.siteKey === "string" ? v.siteKey : "",
+    };
+    cachedCaptcha = { ...out, at: now };
+    return out;
+  } catch {
+    const out = { enabled: false, siteKey: "" };
+    cachedCaptcha = { ...out, at: now };
+    return out;
+  }
+}
+
 export const Route = createFileRoute("/api/public/bookings")({
   server: {
     handlers: {
@@ -303,9 +348,34 @@ export const Route = createFileRoute("/api/public/bookings")({
         }
 
 
-        // If HCAPTCHA_SECRET is configured, a valid token is required.
+        // Captcha is required when the admin has enabled it in Settings
+        // (app_settings.key = 'captcha'). Verified server-side using
+        // HCAPTCHA_SECRET; if the flag is on but the secret is missing we
+        // fail closed so submissions can't slip through unverified.
+        const captchaSetting =
+          rlUrl && rlKey
+            ? await loadCaptchaSetting(rlUrl, rlKey)
+            : { enabled: false, siteKey: "" };
         const hcaptchaSecret = process.env.HCAPTCHA_SECRET;
-        if (hcaptchaSecret) {
+        if (captchaSetting.enabled) {
+          if (!hcaptchaSecret) {
+            await logBlocked({
+              reason: "captcha_failed",
+              ip,
+              email: form.email,
+              windowLabel: "server_secret_missing",
+              userAgent: ua,
+            });
+            return new Response(
+              JSON.stringify({
+                error: "Captcha is enabled but not yet configured on the server. Please try again shortly.",
+                field: "captcha",
+                code: "captcha_failed",
+                reason: "server_secret_missing",
+              }),
+              { status: 503, headers: { "content-type": "application/json" } },
+            );
+          }
           if (!captchaToken) {
             await logBlocked({ reason: "captcha_missing", ip, email: form.email, userAgent: ua });
             return new Response(
@@ -341,6 +411,7 @@ export const Route = createFileRoute("/api/public/bookings")({
             );
           }
         }
+
 
 
         const url = process.env.SUPABASE_URL;
