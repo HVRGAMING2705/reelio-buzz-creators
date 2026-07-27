@@ -238,6 +238,7 @@ function NotificationsBell({
   const [notifTodayOnly, setNotifTodayOnly] = useState(() => loadNotifFilters(userId).todayOnly);
   const [notifService, setNotifService] = useState<"all" | string>(() => loadNotifFilters(userId).service);
   const [notifSort, setNotifSort] = useState<"newest" | "oldest">("newest");
+  const [notifSearch, setNotifSearch] = useState("");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [notifLimit, setNotifLimit] = useState(8);
 
@@ -273,7 +274,7 @@ function NotificationsBell({
   useEffect(() => {
     if (!open) setSelectedIds(new Set());
     setNotifLimit(8);
-  }, [open, notifStatus, notifUnreadOnly, notifTodayOnly, notifService, notifSort]);
+  }, [open, notifStatus, notifUnreadOnly, notifTodayOnly, notifService, notifSort, notifSearch]);
 
   const filteredNotifications = useMemo(() => {
     let list = [...bookings];
@@ -291,12 +292,20 @@ function NotificationsBell({
     if (notifService !== "all") {
       list = list.filter((b) => b.service === notifService);
     }
+    if (notifSearch.trim()) {
+      const q = notifSearch.trim().toLowerCase();
+      list = list.filter((b) =>
+        [b.name, b.email, b.brand, b.phone, b.niche, b.service, b.message]
+          .filter((v): v is string => Boolean(v))
+          .some((v) => v.toLowerCase().includes(q))
+      );
+    }
     list.sort((a, b) => {
       const diff = +new Date(b.created_at) - +new Date(a.created_at);
       return notifSort === "newest" ? diff : -diff;
     });
     return list;
-  }, [bookings, lastSeen, readIds, notifStatus, notifUnreadOnly, notifTodayOnly, notifService, notifSort]);
+  }, [bookings, lastSeen, readIds, notifStatus, notifUnreadOnly, notifTodayOnly, notifService, notifSort, notifSearch]);
 
   const recent = useMemo(
     () => filteredNotifications.slice(0, notifLimit),
@@ -330,7 +339,8 @@ function NotificationsBell({
     notifUnreadOnly ||
     notifTodayOnly ||
     notifService !== "all" ||
-    notifSort !== "newest";
+    notifSort !== "newest" ||
+    notifSearch.trim() !== "";
 
   return (
     <div className="relative" ref={ref}>
@@ -368,6 +378,26 @@ function NotificationsBell({
           </div>
           <div className="px-4 py-3 border-b border-white/10 bg-white/[0.03]">
             <div className="flex items-center gap-2 flex-wrap">
+              <div className="relative w-full">
+                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs opacity-50" aria-hidden>🔎</span>
+                <input
+                  type="text"
+                  value={notifSearch}
+                  onChange={(e) => setNotifSearch(e.target.value)}
+                  placeholder="Search by name, email, brand, message..."
+                  className="w-full text-xs rounded-full bg-white/5 border border-white/10 pl-8 pr-3 py-1.5 placeholder:text-white/40 focus:outline-none focus:ring-1 focus:ring-red-500/50"
+                  aria-label="Search notifications"
+                />
+                {notifSearch && (
+                  <button
+                    onClick={() => setNotifSearch("")}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] opacity-60 hover:opacity-100"
+                    aria-label="Clear search"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
               <label
                 className={`flex items-center gap-1.5 text-xs cursor-pointer select-none rounded-full px-2.5 py-1 border transition-colors ${
                   notifUnreadOnly
@@ -432,6 +462,7 @@ function NotificationsBell({
                     setNotifTodayOnly(false);
                     setNotifService("all");
                     setNotifSort("newest");
+                    setNotifSearch("");
                   }}
                   className="text-[10px] uppercase tracking-[0.15em] opacity-70 hover:opacity-100 ml-auto"
                 >
@@ -503,7 +534,9 @@ function NotificationsBell({
             </div>
           )}
           {recent.length === 0 ? (
-            <div className="px-4 py-8 text-center text-sm opacity-60">No bookings yet</div>
+            <div className="px-4 py-8 text-center text-sm opacity-60">
+              {bookings.length > 0 ? "No matching notifications" : "No bookings yet"}
+            </div>
           ) : (
             <ul className="divide-y divide-white/5">
               {recent.map((b) => {
