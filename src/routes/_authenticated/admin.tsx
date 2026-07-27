@@ -509,6 +509,17 @@ function AdminPage() {
     },
   });
 
+  const profileMap = useMemo(() => {
+    const map = new Map<string, Profile>();
+    for (const p of profiles ?? []) map.set(p.user_id, p);
+    return map;
+  }, [profiles]);
+
+  const bookingsWithProfiles = useMemo<BookingWithProfile[]>(
+    () => (bookings ?? []).map((b) => ({ ...b, profiles: b.user_id ? profileMap.get(b.user_id) ?? null : null })),
+    [bookings, profileMap],
+  );
+
   const { data: role } = useQuery({
     queryKey: ["role"],
     queryFn: async () => {
