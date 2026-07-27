@@ -467,6 +467,7 @@ function NotificationsBell({
                     setNotifService("all");
                     setNotifSort("newest");
                     setNotifSearch("");
+                    saveNotifFilters(userId, DEFAULT_NOTIF_FILTERS);
                   }}
                   className="text-[10px] uppercase tracking-[0.15em] opacity-70 hover:opacity-100 ml-auto"
                 >
