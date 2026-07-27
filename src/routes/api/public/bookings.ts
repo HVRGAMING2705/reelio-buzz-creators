@@ -268,8 +268,18 @@ export const Route = createFileRoute("/api/public/bookings")({
         const limits = rlUrl && rlKey
           ? await loadLimits(rlUrl, rlKey)
           : bucketsFromRow(null);
+        const ua = request.headers.get("user-agent");
         const ipCheck = rateCheck(`ip:${ip}`, limits.ip);
         if (!ipCheck.ok) {
+          await logBlocked({
+            reason: "ip_rate_limit",
+            ip,
+            email: form.email,
+            windowLabel: ipCheck.label,
+            maxAllowed: ipCheck.max,
+            retryAfterSec: ipCheck.retryAfterSec,
+            userAgent: ua,
+          });
           return tooMany(
             ipCheck.retryAfterSec,
             `Too many submissions from your network. Please try again in ~${Math.ceil(ipCheck.retryAfterSec / 60)} min.`,
@@ -277,6 +287,15 @@ export const Route = createFileRoute("/api/public/bookings")({
         }
         const emailCheck = rateCheck(`email:${form.email}`, limits.email);
         if (!emailCheck.ok) {
+          await logBlocked({
+            reason: "email_rate_limit",
+            ip,
+            email: form.email,
+            windowLabel: emailCheck.label,
+            maxAllowed: emailCheck.max,
+            retryAfterSec: emailCheck.retryAfterSec,
+            userAgent: ua,
+          });
           return tooMany(
             emailCheck.retryAfterSec,
             `This email has submitted too many bookings recently. Please try again in ~${Math.ceil(emailCheck.retryAfterSec / 60)} min.`,
@@ -288,6 +307,7 @@ export const Route = createFileRoute("/api/public/bookings")({
         const hcaptchaSecret = process.env.HCAPTCHA_SECRET;
         if (hcaptchaSecret) {
           if (!captchaToken) {
+            await logBlocked({ reason: "captcha_missing", ip, email: form.email, userAgent: ua });
             return new Response(
               JSON.stringify({ error: "Please complete the captcha to continue.", field: "captcha", code: "captcha_missing" }),
               { status: 400, headers: { "content-type": "application/json" } },
@@ -307,12 +327,20 @@ export const Route = createFileRoute("/api/public/bookings")({
             } else if (reason.includes("network")) {
               msg = "Couldn't reach captcha service — check your connection and retry.";
             }
+            await logBlocked({
+              reason: "captcha_failed",
+              ip,
+              email: form.email,
+              windowLabel: reason || null as unknown as string | undefined,
+              userAgent: ua,
+            });
             return new Response(
               JSON.stringify({ error: msg, field: "captcha", code: "captcha_failed", reason }),
               { status: 403, headers: { "content-type": "application/json" } },
             );
           }
         }
+
 
         const url = process.env.SUPABASE_URL;
         const key = process.env.SUPABASE_PUBLISHABLE_KEY;
