@@ -104,6 +104,8 @@ function NotificationsBell({
   const ref = useRef<HTMLDivElement>(null);
   const [notifStatus, setNotifStatus] = useState<"all" | Status>("all");
   const [notifUnreadOnly, setNotifUnreadOnly] = useState(false);
+  const [notifTodayOnly, setNotifTodayOnly] = useState(false);
+  const [notifService, setNotifService] = useState<"all" | string>("all");
   const [notifSort, setNotifSort] = useState<"newest" | "oldest">("newest");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [notifLimit, setNotifLimit] = useState(8);
@@ -128,7 +130,7 @@ function NotificationsBell({
   useEffect(() => {
     if (!open) setSelectedIds(new Set());
     setNotifLimit(8);
-  }, [open, notifStatus, notifUnreadOnly, notifSort]);
+  }, [open, notifStatus, notifUnreadOnly, notifTodayOnly, notifService, notifSort]);
 
   const filteredNotifications = useMemo(() => {
     let list = [...bookings];
