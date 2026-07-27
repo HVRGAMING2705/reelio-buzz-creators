@@ -250,14 +250,21 @@ function NotificationsBell({
           </div>
           <div className="px-4 py-3 border-b border-white/10 bg-white/[0.03]">
             <div className="flex items-center gap-2 flex-wrap">
-              <label className="flex items-center gap-1.5 text-xs cursor-pointer select-none">
+              <label
+                className={`flex items-center gap-1.5 text-xs cursor-pointer select-none rounded-full px-2.5 py-1 border transition-colors ${
+                  notifUnreadOnly
+                    ? "bg-red-500/20 border-red-500/50 text-white"
+                    : "bg-white/5 border-white/10 text-white/80 hover:bg-white/10"
+                }`}
+                title="Show only unread notifications"
+              >
                 <input
                   type="checkbox"
                   className="h-3.5 w-3.5 accent-red-500"
                   checked={notifUnreadOnly}
                   onChange={(e) => setNotifUnreadOnly(e.target.checked)}
                 />
-                Unread
+                Unread only
               </label>
               <label className="flex items-center gap-1.5 text-xs cursor-pointer select-none">
                 <input
