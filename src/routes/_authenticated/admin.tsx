@@ -57,11 +57,29 @@ function saveNotifFilters(userId: string | null, filters: NotifFilters) {
 
 type NotifFrequency = "instant" | "1m" | "5m";
 
+// Day-of-week: 0 = Sunday .. 6 = Saturday, matching Date.getDay().
+export type QuietSchedule = {
+  id: string;
+  start: string; // "HH:MM"
+  end: string;   // "HH:MM"
+  days: number[]; // subset of 0..6; empty means "no days" (inactive row)
+};
+
+const ALL_DAYS: number[] = [0, 1, 2, 3, 4, 5, 6];
+const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
+
+function makeScheduleId() {
+  return typeof crypto !== "undefined" && "randomUUID" in crypto
+    ? crypto.randomUUID()
+    : `qs-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
 type NotifSettings = {
   realtimeEnabled: boolean;
   quietEnabled: boolean;
-  quietStart: string; // "HH:MM"
-  quietEnd: string;   // "HH:MM"
+  quietStart: string; // legacy single window, kept for back-compat
+  quietEnd: string;   // legacy single window, kept for back-compat
+  quietSchedules: QuietSchedule[]; // preferred: per-day time ranges
   captchaEnabled: boolean;
   hcaptchaSiteKey: string;
   categoryBookings: boolean;
@@ -79,6 +97,7 @@ const DEFAULT_SETTINGS: NotifSettings = {
   quietEnabled: false,
   quietStart: "22:00",
   quietEnd: "08:00",
+  quietSchedules: [],
   captchaEnabled: false,
   hcaptchaSiteKey: "",
   categoryBookings: true,
@@ -97,15 +116,29 @@ const FREQUENCY_MS: Record<NotifFrequency, number> = {
   "5m": 300_000,
 };
 
+function migrateSettings(s: NotifSettings): NotifSettings {
+  // Ensure existing users see their legacy single window as an editable
+  // schedule row when the modal opens.
+  if (!Array.isArray(s.quietSchedules) || s.quietSchedules.length === 0) {
+    return {
+      ...s,
+      quietSchedules: [
+        { id: makeScheduleId(), start: s.quietStart, end: s.quietEnd, days: [...ALL_DAYS] },
+      ],
+    };
+  }
+  return s;
+}
+
 function loadSettings(userId: string | null): NotifSettings {
   if (typeof window === "undefined") return DEFAULT_SETTINGS;
   try {
     const raw =
       window.localStorage.getItem(settingsKeyFor(userId)) ??
       (userId ? window.localStorage.getItem(SETTINGS_KEY_BASE) : null);
-    if (!raw) return DEFAULT_SETTINGS;
-    return { ...DEFAULT_SETTINGS, ...JSON.parse(raw) };
-  } catch { return DEFAULT_SETTINGS; }
+    if (!raw) return migrateSettings(DEFAULT_SETTINGS);
+    return migrateSettings({ ...DEFAULT_SETTINGS, ...JSON.parse(raw) });
+  } catch { return migrateSettings(DEFAULT_SETTINGS); }
 }
 
 function toMinutes(t: string) {
@@ -113,26 +146,57 @@ function toMinutes(t: string) {
   return (h || 0) * 60 + (m || 0);
 }
 
+function scheduleCoversMoment(sch: QuietSchedule, d: Date): boolean {
+  if (!sch.days || sch.days.length === 0) return false;
+  const start = toMinutes(sch.start);
+  const end = toMinutes(sch.end);
+  if (start === end) return false;
+  const day = d.getDay();
+  const nowMin = d.getHours() * 60 + d.getMinutes();
+  if (start < end) {
+    return sch.days.includes(day) && nowMin >= start && nowMin < end;
+  }
+  // Wraps past midnight: active on `day` from start until 24:00, and on the
+  // *next* day from 00:00 until end. So we're covered if either:
+  //   - today is a scheduled day AND now >= start
+  //   - yesterday was a scheduled day AND now < end
+  const prevDay = (day + 6) % 7;
+  return (
+    (sch.days.includes(day) && nowMin >= start) ||
+    (sch.days.includes(prevDay) && nowMin < end)
+  );
+}
+
 function isQuietNow(s: NotifSettings, d = new Date()) {
   if (!s.quietEnabled) return false;
-  const now = d.getHours() * 60 + d.getMinutes();
-  const start = toMinutes(s.quietStart);
-  const end = toMinutes(s.quietEnd);
-  if (start === end) return false;
-  return start < end ? now >= start && now < end : now >= start || now < end;
+  const schedules = s.quietSchedules?.length
+    ? s.quietSchedules
+    : [{ id: "legacy", start: s.quietStart, end: s.quietEnd, days: ALL_DAYS }];
+  return schedules.some((sch) => scheduleCoversMoment(sch, d));
 }
 
 function formatNextTransition(s: NotifSettings, d: Date, quietActive: boolean): string | null {
   if (!s.quietEnabled) return null;
-  const target = quietActive ? s.quietEnd : s.quietStart;
-  const [h, m] = target.split(":").map(Number);
-  if (Number.isNaN(h) || Number.isNaN(m)) return null;
-  const next = new Date(d);
-  next.setSeconds(0, 0);
-  next.setHours(h, m, 0, 0);
-  if (next <= d) next.setDate(next.getDate() + 1);
-  return next.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  // Scan forward minute-by-minute (capped at 8 days) to find the next flip.
+  // Cheap enough for a settings modal and correctly handles multiple ranges,
+  // day-of-week gaps, and wrap-past-midnight windows.
+  const cursor = new Date(d);
+  cursor.setSeconds(0, 0);
+  const stepMin = 5;
+  const maxMinutes = 8 * 24 * 60;
+  for (let i = stepMin; i <= maxMinutes; i += stepMin) {
+    const t = new Date(cursor.getTime() + i * 60_000);
+    if (isQuietNow(s, t) !== quietActive) {
+      return t.toLocaleString([], {
+        weekday: "short",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    }
+  }
+  return null;
 }
+
 
 
 
