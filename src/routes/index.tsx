@@ -859,7 +859,7 @@ function Index() {
       <footer className="border-t border-white/15 py-10">
         <div className="mx-auto max-w-[1600px] px-5 sm:px-8 md:px-10 lg:px-14 flex flex-col sm:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-4">
-            <img src={logoMark.url} alt="" loading="lazy" decoding="async" width={120} height={48} className="h-6 w-auto object-contain" />
+            <img src={logoMark256.url} srcSet={logoSrcSet} sizes={footerLogoSizes} alt="" loading="lazy" decoding="async" width={48} height={48} className="h-6 w-auto object-contain" />
             <span className="font-body text-[10px] uppercase tracking-[0.3em] text-white/70">
               © {year} Reelio Social Consortium · Issue №{issue}
             </span>
