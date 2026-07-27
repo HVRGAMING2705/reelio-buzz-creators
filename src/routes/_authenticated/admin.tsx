@@ -98,6 +98,9 @@ type NotifSettings = {
   notifyNoteUpdate: boolean;
   frequency: NotifFrequency;
   rateLimits: RateLimitConfig;
+  captchaBurstEnabled: boolean;
+  captchaBurstThreshold: number; // failures within window to trigger
+  captchaBurstWindowMin: number; // rolling window in minutes
 };
 
 const DEFAULT_SETTINGS: NotifSettings = {
