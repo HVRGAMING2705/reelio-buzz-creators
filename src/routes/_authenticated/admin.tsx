@@ -169,14 +169,15 @@ function NotificationsBell({
                 {unreadCount > 0 ? `${unreadCount} new booking${unreadCount === 1 ? "" : "s"}` : "You're all caught up"}
               </p>
             </div>
-            {unreadCount > 0 && (
-              <button
-                onClick={() => onMarkAllSeen()}
-                className="text-[10px] uppercase tracking-[0.2em] opacity-70 hover:opacity-100"
-              >
-                Mark read
-              </button>
-            )}
+            <button
+              onClick={() => onMarkAllSeen()}
+              className={`text-[10px] uppercase tracking-[0.2em] opacity-70 hover:opacity-100 transition-opacity ${
+                unreadCount > 0 ? "" : "opacity-40 hover:opacity-60"
+              }`}
+              aria-label="Mark all notifications as read"
+            >
+              Mark all as read
+            </button>
           </div>
           <div className="px-4 py-3 border-b border-white/10 bg-white/[0.03]">
             <div className="flex items-center gap-2 flex-wrap">
@@ -447,24 +448,37 @@ function AdminPage() {
           if (!s.realtimeEnabled || isQuietNow(s)) return;
           toast.custom(
             (t) => (
-              <button
-                onClick={() => {
-                  toast.dismiss(t);
-                  markAllSeenRef.current?.();
-                  navigate({ to: "/bookings/$id", params: { id: b.id } });
-                }}
-                className="w-full text-left rounded-xl border border-white/10 bg-black/90 backdrop-blur-xl shadow-2xl px-4 py-3 hover:bg-white/10 transition-colors"
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <p className="text-sm font-medium text-white">New booking · {b.name}</p>
-                  <span className="text-[10px] uppercase tracking-wider text-red-400 shrink-0">View →</span>
+              <div className="w-full rounded-xl border border-white/10 bg-black/90 backdrop-blur-xl shadow-2xl overflow-hidden">
+                <button
+                  onClick={() => {
+                    toast.dismiss(t);
+                    markAllSeenRef.current?.();
+                    navigate({ to: "/bookings/$id", params: { id: b.id } });
+                  }}
+                  className="w-full text-left px-4 py-3 hover:bg-white/10 transition-colors"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-sm font-medium text-white">New booking · {b.name}</p>
+                    <span className="text-[10px] uppercase tracking-wider text-red-400 shrink-0">View →</span>
+                  </div>
+                  <p className="text-xs text-white/70 mt-0.5 truncate">
+                    {b.brand ? `${b.brand} · ` : ""}
+                    {b.service ?? "New submission"}
+                    {b.budget ? ` · ${b.budget}` : ""}
+                  </p>
+                </button>
+                <div className="border-t border-white/10 px-4 py-2 bg-white/[0.03] flex justify-end">
+                  <button
+                    onClick={() => {
+                      toast.dismiss(t);
+                      markAllSeenRef.current?.();
+                    }}
+                    className="text-[10px] uppercase tracking-[0.2em] opacity-70 hover:opacity-100"
+                  >
+                    Mark all as read
+                  </button>
                 </div>
-                <p className="text-xs text-white/70 mt-0.5 truncate">
-                  {b.brand ? `${b.brand} · ` : ""}
-                  {b.service ?? "New submission"}
-                  {b.budget ? ` · ${b.budget}` : ""}
-                </p>
-              </button>
+              </div>
             ),
             { duration: 10000 },
           );
