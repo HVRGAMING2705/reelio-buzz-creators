@@ -1,0 +1,305 @@
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMemo, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import type { Tables } from "@/integrations/supabase/types";
+
+type Booking = Tables<"bookings">;
+
+const STATUSES = ["new", "contacted", "booked", "closed"] as const;
+type Status = (typeof STATUSES)[number];
+
+export const Route = createFileRoute("/_authenticated/admin")({
+  head: () => ({
+    meta: [
+      { title: "Bookings Dashboard — Reelio Admin" },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
+  component: AdminPage,
+});
+
+function AdminPage() {
+  const navigate = useNavigate();
+  const qc = useQueryClient();
+  const [filter, setFilter] = useState<"all" | Status>("all");
+  const [search, setSearch] = useState("");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  const { data: bookings, isLoading, error } = useQuery({
+    queryKey: ["bookings"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("bookings")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as Booking[];
+    },
+  });
+
+  const { data: role } = useQuery({
+    queryKey: ["role"],
+    queryFn: async () => {
+      const { data } = await supabase.from("user_roles").select("role").eq("role", "admin").maybeSingle();
+      return data?.role ?? null;
+    },
+  });
+
+  const updateStatus = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: Status }) => {
+      const { error } = await supabase.from("bookings").update({ status }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["bookings"] }),
+  });
+
+  const updateNotes = useMutation({
+    mutationFn: async ({ id, notes }: { id: string; notes: string }) => {
+      const { error } = await supabase.from("bookings").update({ notes }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["bookings"] }),
+  });
+
+  const del = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("bookings").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      setSelectedId(null);
+      qc.invalidateQueries({ queryKey: ["bookings"] });
+    },
+  });
+
+  const signOut = async () => {
+    await qc.cancelQueries();
+    qc.clear();
+    await supabase.auth.signOut();
+    navigate({ to: "/auth", replace: true });
+  };
+
+  const filtered = useMemo(() => {
+    if (!bookings) return [];
+    const q = search.trim().toLowerCase();
+    return bookings.filter((b) => {
+      if (filter !== "all" && b.status !== filter) return false;
+      if (!q) return true;
+      return [b.name, b.email, b.brand, b.phone, b.niche, b.service, b.message]
+        .filter(Boolean)
+        .some((v) => String(v).toLowerCase().includes(q));
+    });
+  }, [bookings, filter, search]);
+
+  const selected = filtered.find((b) => b.id === selectedId) ?? bookings?.find((b) => b.id === selectedId);
+
+  const counts = useMemo(() => {
+    const c: Record<string, number> = { all: bookings?.length ?? 0 };
+    for (const s of STATUSES) c[s] = bookings?.filter((b) => b.status === s).length ?? 0;
+    return c;
+  }, [bookings]);
+
+  return (
+    <div className="min-h-screen bg-[color:var(--reelio-black,#0b0b0d)] text-white">
+      <header className="sticky top-0 z-20 border-b border-white/10 bg-black/60 backdrop-blur-xl">
+        <div className="max-w-7xl mx-auto flex items-center justify-between px-4 md:px-8 py-4">
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.4em] opacity-70">Reelio</p>
+            <h1 className="text-xl md:text-2xl">Bookings dashboard</h1>
+          </div>
+          <div className="flex items-center gap-2">
+            {role !== "admin" && (
+              <span className="text-xs px-3 py-1 rounded-full bg-yellow-500/20 text-yellow-200">
+                No admin role
+              </span>
+            )}
+            <button
+              onClick={signOut}
+              className="rounded-full glass px-4 py-2 uppercase tracking-[0.2em] text-[10px]"
+            >
+              Sign out
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <main className="max-w-7xl mx-auto p-4 md:p-8 grid lg:grid-cols-[1fr_400px] gap-6">
+        <section>
+          <div className="flex flex-wrap gap-2 mb-4">
+            {(["all", ...STATUSES] as const).map((s) => (
+              <button
+                key={s}
+                onClick={() => setFilter(s)}
+                className={`rounded-full px-4 py-2 text-xs uppercase tracking-[0.15em] transition ${
+                  filter === s
+                    ? "bg-white text-[color:var(--reelio-black,#0b0b0d)]"
+                    : "glass"
+                }`}
+              >
+                {s} <span className="opacity-60 ml-1">{counts[s] ?? 0}</span>
+              </button>
+            ))}
+          </div>
+
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search name, email, brand, niche…"
+            className="input-glass mb-4"
+          />
+
+          {isLoading && <p className="opacity-70">Loading…</p>}
+          {error && (
+            <p className="text-red-300 text-sm">
+              {(error as Error).message}. If this says "row-level security", you may not have the
+              admin role yet.
+            </p>
+          )}
+
+          <div className="grid gap-3">
+            {filtered.map((b) => (
+              <button
+                key={b.id}
+                onClick={() => setSelectedId(b.id)}
+                className={`text-left glass rounded-2xl p-4 transition hover:bg-white/10 ${
+                  selectedId === b.id ? "ring-2 ring-white/40" : ""
+                }`}
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="text-lg truncate">{b.name}</h3>
+                      <StatusPill status={b.status as Status} />
+                    </div>
+                    <p className="text-xs opacity-70 mt-1 truncate">
+                      {b.brand ? `${b.brand} · ` : ""}{b.email} · {b.phone}
+                    </p>
+                    <p className="text-xs opacity-60 mt-1 truncate">
+                      {b.service ?? "—"} · {b.budget ?? "—"} · {b.niche ?? "—"}
+                    </p>
+                  </div>
+                  <span className="text-[10px] uppercase tracking-[0.2em] opacity-60 whitespace-nowrap">
+                    {new Date(b.created_at).toLocaleDateString()}
+                  </span>
+                </div>
+              </button>
+            ))}
+            {!isLoading && filtered.length === 0 && (
+              <div className="glass rounded-2xl p-8 text-center opacity-70">
+                No bookings found.
+              </div>
+            )}
+          </div>
+        </section>
+
+        <aside className="lg:sticky lg:top-24 self-start">
+          {selected ? (
+            <div className="glass rounded-2xl p-6 conic-border">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <h2 className="text-2xl">{selected.name}</h2>
+                  <p className="text-xs opacity-60 mt-1">
+                    {new Date(selected.created_at).toLocaleString()}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setSelectedId(null)}
+                  className="opacity-60 hover:opacity-100 text-xl"
+                  aria-label="Close"
+                >
+                  ×
+                </button>
+              </div>
+
+              <div className="mt-4 grid gap-3 text-sm">
+                <Row label="Email" value={<a className="underline" href={`mailto:${selected.email}`}>{selected.email}</a>} />
+                <Row label="Phone" value={<a className="underline" href={`tel:${selected.phone}`}>{selected.phone}</a>} />
+                <Row label="Brand" value={selected.brand || "—"} />
+                <Row label="Service" value={selected.service || "—"} />
+                <Row label="Budget" value={selected.budget || "—"} />
+                <Row label="Niche" value={selected.niche || "—"} />
+                <Row label="Message" value={<span className="whitespace-pre-wrap">{selected.message || "—"}</span>} />
+              </div>
+
+              <div className="mt-5">
+                <p className="text-[10px] uppercase tracking-[0.25em] opacity-70 mb-2">Status</p>
+                <div className="flex flex-wrap gap-2">
+                  {STATUSES.map((s) => (
+                    <button
+                      key={s}
+                      onClick={() => updateStatus.mutate({ id: selected.id, status: s })}
+                      className={`rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.15em] transition ${
+                        selected.status === s
+                          ? "bg-white text-[color:var(--reelio-black,#0b0b0d)]"
+                          : "glass"
+                      }`}
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-5">
+                <p className="text-[10px] uppercase tracking-[0.25em] opacity-70 mb-2">Notes</p>
+                <textarea
+                  key={selected.id}
+                  defaultValue={selected.notes ?? ""}
+                  onBlur={(e) => {
+                    if (e.target.value !== (selected.notes ?? "")) {
+                      updateNotes.mutate({ id: selected.id, notes: e.target.value });
+                    }
+                  }}
+                  rows={4}
+                  className="input-glass resize-none"
+                  placeholder="Internal notes… (saved on blur)"
+                />
+              </div>
+
+              <div className="mt-6 flex justify-end">
+                <button
+                  onClick={() => {
+                    if (confirm("Delete this booking? This cannot be undone.")) {
+                      del.mutate(selected.id);
+                    }
+                  }}
+                  className="text-xs uppercase tracking-[0.2em] text-red-300 hover:text-red-200"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="glass rounded-2xl p-6 opacity-70 text-sm">
+              Select a booking to view details.
+            </div>
+          )}
+        </aside>
+      </main>
+    </div>
+  );
+}
+
+function StatusPill({ status }: { status: Status }) {
+  const colors: Record<Status, string> = {
+    new: "bg-blue-500/20 text-blue-200",
+    contacted: "bg-yellow-500/20 text-yellow-200",
+    booked: "bg-green-500/20 text-green-200",
+    closed: "bg-white/10 text-white/70",
+  };
+  return (
+    <span className={`text-[10px] uppercase tracking-[0.2em] px-2 py-0.5 rounded-full ${colors[status] ?? colors.new}`}>
+      {status}
+    </span>
+  );
+}
+
+function Row({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="grid grid-cols-[90px_1fr] gap-3 items-start">
+      <span className="text-[10px] uppercase tracking-[0.25em] opacity-60 pt-1">{label}</span>
+      <span>{value}</span>
+    </div>
+  );
+}

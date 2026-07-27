@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 type Props = {
   open: boolean;
@@ -20,6 +21,8 @@ const budgets = ["< ₹25k", "₹25k – ₹50k", "₹50k – ₹1L", "₹1L+"];
 
 export function BookingModal({ open, onClose }: Props) {
   const [step, setStep] = useState<"form" | "sent">("form");
+  const [submitting, setSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: "",
     brand: "",
@@ -45,14 +48,25 @@ export function BookingModal({ open, onClose }: Props) {
   const set = <K extends keyof typeof form>(k: K, v: (typeof form)[K]) =>
     setForm((f) => ({ ...f, [k]: v }));
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Persist locally so the builder can wire it to a backend later.
-    try {
-      const list = JSON.parse(localStorage.getItem("reelio-bookings") || "[]");
-      list.push({ ...form, at: new Date().toISOString() });
-      localStorage.setItem("reelio-bookings", JSON.stringify(list));
-    } catch {}
+    setSubmitting(true);
+    setErrorMsg(null);
+    const { error } = await supabase.from("bookings").insert({
+      name: form.name,
+      brand: form.brand || null,
+      email: form.email,
+      phone: form.phone,
+      service: form.service,
+      budget: form.budget,
+      niche: form.niche || null,
+      message: form.message || null,
+    });
+    setSubmitting(false);
+    if (error) {
+      setErrorMsg("Couldn't send — please try again.");
+      return;
+    }
     setStep("sent");
   };
 
