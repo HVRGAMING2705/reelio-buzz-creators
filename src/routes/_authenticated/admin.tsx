@@ -439,31 +439,74 @@ function NotificationsBell({
                       onClick={(e) => e.stopPropagation()}
                       aria-label={`Select ${b.name}`}
                     />
-                    <button
-                      onClick={() => { setOpen(false); onOpen(b.id); }}
-                      className="flex-1 text-left flex gap-3 items-start min-w-0"
-                    >
-                      <span
-                        className={`mt-1.5 h-2 w-2 rounded-full shrink-0 ${
-                          unread ? "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.9)]" : "bg-white/20"
-                        }`}
-                        aria-hidden
-                      />
-                      <Avatar profile={b.profiles} name={b.name} size={34} />
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center justify-between gap-2">
-                          <p className="text-sm truncate">
-                            {b.name}
-                            {b.brand ? <span className="opacity-60"> · {b.brand}</span> : null}
+                    <div className="flex-1 min-w-0">
+                      <button
+                        onClick={() => { setOpen(false); onOpen(b.id); }}
+                        className="w-full text-left flex gap-3 items-start min-w-0"
+                      >
+                        <span
+                          className={`mt-1.5 h-2 w-2 rounded-full shrink-0 ${
+                            unread ? "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.9)]" : "bg-white/20"
+                          }`}
+                          aria-hidden
+                        />
+                        <Avatar profile={b.profiles} name={b.name} size={34} />
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center justify-between gap-2">
+                            <p className="text-sm truncate">
+                              {b.name}
+                              {b.brand ? <span className="opacity-60"> · {b.brand}</span> : null}
+                            </p>
+                            <span className="text-[10px] opacity-60 shrink-0">{timeAgo(b.created_at)}</span>
+                          </div>
+                          <p className="text-xs opacity-70 truncate">
+                            {b.service || "New submission"}
+                            {b.budget ? ` · ${b.budget}` : ""}
                           </p>
-                          <span className="text-[10px] opacity-60 shrink-0">{timeAgo(b.created_at)}</span>
                         </div>
-                        <p className="text-xs opacity-70 truncate">
-                          {b.service || "New submission"}
-                          {b.budget ? ` · ${b.budget}` : ""}
-                        </p>
+                      </button>
+                      <div className="flex items-center gap-1.5 mt-2 pl-5 flex-wrap">
+                        {b.status === "new" && (
+                          <>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); onUpdateStatus(b.id, "confirmed"); }}
+                              className="text-[10px] uppercase tracking-[0.12em] font-semibold px-2 py-1 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30"
+                            >
+                              ✓ Approve
+                            </button>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); onUpdateStatus(b.id, "canceled"); }}
+                              className="text-[10px] uppercase tracking-[0.12em] font-semibold px-2 py-1 rounded-md bg-red-500/20 text-red-300 border border-red-500/40 hover:bg-red-500/30"
+                            >
+                              ✕ Reject
+                            </button>
+                          </>
+                        )}
+                        {b.status === "confirmed" && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); onUpdateStatus(b.id, "canceled"); }}
+                            className="text-[10px] uppercase tracking-[0.12em] font-semibold px-2 py-1 rounded-md bg-red-500/20 text-red-300 border border-red-500/40 hover:bg-red-500/30"
+                          >
+                            ✕ Cancel
+                          </button>
+                        )}
+                        {b.status === "canceled" && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); onUpdateStatus(b.id, "new"); }}
+                            className="text-[10px] uppercase tracking-[0.12em] font-semibold px-2 py-1 rounded-md bg-white/10 text-white border border-white/20 hover:bg-white/20"
+                          >
+                            ↺ Reopen
+                          </button>
+                        )}
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setOpen(false); onOpen(b.id); }}
+                          className="text-[10px] uppercase tracking-[0.12em] font-semibold px-2 py-1 rounded-md bg-white/5 text-white/80 border border-white/10 hover:bg-white/10 ml-auto"
+                        >
+                          Open →
+                        </button>
                       </div>
-                    </button>
+                    </div>
+
                   </li>
                 );
               })}
