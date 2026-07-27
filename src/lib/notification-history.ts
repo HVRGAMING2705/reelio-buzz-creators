@@ -62,6 +62,12 @@ export function markAllRead() {
   write(getHistory().map((e) => ({ ...e, read: true })));
 }
 
+export function markReadByBookingId(bookingId: string) {
+  const list = getHistory();
+  if (!list.some((e) => e.bookingId === bookingId && !e.read)) return;
+  write(list.map((e) => (e.bookingId === bookingId ? { ...e, read: true } : e)));
+}
+
 export function clearHistory() {
   write([]);
 }
