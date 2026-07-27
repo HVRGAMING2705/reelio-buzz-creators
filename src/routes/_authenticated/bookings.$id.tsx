@@ -341,7 +341,7 @@ function BookingDetailPage() {
               />
             </section>
 
-            <TimelineSection events={events ?? []} blocks={blocks ?? []} captchaEvents={captchaEvents ?? []} />
+            <TimelineSection bookingId={id} events={events ?? []} blocks={blocks ?? []} captchaEvents={captchaEvents ?? []} />
 
 
 
@@ -401,10 +401,12 @@ function blockLabel(reason: string) {
 type FilterKind = "all" | "events" | "blocks" | "captcha";
 
 function TimelineSection({
+  bookingId,
   events,
   blocks,
   captchaEvents,
 }: {
+  bookingId: string;
   events: BookingEvent[];
   blocks: BlockRow[];
   captchaEvents: CaptchaEventRow[];
@@ -472,12 +474,22 @@ function TimelineSection({
         <p className="text-[10px] uppercase tracking-[0.25em] opacity-70">
           Activity & confirmation history
         </p>
-        <span className="text-[10px] opacity-50">
-          {items.length} of {merged.length} shown
-          {counts.blocks > 0 && (
-            <span className="ml-2 text-red-300/80">· {counts.blocks} security</span>
-          )}
-        </span>
+        <div className="flex items-center gap-3">
+          <span className="text-[10px] opacity-50">
+            {items.length} of {merged.length} shown
+            {counts.blocks > 0 && (
+              <span className="ml-2 text-red-300/80">· {counts.blocks} security</span>
+            )}
+          </span>
+          <button
+            onClick={() => exportSecurityCsv({ bookingId, blocks, captchaEvents, fromMs, toMs })}
+            disabled={blocks.length + captchaEvents.length === 0}
+            className="rounded-full border border-white/15 px-2.5 py-1 text-[10px] uppercase tracking-[0.15em] hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed"
+            title="Download captcha failures and blocked submissions as CSV"
+          >
+            Export CSV
+          </button>
+        </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-2 mb-4">
@@ -922,4 +934,105 @@ function EventDetailsModal({
       </div>
     </div>
   );
+}
+
+function csvEscape(v: unknown): string {
+  if (v === null || v === undefined) return "";
+  const s = String(v);
+  return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+
+function exportSecurityCsv({
+  bookingId,
+  blocks,
+  captchaEvents,
+  fromMs,
+  toMs,
+}: {
+  bookingId: string;
+  blocks: BlockRow[];
+  captchaEvents: CaptchaEventRow[];
+  fromMs: number;
+  toMs: number;
+}) {
+  const inRange = (iso: string) => {
+    const t = new Date(iso).getTime();
+    return t >= fromMs && t <= toMs;
+  };
+
+  const header = [
+    "kind",
+    "event_id",
+    "created_at",
+    "outcome_or_reason",
+    "detail",
+    "window_label",
+    "max_allowed",
+    "retry_after_sec",
+    "ip_hash",
+    "email_hash",
+    "email_domain",
+    "user_agent",
+    "booking_id",
+  ];
+
+  const rows: string[][] = [];
+
+  for (const c of captchaEvents) {
+    if (!inRange(c.created_at)) continue;
+    rows.push([
+      "captcha",
+      c.id,
+      c.created_at,
+      c.outcome,
+      c.reason ?? "",
+      "",
+      "",
+      "",
+      c.ip_hash ?? "",
+      c.email_hash ?? "",
+      c.email_domain ?? "",
+      c.user_agent ?? "",
+      c.booking_id ?? "",
+    ].map(csvEscape));
+  }
+
+  for (const b of blocks) {
+    if (!inRange(b.created_at)) continue;
+    rows.push([
+      "blocked",
+      b.id,
+      b.created_at,
+      b.reason,
+      "",
+      b.window_label ?? "",
+      b.max_allowed != null ? String(b.max_allowed) : "",
+      b.retry_after_sec != null ? String(b.retry_after_sec) : "",
+      b.ip_hash ?? "",
+      "",
+      b.email_domain ?? "",
+      b.user_agent ?? "",
+      bookingId,
+    ].map(csvEscape));
+  }
+
+  if (rows.length === 0) {
+    toast.info("No security events in the selected range");
+    return;
+  }
+
+  rows.sort((a, b) => (a[2] < b[2] ? 1 : -1));
+
+  const csv = [header.join(","), ...rows.map((r) => r.join(","))].join("\r\n");
+  const blob = new Blob([`\ufeff${csv}`], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+  a.href = url;
+  a.download = `booking-${bookingId.slice(0, 8)}-security-${stamp}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast.success(`Exported ${rows.length} event${rows.length === 1 ? "" : "s"}`);
 }
