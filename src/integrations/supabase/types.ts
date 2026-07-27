@@ -57,6 +57,7 @@ export type Database = {
       }
       bookings: {
         Row: {
+          assigned_to: string | null
           brand: string | null
           budget: string | null
           created_at: string
@@ -73,6 +74,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          assigned_to?: string | null
           brand?: string | null
           budget?: string | null
           created_at?: string
@@ -89,6 +91,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          assigned_to?: string | null
           brand?: string | null
           budget?: string | null
           created_at?: string
