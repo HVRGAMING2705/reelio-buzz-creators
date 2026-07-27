@@ -50,6 +50,9 @@ function isQuietNow(s: NotifSettings, d = new Date()) {
 }
 
 type Booking = Tables<"bookings">;
+type Profile = Tables<"profiles">;
+
+type BookingWithProfile = Booking & { profiles?: Profile | null };
 
 const STATUSES = ["new", "confirmed", "canceled"] as const;
 type Status = (typeof STATUSES)[number];
