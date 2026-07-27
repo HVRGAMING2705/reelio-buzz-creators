@@ -51,10 +51,12 @@ const FREQUENCY_MS: Record<NotifFrequency, number> = {
   "5m": 300_000,
 };
 
-function loadSettings(): NotifSettings {
+function loadSettings(userId: string | null): NotifSettings {
   if (typeof window === "undefined") return DEFAULT_SETTINGS;
   try {
-    const raw = window.localStorage.getItem(SETTINGS_KEY);
+    const raw =
+      window.localStorage.getItem(settingsKeyFor(userId)) ??
+      (userId ? window.localStorage.getItem(SETTINGS_KEY_BASE) : null);
     if (!raw) return DEFAULT_SETTINGS;
     return { ...DEFAULT_SETTINGS, ...JSON.parse(raw) };
   } catch { return DEFAULT_SETTINGS; }
