@@ -10,14 +10,14 @@ import { trackClick, trackFormSubmit, trackEvent } from "@/lib/analytics";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Reelio SMMA — A Cinematic Social Media Studio for Brands" },
+      { title: "Reelio SMMA — A Cinematic Social Media Consortium for Brands" },
       {
         name: "description",
         content:
           "Reelio is a cinematic social media agency. Reels, photo/video shoots, editing, Meta ads, outreach and creator growth — one crew, monthly retainer from ₹10K.",
       },
       { name: "keywords", content: "social media agency, SMMA, reels, content creation, Meta ads, influencer outreach, video production India, Reelio" },
-      { property: "og:title", content: "Reelio SMMA — A Cinematic Social Media Studio" },
+      { property: "og:title", content: "Reelio SMMA — A Cinematic Social Media Consortium" },
       {
         property: "og:description",
         content:
@@ -27,7 +27,7 @@ export const Route = createFileRoute("/")({
       { property: "og:url", content: "/" },
       { property: "og:site_name", content: "Reelio SMMA" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Reelio SMMA — A Cinematic Social Media Studio" },
+      { name: "twitter:title", content: "Reelio SMMA — A Cinematic Social Media Consortium" },
       {
         name: "twitter:description",
         content: "Reels, shoots, editing, ads and outreach — one crew shipping weekly.",
