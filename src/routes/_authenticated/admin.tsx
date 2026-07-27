@@ -7,7 +7,9 @@ import type { Tables } from "@/integrations/supabase/types";
 import {
   logNotification,
   markReadByBookingId,
+  markUnreadByBookingId,
   markAllBookingsRead,
+  markAllBookingsUnread,
   getReadBookingIds,
   subscribeHistory,
 } from "@/lib/notification-history";
@@ -189,12 +191,14 @@ function Avatar({
 }
 
 function NotificationsBell({
-  bookings, lastSeen, unreadCount, onMarkAllRead, onOpen, onUpdateStatus,
+  bookings, lastSeen, unreadCount, onMarkAllRead, onMarkAllUnread, onMarkUnread, onOpen, onUpdateStatus,
 }: {
   bookings: BookingWithProfile[];
   lastSeen: number;
   unreadCount: number;
   onMarkAllRead: (ids: string[]) => void;
+  onMarkAllUnread: (ids: string[]) => void;
+  onMarkUnread: (id: string) => void;
   onOpen: (id: string) => void;
   onUpdateStatus: (id: string, status: Status) => void;
 }) {
@@ -437,6 +441,15 @@ function NotificationsBell({
                   </button>
                   <button
                     onClick={() => {
+                      onMarkAllUnread(Array.from(selectedIds));
+                      setSelectedIds(new Set());
+                    }}
+                    className="text-[10px] uppercase tracking-[0.15em] font-semibold text-white/70 hover:text-white"
+                  >
+                    Mark selected unread
+                  </button>
+                  <button
+                    onClick={() => {
                       onMarkAllRead(Array.from(selectedIds));
                       setSelectedIds(new Set());
                     }}
@@ -529,6 +542,15 @@ function NotificationsBell({
                             className="text-[10px] uppercase tracking-[0.12em] font-semibold px-2 py-1 rounded-md bg-white/10 text-white border border-white/20 hover:bg-white/20"
                           >
                             ↺ Reopen
+                          </button>
+                        )}
+                        {!unread && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); onMarkUnread(b.id); }}
+                            className="text-[10px] uppercase tracking-[0.12em] font-semibold px-2 py-1 rounded-md bg-white/5 text-white/70 border border-white/10 hover:bg-white/10"
+                            title="Mark as unread for later review"
+                          >
+                            Mark unread
                           </button>
                         )}
                         <button
@@ -1056,6 +1078,10 @@ function AdminPage() {
                 markAllBookingsRead(ids);
                 markAllSeen();
               }}
+              onMarkAllUnread={(ids) => {
+                markAllBookingsUnread(ids);
+              }}
+              onMarkUnread={(id) => markUnreadByBookingId(id)}
               onOpen={(id) => {
                 markReadByBookingId(id);
                 navigate({ to: "/bookings/$id", params: { id } });
