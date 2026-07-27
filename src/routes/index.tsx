@@ -81,7 +81,7 @@ const services = [
     title: "Content Creation",
     kicker: "Reels · Posts · Stories",
     desc:
-      "Platform-native reels and posts built for hook, retention and share. We ship weekly at studio pace.",
+      "Platform-native reels and posts built for hook, retention and share. We ship weekly at consortium pace.",
   },
   {
     n: "02",
@@ -448,7 +448,7 @@ function Index() {
                     user.email?.[0]?.toUpperCase() ?? "U"
                   )}
                 </span>
-                Studio
+                Consortium
               </Link>
             ) : (
               <Link
@@ -484,7 +484,7 @@ function Index() {
               </span>
             </div>
             <span className="font-body text-[10px] md:text-xs uppercase tracking-[0.28em] text-white/50">
-              A Cinematic Social Studio
+              A Cinematic Social Consortium
             </span>
           </div>
 
