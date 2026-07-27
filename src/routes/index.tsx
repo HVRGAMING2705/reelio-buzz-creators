@@ -562,23 +562,22 @@ function Index() {
             </motion.span>
           </h2>
           <p className="mt-8 max-w-xl mx-auto text-lg opacity-90">
-            Brands looking to grow, or creators looking to join the team — start with a single form.
+            Brands looking to grow, or creators looking to join the team — book a call in one tap.
           </p>
 
           <div className="mt-12 inline-flex relative">
             <span className="absolute inset-0 rounded-full animate-pulse-ring" />
             <Magnetic strength={0.5}>
-              <a
-                href="https://forms.gle/Px5NuE51UrGZMSKx8"
-                target="_blank"
-                rel="noreferrer"
+              <button
+                type="button"
+                onClick={() => setBookingOpen(true)}
                 className="relative inline-flex items-center gap-3 rounded-full bg-white text-[color:var(--reelio-black)] px-10 py-5 uppercase tracking-[0.25em] text-sm liquid-shine shadow-2xl"
               >
-                Fill the Form
+                Book a call
                 <motion.span animate={{ x: [0, 6, 0] }} transition={{ duration: 1.6, repeat: Infinity }} className="text-xl">
                   →
                 </motion.span>
-              </a>
+              </button>
             </Magnetic>
           </div>
         </div>
