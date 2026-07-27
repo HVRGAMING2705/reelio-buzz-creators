@@ -101,6 +101,14 @@ export function markReadByBookingId(bookingId: string) {
   write(list.map((e) => (e.bookingId === bookingId ? { ...e, read: true } : e)));
 }
 
+export function markAllBookingsRead(bookingIds: string[]) {
+  if (typeof window === "undefined" || bookingIds.length === 0) return;
+  const current = getReadBookings();
+  const next = Array.from(new Set([...bookingIds, ...current])).slice(0, READ_BOOKINGS_CAP);
+  window.localStorage.setItem(READ_BOOKINGS_KEY, JSON.stringify(next));
+  window.dispatchEvent(new CustomEvent("reelio:notif-history-updated"));
+}
+
 export function clearHistory() {
   write([]);
 }
