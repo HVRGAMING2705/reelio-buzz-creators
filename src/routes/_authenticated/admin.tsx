@@ -534,7 +534,9 @@ function NotificationsBell({
             </div>
           )}
           {recent.length === 0 ? (
-            <div className="px-4 py-8 text-center text-sm opacity-60">No bookings yet</div>
+            <div className="px-4 py-8 text-center text-sm opacity-60">
+              {bookings.length > 0 ? "No matching notifications" : "No bookings yet"}
+            </div>
           ) : (
             <ul className="divide-y divide-white/5">
               {recent.map((b) => {
