@@ -235,7 +235,7 @@ function NotificationsBell({
   const ref = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
-  const [notifStatus, setNotifStatus] = useState<"all" | Status>("all");
+  const [notifStatus, setNotifStatus] = useState<"all" | Status>(() => loadNotifFilters(userId).status);
   const [notifUnreadOnly, setNotifUnreadOnly] = useState(() => loadNotifFilters(userId).unreadOnly);
   const [notifTodayOnly, setNotifTodayOnly] = useState(() => loadNotifFilters(userId).todayOnly);
   const [notifService, setNotifService] = useState<"all" | string>(() => loadNotifFilters(userId).service);
@@ -244,10 +244,10 @@ function NotificationsBell({
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [notifLimit, setNotifLimit] = useState(8);
 
-  // Persist the filter choices per user so they survive reloads.
+  // Persist the filter choices per user so they survive reloads and re-openings.
   useEffect(() => {
-    saveNotifFilters(userId, { unreadOnly: notifUnreadOnly, todayOnly: notifTodayOnly, service: notifService, sort: notifSort });
-  }, [userId, notifUnreadOnly, notifTodayOnly, notifService, notifSort]);
+    saveNotifFilters(userId, { unreadOnly: notifUnreadOnly, todayOnly: notifTodayOnly, service: notifService, sort: notifSort, status: notifStatus });
+  }, [userId, notifUnreadOnly, notifTodayOnly, notifService, notifSort, notifStatus]);
 
   // Sync filters if userId becomes known after initial render (e.g. on first mount).
   useEffect(() => {
@@ -257,6 +257,7 @@ function NotificationsBell({
     setNotifTodayOnly(stored.todayOnly);
     setNotifService(stored.service);
     setNotifSort(stored.sort);
+    setNotifStatus(stored.status);
   }, [userId]);
 
   const [readIds, setReadIds] = useState<Set<string>>(() => getReadBookingIds());
