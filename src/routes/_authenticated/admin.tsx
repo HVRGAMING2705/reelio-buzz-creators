@@ -8,6 +8,8 @@ import type { Tables } from "@/integrations/supabase/types";
 const LAST_SEEN_KEY = "reelio.admin.lastSeenBookingAt";
 const SETTINGS_KEY = "reelio.admin.notifSettings";
 
+type NotifFrequency = "instant" | "1m" | "5m";
+
 type NotifSettings = {
   realtimeEnabled: boolean;
   quietEnabled: boolean;
@@ -15,6 +17,10 @@ type NotifSettings = {
   quietEnd: string;   // "HH:MM"
   captchaEnabled: boolean;
   hcaptchaSiteKey: string;
+  notifyNewBooking: boolean;
+  notifyStatusChange: boolean;
+  notifyNoteUpdate: boolean;
+  frequency: NotifFrequency;
 };
 
 const DEFAULT_SETTINGS: NotifSettings = {
@@ -24,6 +30,16 @@ const DEFAULT_SETTINGS: NotifSettings = {
   quietEnd: "08:00",
   captchaEnabled: false,
   hcaptchaSiteKey: "",
+  notifyNewBooking: true,
+  notifyStatusChange: true,
+  notifyNoteUpdate: false,
+  frequency: "instant",
+};
+
+const FREQUENCY_MS: Record<NotifFrequency, number> = {
+  instant: 0,
+  "1m": 60_000,
+  "5m": 300_000,
 };
 
 function loadSettings(): NotifSettings {
@@ -580,6 +596,104 @@ function AdminPage() {
     },
   });
 
+  type PendingEvent =
+    | { kind: "new"; booking: Booking }
+    | { kind: "status"; booking: Booking; from: string; to: string }
+    | { kind: "note"; booking: Booking };
+  const pendingRef = useRef<PendingEvent[]>([]);
+  const flushTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const prevBookings = useRef<Map<string, Booking>>(new Map());
+  useEffect(() => {
+    for (const b of bookings ?? []) prevBookings.current.set(b.id, b);
+  }, [bookings]);
+
+  const flushQueue = () => {
+    flushTimerRef.current = null;
+    const events = pendingRef.current;
+    pendingRef.current = [];
+    if (events.length === 0) return;
+    const s = settingsRef.current;
+    if (!s.realtimeEnabled || isQuietNow(s)) return;
+
+    if (events.length === 1) {
+      const ev = events[0];
+      const b = ev.booking;
+      const profile = b.user_id ? profileMap.get(b.user_id) ?? null : null;
+      const title =
+        ev.kind === "new" ? `New booking · ${b.name}`
+        : ev.kind === "status" ? `${b.name} · ${ev.from} → ${ev.to}`
+        : `Note updated · ${b.name}`;
+      toast.custom(
+        (t) => (
+          <div className="w-full rounded-xl border border-white/10 bg-black/90 backdrop-blur-xl shadow-2xl overflow-hidden">
+            <button
+              onClick={() => {
+                toast.dismiss(t);
+                markAllSeenRef.current?.();
+                navigate({ to: "/bookings/$id", params: { id: b.id } });
+              }}
+              className="w-full text-left px-4 py-3 hover:bg-white/10 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <Avatar profile={profile} name={b.name} size={36} />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-sm font-medium text-white">{title}</p>
+                    <span className="text-[10px] uppercase tracking-wider text-red-400 shrink-0">View →</span>
+                  </div>
+                  <p className="text-xs text-white/70 mt-0.5 truncate">
+                    {b.brand ? `${b.brand} · ` : ""}
+                    {b.service ?? "Submission"}
+                    {b.budget ? ` · ${b.budget}` : ""}
+                  </p>
+                </div>
+              </div>
+            </button>
+            <div className="border-t border-white/10 px-4 py-2 bg-white/[0.03] flex justify-end">
+              <button
+                onClick={() => { toast.dismiss(t); markAllSeenRef.current?.(); }}
+                className="text-[10px] uppercase tracking-[0.2em] opacity-70 hover:opacity-100"
+              >
+                Mark all as read
+              </button>
+            </div>
+          </div>
+        ),
+        { duration: 10000 },
+      );
+    } else {
+      const counts = { new: 0, status: 0, note: 0 };
+      for (const e of events) counts[e.kind]++;
+      const parts = [
+        counts.new && `${counts.new} new`,
+        counts.status && `${counts.status} status change${counts.status > 1 ? "s" : ""}`,
+        counts.note && `${counts.note} note${counts.note > 1 ? "s" : ""}`,
+      ].filter(Boolean).join(" · ");
+      toast.custom(
+        (t) => (
+          <div className="w-full rounded-xl border border-white/10 bg-black/90 backdrop-blur-xl shadow-2xl overflow-hidden">
+            <button
+              onClick={() => { toast.dismiss(t); markAllSeenRef.current?.(); }}
+              className="w-full text-left px-4 py-3 hover:bg-white/10 transition-colors"
+            >
+              <p className="text-sm font-medium text-white">{events.length} booking updates</p>
+              <p className="text-xs text-white/70 mt-0.5 truncate">{parts}</p>
+            </button>
+          </div>
+        ),
+        { duration: 10000 },
+      );
+    }
+  };
+
+  const enqueueEvent = (ev: PendingEvent) => {
+    pendingRef.current.push(ev);
+    const ms = FREQUENCY_MS[settingsRef.current.frequency];
+    if (ms === 0) { flushQueue(); return; }
+    if (flushTimerRef.current) return;
+    flushTimerRef.current = setTimeout(flushQueue, ms);
+  };
+
   useEffect(() => {
     const channel = supabase
       .channel("admin-bookings-notifications")
@@ -590,58 +704,35 @@ function AdminPage() {
           const b = payload.new as Booking;
           if (notifiedIds.current.has(b.id)) return;
           notifiedIds.current.add(b.id);
-          // Always keep data fresh so the bell/list stay in sync
+          prevBookings.current.set(b.id, b);
           qc.invalidateQueries({ queryKey: ["bookings"] });
-          const s = settingsRef.current;
-          if (!s.realtimeEnabled || isQuietNow(s)) return;
-          const profile = b.user_id ? profileMap.get(b.user_id) ?? null : null;
-          toast.custom(
-            (t) => (
-              <div className="w-full rounded-xl border border-white/10 bg-black/90 backdrop-blur-xl shadow-2xl overflow-hidden">
-                <button
-                  onClick={() => {
-                    toast.dismiss(t);
-                    markAllSeenRef.current?.();
-                    navigate({ to: "/bookings/$id", params: { id: b.id } });
-                  }}
-                  className="w-full text-left px-4 py-3 hover:bg-white/10 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <Avatar profile={profile} name={b.name} size={36} />
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between gap-3">
-                        <p className="text-sm font-medium text-white">New booking · {b.name}</p>
-                        <span className="text-[10px] uppercase tracking-wider text-red-400 shrink-0">View →</span>
-                      </div>
-                      <p className="text-xs text-white/70 mt-0.5 truncate">
-                        {b.brand ? `${b.brand} · ` : ""}
-                        {b.service ?? "New submission"}
-                        {b.budget ? ` · ${b.budget}` : ""}
-                      </p>
-                    </div>
-                  </div>
-                </button>
-                <div className="border-t border-white/10 px-4 py-2 bg-white/[0.03] flex justify-end">
-                  <button
-                    onClick={() => {
-                      toast.dismiss(t);
-                      markAllSeenRef.current?.();
-                    }}
-                    className="text-[10px] uppercase tracking-[0.2em] opacity-70 hover:opacity-100"
-                  >
-                    Mark all as read
-                  </button>
-                </div>
-              </div>
-            ),
-            { duration: 10000 },
-          );
+          if (!settingsRef.current.notifyNewBooking) return;
+          enqueueEvent({ kind: "new", booking: b });
+        },
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "bookings" },
+        (payload) => {
+          const next = payload.new as Booking;
+          const prev = prevBookings.current.get(next.id);
+          prevBookings.current.set(next.id, next);
+          qc.invalidateQueries({ queryKey: ["bookings"] });
+          if (!prev) return;
+          if (prev.status !== next.status && settingsRef.current.notifyStatusChange) {
+            enqueueEvent({ kind: "status", booking: next, from: prev.status, to: next.status });
+          }
+          if ((prev.notes ?? "") !== (next.notes ?? "") && settingsRef.current.notifyNoteUpdate) {
+            enqueueEvent({ kind: "note", booking: next });
+          }
         },
       )
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
+      if (flushTimerRef.current) { clearTimeout(flushTimerRef.current); flushTimerRef.current = null; }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [qc, navigate, profileMap]);
 
   const unreadCount = useMemo(
@@ -1064,6 +1155,53 @@ function SettingsModal({
             {" "}Spans past midnight are supported.
           </p>
         )}
+
+        <div className="mt-6 pt-4 border-t border-white/10">
+          <p className="text-[10px] uppercase tracking-[0.3em] opacity-50 mb-1">Alert types</p>
+          <p className="text-xs opacity-60 mb-2">Choose which events trigger admin alerts.</p>
+          {([
+            ["notifyNewBooking", "New booking submissions"],
+            ["notifyStatusChange", "Booking status changes"],
+            ["notifyNoteUpdate", "Internal notes updated"],
+          ] as const).map(([key, label]) => (
+            <label key={key} className="flex items-center justify-between gap-4 py-2 cursor-pointer">
+              <span className="text-sm">{label}</span>
+              <input
+                type="checkbox"
+                className="h-5 w-5 accent-red-500"
+                checked={draft[key]}
+                onChange={(e) => setDraft({ ...draft, [key]: e.target.checked })}
+              />
+            </label>
+          ))}
+
+          <div className="mt-3">
+            <label className="text-[10px] uppercase tracking-[0.25em] opacity-60">Alert frequency</label>
+            <div className="mt-2 grid grid-cols-3 gap-2">
+              {([
+                ["instant", "Instant"],
+                ["1m", "Every 1 min"],
+                ["5m", "Every 5 min"],
+              ] as const).map(([val, label]) => (
+                <button
+                  key={val}
+                  type="button"
+                  onClick={() => setDraft({ ...draft, frequency: val })}
+                  className={`rounded-lg border px-3 py-2 text-xs uppercase tracking-[0.15em] transition ${
+                    draft.frequency === val
+                      ? "bg-red-500 border-red-500 text-white"
+                      : "bg-white/5 border-white/10 hover:bg-white/10"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <p className="text-xs opacity-60 mt-2">
+              Batched frequencies group multiple events into a single summary toast.
+            </p>
+          </div>
+        </div>
 
         <div className="mt-6 pt-4 border-t border-white/10">
           <p className="text-[10px] uppercase tracking-[0.3em] opacity-50 mb-1">Spam protection</p>
