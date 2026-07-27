@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { logNotification } from "@/lib/notification-history";
+import { SpamTrendChart } from "@/components/spam-trend-chart";
 import { saveCaptchaConfig, fetchCaptchaConfig } from "@/lib/captcha-config";
 import {
   DEFAULT_RATE_LIMIT_CONFIG,
@@ -1104,6 +1105,9 @@ function AdminPage() {
 
       <main className="max-w-7xl mx-auto p-4 md:p-8 grid lg:grid-cols-[1fr_400px] gap-6">
         <section>
+          <div className="mb-6">
+            <SpamTrendChart />
+          </div>
           <div className="flex flex-wrap gap-2 mb-4">
             {(["all", ...STATUSES] as const).map((s) => (
               <button
