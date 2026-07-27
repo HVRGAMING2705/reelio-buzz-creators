@@ -2695,3 +2695,93 @@ function RateLimitsSection({
     </div>
   );
 }
+
+function CaptchaBurstSection({
+  draft,
+  setDraft,
+}: {
+  draft: NotifSettings;
+  setDraft: (s: NotifSettings) => void;
+}) {
+  return (
+    <div className="mt-6 pt-4 border-t border-white/10">
+      <div className="flex items-center justify-between mb-2">
+        <p className="text-[10px] uppercase tracking-[0.3em] opacity-50">Captcha burst alerts</p>
+        <button
+          type="button"
+          onClick={() =>
+            setDraft({
+              ...draft,
+              captchaBurstEnabled: true,
+              captchaBurstThreshold: 3,
+              captchaBurstWindowMin: 10,
+            })
+          }
+          className="text-[10px] uppercase tracking-[0.2em] opacity-60 hover:opacity-100"
+        >
+          Reset defaults
+        </button>
+      </div>
+      <p className="text-xs opacity-60 mb-3">
+        Real-time alert when the same email or IP fails captcha repeatedly within a rolling window.
+      </p>
+
+      <label className="flex items-center justify-between gap-3 py-2">
+        <span className="text-sm">Enable burst detection</span>
+        <input
+          type="checkbox"
+          checked={draft.captchaBurstEnabled}
+          onChange={(e) => setDraft({ ...draft, captchaBurstEnabled: e.target.checked })}
+          className="h-4 w-4 accent-red-500"
+        />
+      </label>
+
+      <div
+        className={`grid grid-cols-2 gap-3 mt-2 rounded-lg border border-white/10 bg-white/[0.03] p-3 transition ${
+          draft.captchaBurstEnabled ? "" : "opacity-40 pointer-events-none"
+        }`}
+      >
+        <label className="flex flex-col gap-1">
+          <span className="text-[10px] uppercase tracking-[0.2em] opacity-60">Threshold</span>
+          <div className="flex items-center gap-1.5">
+            <input
+              type="number"
+              min={2}
+              value={draft.captchaBurstThreshold}
+              onChange={(e) =>
+                setDraft({
+                  ...draft,
+                  captchaBurstThreshold: Math.max(2, Math.floor(Number(e.target.value) || 2)),
+                })
+              }
+              className="w-16 rounded-md bg-white/5 border border-white/10 px-2 py-1 text-xs text-right"
+            />
+            <span className="text-[10px] opacity-60">failures</span>
+          </div>
+        </label>
+        <label className="flex flex-col gap-1">
+          <span className="text-[10px] uppercase tracking-[0.2em] opacity-60">Window</span>
+          <div className="flex items-center gap-1.5">
+            <input
+              type="number"
+              min={1}
+              value={draft.captchaBurstWindowMin}
+              onChange={(e) =>
+                setDraft({
+                  ...draft,
+                  captchaBurstWindowMin: Math.max(1, Math.floor(Number(e.target.value) || 1)),
+                })
+              }
+              className="w-16 rounded-md bg-white/5 border border-white/10 px-2 py-1 text-xs text-right"
+            />
+            <span className="text-[10px] opacity-60">minutes</span>
+          </div>
+        </label>
+      </div>
+
+      <p className="text-[11px] opacity-50 mt-2">
+        Each key (email hash or IP hash) alerts at most once per window to prevent spam.
+      </p>
+    </div>
+  );
+}
