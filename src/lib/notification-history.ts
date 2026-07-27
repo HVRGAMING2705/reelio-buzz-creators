@@ -63,14 +63,16 @@ function write(entries: NotifHistoryEntry[]) {
 export function logNotification(
   entry: Omit<NotifHistoryEntry, "id" | "ts" | "read"> & { read?: boolean },
 ) {
+  const preRead =
+    entry.read ?? (entry.bookingId ? isBookingRead(entry.bookingId) : false);
   const full: NotifHistoryEntry = {
     id:
       typeof crypto !== "undefined" && "randomUUID" in crypto
         ? crypto.randomUUID()
         : `${Date.now()}-${Math.random().toString(36).slice(2)}`,
     ts: Date.now(),
-    read: entry.read ?? false,
     ...entry,
+    read: preRead,
   };
   const next = [full, ...getHistory()];
   write(next);
@@ -86,8 +88,12 @@ export function markAllRead() {
 }
 
 export function markReadByBookingId(bookingId: string) {
+  addReadBooking(bookingId);
   const list = getHistory();
-  if (!list.some((e) => e.bookingId === bookingId && !e.read)) return;
+  if (!list.some((e) => e.bookingId === bookingId && !e.read)) {
+    window.dispatchEvent(new CustomEvent("reelio:notif-history-updated"));
+    return;
+  }
   write(list.map((e) => (e.bookingId === bookingId ? { ...e, read: true } : e)));
 }
 
