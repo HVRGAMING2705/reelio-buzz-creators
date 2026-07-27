@@ -118,10 +118,10 @@ function NotificationsBell({
 
   // Auto-mark as read shortly after opening the dropdown
   useEffect(() => {
-    if (!open || unreadCount === 0) return;
-    const t = setTimeout(onMarkAllSeen, 600);
+    if (!open || unreadCount === 0 || selectedIds.size > 0) return;
+    const t = setTimeout(() => onMarkAllSeen(), 600);
     return () => clearTimeout(t);
-  }, [open, unreadCount, onMarkAllSeen]);
+  }, [open, unreadCount, selectedIds.size, onMarkAllSeen]);
 
   const recent = useMemo(() => {
     let list = [...bookings];
