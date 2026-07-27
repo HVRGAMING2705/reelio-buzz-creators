@@ -794,7 +794,7 @@ function Avatar({
       aria-hidden
     >
       {src ? (
-        <img src={src} alt="" className="h-full w-full object-cover" />
+        <img src={src} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
       ) : (
         name
           .split(/\s+/)
