@@ -412,6 +412,11 @@ function TimelineSection({
   const [filter, setFilter] = useState<FilterKind>("all");
   const [from, setFrom] = useState<string>("");
   const [to, setTo] = useState<string>("");
+  const [detail, setDetail] = useState<
+    | { kind: "captcha"; cap: CaptchaEventRow }
+    | { kind: "block"; block: BlockRow }
+    | null
+  >(null);
 
   const fromMs = from ? new Date(from).getTime() : -Infinity;
   const toMs = to ? new Date(to).getTime() + 24 * 60 * 60 * 1000 - 1 : Infinity;
@@ -560,7 +565,7 @@ function TimelineSection({
                       {new Date(it.cap.created_at).toLocaleString()}
                     </span>
                   </div>
-                  <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[11px] opacity-70">
+                  <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] opacity-70">
                     {it.cap.reason && <span>{it.cap.reason}</span>}
                     {it.cap.ip_hash && (
                       <span>ip <span className="font-mono">{it.cap.ip_hash.slice(0, 8)}…</span></span>
@@ -569,6 +574,12 @@ function TimelineSection({
                     {it.cap.booking_id && it.cap.booking_id ? null : (
                       <span className="opacity-60">unlinked</span>
                     )}
+                    <button
+                      onClick={() => setDetail({ kind: "captcha", cap: it.cap })}
+                      className="ml-auto rounded-full border border-white/15 px-2 py-0.5 text-[10px] uppercase tracking-[0.15em] hover:bg-white/10"
+                    >
+                      Details
+                    </button>
                   </div>
                 </li>
               );
@@ -582,7 +593,7 @@ function TimelineSection({
                     {new Date(it.block.created_at).toLocaleString()}
                   </span>
                 </div>
-                <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[11px] opacity-70">
+                <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] opacity-70">
                   {it.block.window_label && (
                     <span>window <span className="font-mono">{it.block.window_label}</span></span>
                   )}
@@ -598,6 +609,12 @@ function TimelineSection({
                   {it.block.email_domain && (
                     <span>@{it.block.email_domain}</span>
                   )}
+                  <button
+                    onClick={() => setDetail({ kind: "block", block: it.block })}
+                    className="ml-auto rounded-full border border-white/15 px-2 py-0.5 text-[10px] uppercase tracking-[0.15em] hover:bg-white/10"
+                  >
+                    Details
+                  </button>
                 </div>
                 {it.block.user_agent && (
                   <p className="text-[10px] opacity-50 mt-1 truncate" title={it.block.user_agent}>
@@ -614,6 +631,8 @@ function TimelineSection({
         Captcha successes and skips (when disabled) are logged alongside failures for a full end-to-end audit.
         Email confirmations will appear here once a sender domain is configured.
       </p>
+
+      {detail && <EventDetailsModal detail={detail} onClose={() => setDetail(null)} />}
     </section>
 
   );
@@ -782,6 +801,125 @@ function Row({ label, value }: { label: string; value: React.ReactNode }) {
     <div className="grid grid-cols-[100px_1fr] gap-3 items-start">
       <span className="text-[10px] uppercase tracking-[0.25em] opacity-60 pt-1">{label}</span>
       <span>{value}</span>
+    </div>
+  );
+}
+
+function EventDetailsModal({
+  detail,
+  onClose,
+}: {
+  detail:
+    | { kind: "captcha"; cap: CaptchaEventRow }
+    | { kind: "block"; block: BlockRow };
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  const copy = async (v: string | null | undefined) => {
+    if (!v) return;
+    try {
+      await navigator.clipboard.writeText(v);
+      toast.success("Copied");
+    } catch {
+      toast.error("Copy failed");
+    }
+  };
+
+  const isCaptcha = detail.kind === "captcha";
+  const title = isCaptcha ? captchaLabel(detail.cap.outcome) : blockLabel(detail.block.reason);
+  const when = isCaptcha ? detail.cap.created_at : detail.block.created_at;
+  const rows: Array<{ label: string; value: string | null | undefined; mono?: boolean; wrap?: boolean }> =
+    isCaptcha
+      ? [
+          { label: "Outcome", value: detail.cap.outcome, mono: true },
+          { label: "Reason", value: detail.cap.reason ?? "—", wrap: true },
+          { label: "IP hash", value: detail.cap.ip_hash, mono: true },
+          { label: "Email hash", value: detail.cap.email_hash, mono: true },
+          { label: "Email domain", value: detail.cap.email_domain ? `@${detail.cap.email_domain}` : "—" },
+          { label: "Booking", value: detail.cap.booking_id ?? "unlinked", mono: true },
+          { label: "User agent", value: detail.cap.user_agent, wrap: true },
+          { label: "Event ID", value: detail.cap.id, mono: true },
+        ]
+      : [
+          { label: "Reason", value: detail.block.reason, mono: true },
+          { label: "Window", value: detail.block.window_label, mono: true },
+          {
+            label: "Max allowed",
+            value: detail.block.max_allowed != null ? String(detail.block.max_allowed) : null,
+            mono: true,
+          },
+          {
+            label: "Retry after",
+            value: detail.block.retry_after_sec != null ? `${detail.block.retry_after_sec}s` : null,
+            mono: true,
+          },
+          { label: "IP hash", value: detail.block.ip_hash, mono: true },
+          { label: "Email domain", value: detail.block.email_domain ? `@${detail.block.email_domain}` : "—" },
+          { label: "User agent", value: detail.block.user_agent, wrap: true },
+          { label: "Event ID", value: detail.block.id, mono: true },
+        ];
+
+  return (
+    <div
+      className="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+    >
+      <div
+        className="glass w-full max-w-lg rounded-2xl border border-white/10 p-5 text-white shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-start justify-between gap-3 mb-3">
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.25em] opacity-60">
+              {isCaptcha ? "Captcha event" : "Blocked submission"}
+            </p>
+            <h3 className="text-base font-semibold mt-0.5">{title}</h3>
+            <p className="text-[11px] opacity-60 mt-0.5">{new Date(when).toLocaleString()}</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="rounded-full border border-white/15 px-2 py-1 text-[10px] uppercase tracking-[0.15em] hover:bg-white/10"
+          >
+            Close
+          </button>
+        </div>
+
+        <div className="divide-y divide-white/5 rounded-lg border border-white/10">
+          {rows.map((r) => (
+            <div key={r.label} className="grid grid-cols-[110px_1fr_auto] items-start gap-3 px-3 py-2">
+              <span className="text-[10px] uppercase tracking-[0.2em] opacity-60 pt-1">{r.label}</span>
+              <span
+                className={`text-xs ${r.mono ? "font-mono" : ""} ${r.wrap ? "break-words whitespace-pre-wrap" : "break-all"} opacity-90`}
+              >
+                {r.value || <span className="opacity-40">—</span>}
+              </span>
+              {r.value ? (
+                <button
+                  onClick={() => copy(r.value)}
+                  className="text-[10px] uppercase tracking-[0.15em] opacity-60 hover:opacity-100"
+                >
+                  Copy
+                </button>
+              ) : (
+                <span />
+              )}
+            </div>
+          ))}
+        </div>
+
+        <p className="mt-3 text-[10px] opacity-40">
+          Hashes are one-way SHA-256 fingerprints; raw IPs and emails are never stored for blocked or captcha events.
+        </p>
+      </div>
     </div>
   );
 }
