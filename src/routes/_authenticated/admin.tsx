@@ -102,6 +102,9 @@ function NotificationsBell({
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const [notifStatus, setNotifStatus] = useState<"all" | Status>("all");
+  const [notifUnreadOnly, setNotifUnreadOnly] = useState(false);
+  const [notifSort, setNotifSort] = useState<"newest" | "oldest">("newest");
 
   useEffect(() => {
     if (!open) return;
@@ -119,12 +122,22 @@ function NotificationsBell({
     return () => clearTimeout(t);
   }, [open, unreadCount, onMarkAllSeen]);
 
-  const recent = useMemo(
-    () => [...bookings]
-      .sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at))
-      .slice(0, 8),
-    [bookings],
-  );
+  const recent = useMemo(() => {
+    let list = [...bookings];
+    if (notifStatus !== "all") {
+      list = list.filter((b) => b.status === notifStatus);
+    }
+    if (notifUnreadOnly) {
+      list = list.filter((b) => new Date(b.created_at).getTime() > lastSeen);
+    }
+    list.sort((a, b) => {
+      const diff = +new Date(b.created_at) - +new Date(a.created_at);
+      return notifSort === "newest" ? diff : -diff;
+    });
+    return list.slice(0, 8);
+  }, [bookings, lastSeen, notifStatus, notifUnreadOnly, notifSort]);
+
+  const activeNotifFilters = notifStatus !== "all" || notifUnreadOnly || notifSort !== "newest";
 
   return (
     <div className="relative" ref={ref}>
