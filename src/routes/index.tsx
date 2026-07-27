@@ -135,8 +135,26 @@ function Index() {
   const issue = String(year).slice(-2);
 
   return (
-    <div className="relative min-h-screen bg-background text-foreground">
+    <div className="relative min-h-screen bg-background text-foreground overflow-hidden">
       <BookingModal open={bookingOpen} onClose={() => setBookingOpen(false)} />
+
+      {/* ============ AMBIENT LIQUID BACKDROP ============ */}
+      <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+        <div className="glow-orb animate-float-orb"
+             style={{ width: 520, height: 520, top: '-8%', left: '-6%',
+                      background: 'radial-gradient(circle, oklch(0.58 0.22 27 / 0.55), transparent 60%)' }} />
+        <div className="glow-orb animate-float-orb-alt"
+             style={{ width: 620, height: 620, top: '40%', right: '-10%',
+                      background: 'radial-gradient(circle, oklch(0.55 0.2 27 / 0.35), transparent 60%)' }} />
+        <div className="glow-orb animate-float-orb"
+             style={{ width: 400, height: 400, bottom: '-6%', left: '30%', animationDelay: '-6s',
+                      background: 'radial-gradient(circle, oklch(0.7 0.18 340 / 0.28), transparent 60%)' }} />
+        {/* subtle grid */}
+        <div className="absolute inset-0 opacity-[0.05]"
+             style={{ backgroundImage:
+               'linear-gradient(oklch(1 0 0 / 1) 1px, transparent 1px), linear-gradient(90deg, oklch(1 0 0 / 1) 1px, transparent 1px)',
+               backgroundSize: '80px 80px' }} />
+      </div>
 
       {/* scroll progress */}
       <motion.div
@@ -146,12 +164,13 @@ function Index() {
 
       {/* ============ NAV ============ */}
       <header
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
           scrolled
-            ? "bg-background/85 backdrop-blur-md border-b border-white/10"
+            ? "glass-dark border-b border-white/10 shadow-[0_10px_40px_-20px_oklch(0_0_0/0.6)]"
             : "bg-transparent"
         }`}
       >
+
         <div className="mx-auto max-w-[1600px] px-4 sm:px-6 md:px-8 lg:px-10 h-14 md:h-16 lg:h-20 grid grid-cols-[minmax(0,auto)_1fr_auto] md:flex items-center md:justify-between gap-4 md:gap-6 lg:gap-10">
           <a href="#top" className="flex items-center shrink-0 -my-2 md:-my-4">
             <img src={logoMark.url} alt="Reelio" className="h-9 md:h-14 lg:h-16 w-auto object-contain block" />
