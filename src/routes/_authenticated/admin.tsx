@@ -17,6 +17,9 @@ type NotifSettings = {
   quietEnd: string;   // "HH:MM"
   captchaEnabled: boolean;
   hcaptchaSiteKey: string;
+  categoryBookings: boolean;
+  categoryOutreach: boolean;
+  categoryInvoices: boolean;
   notifyNewBooking: boolean;
   notifyStatusChange: boolean;
   notifyNoteUpdate: boolean;
@@ -30,6 +33,9 @@ const DEFAULT_SETTINGS: NotifSettings = {
   quietEnd: "08:00",
   captchaEnabled: false,
   hcaptchaSiteKey: "",
+  categoryBookings: true,
+  categoryOutreach: true,
+  categoryInvoices: true,
   notifyNewBooking: true,
   notifyStatusChange: true,
   notifyNoteUpdate: false,
