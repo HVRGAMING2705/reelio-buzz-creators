@@ -996,6 +996,13 @@ function AdminPage() {
               }}
               onUpdateStatus={(id, status) => updateStatus.mutate({ id, status })}
             />
+            <Link
+              to="/notifications"
+              className="rounded-full glass px-3 py-2 text-[10px] uppercase tracking-[0.2em] hover:bg-white/10"
+              title="Notification history"
+            >
+              History
+            </Link>
             <button
               onClick={() => setSettingsOpen(true)}
               className="rounded-full glass px-3 py-2 text-sm hover:bg-white/10"
