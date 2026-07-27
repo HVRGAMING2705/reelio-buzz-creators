@@ -218,25 +218,32 @@ export const Route = createFileRoute("/api/public/bookings")({
 
         const { form, captchaToken } = parsed.data;
 
-        // Rate limiting (defaults) — per IP and per email.
+        // Rate limiting — per IP and per email. Thresholds come from
+        // app_settings (key = 'rate_limits'), cached briefly in memory.
         const ip =
           request.headers.get("cf-connecting-ip") ??
           request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
           "unknown";
-        const ipCheck = rateCheck(`ip:${ip}`, IP_BUCKETS);
+        const rlUrl = process.env.SUPABASE_URL;
+        const rlKey = process.env.SUPABASE_PUBLISHABLE_KEY;
+        const limits = rlUrl && rlKey
+          ? await loadLimits(rlUrl, rlKey)
+          : bucketsFromRow(null);
+        const ipCheck = rateCheck(`ip:${ip}`, limits.ip);
         if (!ipCheck.ok) {
           return tooMany(
             ipCheck.retryAfterSec,
             `Too many submissions from your network. Please try again in ~${Math.ceil(ipCheck.retryAfterSec / 60)} min.`,
           );
         }
-        const emailCheck = rateCheck(`email:${form.email}`, EMAIL_BUCKETS);
+        const emailCheck = rateCheck(`email:${form.email}`, limits.email);
         if (!emailCheck.ok) {
           return tooMany(
             emailCheck.retryAfterSec,
             `This email has submitted too many bookings recently. Please try again in ~${Math.ceil(emailCheck.retryAfterSec / 60)} min.`,
           );
         }
+
 
         // If HCAPTCHA_SECRET is configured, a valid token is required.
         const hcaptchaSecret = process.env.HCAPTCHA_SECRET;
