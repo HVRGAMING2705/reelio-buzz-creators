@@ -104,6 +104,8 @@ function NotificationsBell({
   const ref = useRef<HTMLDivElement>(null);
   const [notifStatus, setNotifStatus] = useState<"all" | Status>("all");
   const [notifUnreadOnly, setNotifUnreadOnly] = useState(false);
+  const [notifTodayOnly, setNotifTodayOnly] = useState(false);
+  const [notifService, setNotifService] = useState<"all" | string>("all");
   const [notifSort, setNotifSort] = useState<"newest" | "oldest">("newest");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [notifLimit, setNotifLimit] = useState(8);
@@ -128,7 +130,7 @@ function NotificationsBell({
   useEffect(() => {
     if (!open) setSelectedIds(new Set());
     setNotifLimit(8);
-  }, [open, notifStatus, notifUnreadOnly, notifSort]);
+  }, [open, notifStatus, notifUnreadOnly, notifTodayOnly, notifService, notifSort]);
 
   const filteredNotifications = useMemo(() => {
     let list = [...bookings];
@@ -138,12 +140,20 @@ function NotificationsBell({
     if (notifUnreadOnly) {
       list = list.filter((b) => new Date(b.created_at).getTime() > lastSeen);
     }
+    if (notifTodayOnly) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      list = list.filter((b) => new Date(b.created_at) >= today);
+    }
+    if (notifService !== "all") {
+      list = list.filter((b) => b.service === notifService);
+    }
     list.sort((a, b) => {
       const diff = +new Date(b.created_at) - +new Date(a.created_at);
       return notifSort === "newest" ? diff : -diff;
     });
     return list;
-  }, [bookings, lastSeen, notifStatus, notifUnreadOnly, notifSort]);
+  }, [bookings, lastSeen, notifStatus, notifUnreadOnly, notifTodayOnly, notifService, notifSort]);
 
   const recent = useMemo(
     () => filteredNotifications.slice(0, notifLimit),
@@ -151,7 +161,18 @@ function NotificationsBell({
   );
   const hasMoreNotifications = recent.length < filteredNotifications.length;
 
-  const activeNotifFilters = notifStatus !== "all" || notifUnreadOnly || notifSort !== "newest";
+  const availableNotifServices = useMemo(
+    () =>
+      Array.from(new Set(bookings.map((b) => b.service).filter((s): s is string => Boolean(s)))),
+    [bookings]
+  );
+
+  const activeNotifFilters =
+    notifStatus !== "all" ||
+    notifUnreadOnly ||
+    notifTodayOnly ||
+    notifService !== "all" ||
+    notifSort !== "newest";
 
   return (
     <div className="relative" ref={ref}>
@@ -198,6 +219,15 @@ function NotificationsBell({
                 />
                 Unread
               </label>
+              <label className="flex items-center gap-1.5 text-xs cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  className="h-3.5 w-3.5 accent-red-500"
+                  checked={notifTodayOnly}
+                  onChange={(e) => setNotifTodayOnly(e.target.checked)}
+                />
+                Today
+              </label>
               <select
                 value={notifStatus}
                 onChange={(e) => setNotifStatus(e.target.value as "all" | Status)}
@@ -207,6 +237,17 @@ function NotificationsBell({
                 <option value="all">All statuses</option>
                 {STATUSES.map((s) => (
                   <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+              <select
+                value={notifService}
+                onChange={(e) => setNotifService(e.target.value)}
+                className="text-xs rounded-full bg-white/5 border border-white/10 px-2 py-1"
+                aria-label="Filter by service"
+              >
+                <option value="all">All services</option>
+                {availableNotifServices.map((svc) => (
+                  <option key={svc} value={svc}>{svc}</option>
                 ))}
               </select>
               <select
@@ -223,6 +264,8 @@ function NotificationsBell({
                   onClick={() => {
                     setNotifStatus("all");
                     setNotifUnreadOnly(false);
+                    setNotifTodayOnly(false);
+                    setNotifService("all");
                     setNotifSort("newest");
                   }}
                   className="text-[10px] uppercase tracking-[0.15em] opacity-70 hover:opacity-100 ml-auto"
