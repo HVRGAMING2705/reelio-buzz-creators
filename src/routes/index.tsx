@@ -510,7 +510,7 @@ function Index() {
             <div className="md:col-span-3 flex flex-col justify-end">
               <span className="slug mb-3">The Lede</span>
               <p className="font-body text-base md:text-[17px] leading-relaxed text-white/80">
-                Reelio is a social media studio for brands that refuse to look
+                Reelio is a social media consortium for brands that refuse to look
                 like everyone else. We shoot the story, cut the reel, run the
                 ads, and grow the room — as one crew.
               </p>
@@ -744,7 +744,7 @@ function Index() {
               </div>
               <div className="mt-12 grid grid-cols-2 gap-6 max-w-xl">
                 <div>
-                  <span className="font-body text-[10px] uppercase tracking-[0.3em] text-white/40">Studio</span>
+                  <span className="font-body text-[10px] uppercase tracking-[0.3em] text-white/40">Consortium</span>
                   <p className="mt-2 font-body text-white/80">Available across India · Remote worldwide</p>
                 </div>
                 <div>
@@ -767,7 +767,7 @@ function Index() {
           <div className="flex items-center gap-4">
             <img src={logoMark.url} alt="" loading="lazy" decoding="async" width={120} height={40} className="h-5 w-auto object-contain" />
             <span className="font-body text-[10px] uppercase tracking-[0.3em] text-white/70">
-              © {year} Reelio Studio · Issue №{issue}
+              © {year} Reelio Social Consortium · Issue №{issue}
             </span>
           </div>
           <nav aria-label="Footer" className="flex items-center gap-6 font-body text-[10px] uppercase tracking-[0.3em] text-white/70">
