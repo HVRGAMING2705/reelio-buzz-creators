@@ -2,14 +2,14 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { motion, useScroll, useSpring, AnimatePresence } from "motion/react";
 import { Menu, X } from "lucide-react";
-import logoMark128 from "@/assets/reelio-logo-mark-128.png.asset.json";
-import logoMark256 from "@/assets/reelio-logo-mark-256.png.asset.json";
-import logoMark512 from "@/assets/reelio-logo-mark-512.png.asset.json";
-import logoMark1024 from "@/assets/reelio-logo-mark-1024.png.asset.json";
-import ed1 from "@/assets/editorial/ed-1.jpg.asset.json";
-import ed2 from "@/assets/editorial/ed-2.jpg.asset.json";
-import ed3 from "@/assets/editorial/ed-3.jpg.asset.json";
-import ed4 from "@/assets/editorial/ed-4.jpg.asset.json";
+import logoMark128 from "@/assets/reelio-logo-mark-128.png";
+import logoMark256 from "@/assets/reelio-logo-mark-256.png";
+import logoMark512 from "@/assets/reelio-logo-mark-512.png";
+import logoMark1024 from "@/assets/reelio-logo-mark-1024.";
+import ed1 from "@/assets/editorial/ed-1.jpg";
+import ed2 from "@/assets/editorial/ed-2.jpg.";
+import ed3 from "@/assets/editorial/ed-3.jpg";
+import ed4 from "@/assets/editorial/ed-4.jpg";
 import { useReveal } from "@/hooks/use-reveal";
 import { BookingModal } from "@/components/booking-modal";
 import { supabase } from "@/integrations/supabase/client";
@@ -43,7 +43,7 @@ export const Route = createFileRoute("/")({
     ],
     links: [
       { rel: "canonical", href: "/" },
-      { rel: "preload", as: "image", href: logoMark512.url, fetchpriority: "high" },
+      { rel: "preload", as: "image", href: logoMark512, fetchpriority: "high" },
     ],
     scripts: [
       {
@@ -358,7 +358,7 @@ function Index() {
   const { scrollYProgress } = useScroll();
   const progress = useSpring(scrollYProgress, { stiffness: 100, damping: 20, restDelta: 0.001 });
 
-  const logoSrcSet = `${logoMark128.url} 128w, ${logoMark256.url} 256w, ${logoMark512.url} 512w, ${logoMark1024.url} 1024w`;
+  const logoSrcSet = `${logoMark128} 128w, ${logoMark256} 256w, ${logoMark512} 512w, ${logoMark1024} 1024w`;
   const logoSizes = "(max-width: 767px) 80px, (max-width: 1023px) 112px, 128px";
   const footerLogoSizes = "24px";
 
@@ -455,7 +455,7 @@ function Index() {
               className="absolute -inset-1 md:-inset-2 rounded-[1.5rem] bg-[color:var(--reelio-red)] blur-lg opacity-0 group-hover:opacity-15 transition-opacity duration-500 pointer-events-none"
             />
             <img
-              src={logoMark512.url}
+              src={logoMark512}
               srcSet={logoSrcSet}
               sizes={logoSizes}
               alt=""
@@ -705,7 +705,7 @@ function Index() {
               className="col-span-12 md:col-span-5 relative overflow-hidden group"
             >
               <img
-                src={ed1.url}
+                src={ed1}
                 alt="Editorial shoot — solo talent under red rim light"
                 width={1280}
                 height={1600}
@@ -729,7 +729,7 @@ function Index() {
                 className="col-span-2 relative overflow-hidden group"
               >
                 <img
-                  src={ed2.url}
+                  src={ed2}
                   alt="Behind the scenes of a reels shoot"
                   width={1600}
                   height={1200}
@@ -751,7 +751,7 @@ function Index() {
                 className="col-span-2 sm:col-span-1 relative overflow-hidden group"
               >
                 <img
-                  src={ed3.url}
+                  src={ed3}
                   alt="Editing workstation with reel timeline"
                   width={1280}
                   height={1600}
@@ -772,7 +772,7 @@ function Index() {
                 className="col-span-2 sm:col-span-1 relative overflow-hidden group"
               >
                 <img
-                  src={ed4.url}
+                  src={ed4}
                   alt="Creator shooting a reel on a neon-lit street"
                   width={1280}
                   height={1600}
@@ -1006,7 +1006,7 @@ function Index() {
       <footer className="border-t border-white/15 py-10">
         <div className="mx-auto max-w-[1600px] px-5 sm:px-8 md:px-10 lg:px-14 flex flex-col sm:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-4">
-            <img src={logoMark256.url} srcSet={logoSrcSet} sizes={footerLogoSizes} alt="" loading="lazy" decoding="async" width={48} height={48} className="w-6 h-6 object-contain block" />
+            <img src={logoMark256} srcSet={logoSrcSet} sizes={footerLogoSizes} alt="" loading="lazy" decoding="async" width={48} height={48} className="w-6 h-6 object-contain block" />
             <span className="font-body text-[10px] uppercase tracking-[0.3em] text-white/70">
               © {year} Reelio Social Consortium · Issue №{issue}
             </span>
