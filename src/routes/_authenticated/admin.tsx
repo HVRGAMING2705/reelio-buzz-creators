@@ -75,6 +75,9 @@ function formatNextTransition(s: NotifSettings, d: Date, quietActive: boolean): 
   next.setHours(h, m, 0, 0);
   if (next <= d) next.setDate(next.getDate() + 1);
   return next.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
+
 
 type Booking = Tables<"bookings">;
 type Profile = Tables<"profiles">;
