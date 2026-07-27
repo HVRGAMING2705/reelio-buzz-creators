@@ -5,7 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { markReadByBookingId } from "@/lib/notification-history";
-import { getBlocksForEmail } from "@/lib/booking-security.functions";
+import { getBlocksForEmail, getCaptchaEventsForBooking } from "@/lib/booking-security.functions";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Booking = Tables<"bookings"> & { assigned_to: string | null };
@@ -22,9 +22,21 @@ type BlockRow = {
   ip_hash: string | null;
   created_at: string;
 };
+type CaptchaEventRow = {
+  id: string;
+  outcome: string;
+  reason: string | null;
+  ip_hash: string | null;
+  email_hash: string | null;
+  email_domain: string | null;
+  user_agent: string | null;
+  booking_id: string | null;
+  created_at: string;
+};
 type TimelineItem =
   | { kind: "event"; at: string; ev: BookingEvent }
-  | { kind: "block"; at: string; block: BlockRow };
+  | { kind: "block"; at: string; block: BlockRow }
+  | { kind: "captcha"; at: string; cap: CaptchaEventRow };
 
 const STATUSES = ["new", "confirmed", "canceled"] as const;
 type Status = (typeof STATUSES)[number];
