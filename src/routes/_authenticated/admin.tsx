@@ -398,6 +398,14 @@ function AdminPage() {
               onOpen={(id) => navigate({ to: "/bookings/$id", params: { id } })}
             />
             <button
+              onClick={() => setSettingsOpen(true)}
+              className="rounded-full glass px-3 py-2 text-sm hover:bg-white/10"
+              aria-label="Notification settings"
+              title="Notification settings"
+            >
+              <span aria-hidden>⚙️</span>
+            </button>
+            <button
               onClick={signOut}
               className="rounded-full glass px-4 py-2 uppercase tracking-[0.2em] text-[10px]"
             >
