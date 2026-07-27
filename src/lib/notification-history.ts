@@ -34,7 +34,7 @@ export type NotifHistoryEntry = {
   id: string;
   ts: number;
   kind: "new" | "status" | "note" | "summary" | "test";
-  category: "bookings" | "system";
+  category: "bookings" | "outreach" | "invoices" | "system";
   title: string;
   subtitle?: string;
   bookingId?: string;
