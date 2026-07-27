@@ -865,6 +865,7 @@ function AdminPage() {
                 markAllSeen();
                 navigate({ to: "/bookings/$id", params: { id } });
               }}
+              onUpdateStatus={(id, status) => updateStatus.mutate({ id, status })}
             />
             <button
               onClick={() => setSettingsOpen(true)}
