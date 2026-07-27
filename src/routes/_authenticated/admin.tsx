@@ -188,12 +188,12 @@ function Avatar({
 }
 
 function NotificationsBell({
-  bookings, lastSeen, unreadCount, onMarkAllSeen, onOpen, onUpdateStatus,
+  bookings, lastSeen, unreadCount, onMarkAllRead, onOpen, onUpdateStatus,
 }: {
   bookings: BookingWithProfile[];
   lastSeen: number;
   unreadCount: number;
-  onMarkAllSeen: (ts?: number) => void;
+  onMarkAllRead: (ids: string[]) => void;
   onOpen: (id: string) => void;
   onUpdateStatus: (id: string, status: Status) => void;
 }) {
