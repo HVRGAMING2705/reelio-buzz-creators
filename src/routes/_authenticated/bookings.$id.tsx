@@ -401,10 +401,12 @@ function blockLabel(reason: string) {
 type FilterKind = "all" | "events" | "blocks" | "captcha";
 
 function TimelineSection({
+  bookingId,
   events,
   blocks,
   captchaEvents,
 }: {
+  bookingId: string;
   events: BookingEvent[];
   blocks: BlockRow[];
   captchaEvents: CaptchaEventRow[];
