@@ -1075,6 +1075,13 @@ function AdminPage() {
             >
               Security
             </Link>
+            <Link
+              to="/spam"
+              className="rounded-full glass px-3 py-2 text-[10px] uppercase tracking-[0.2em] hover:bg-white/10"
+              title="Honeypot and rate-limit rejections"
+            >
+              Spam
+            </Link>
 
 
             <button
