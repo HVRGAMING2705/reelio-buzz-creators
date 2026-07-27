@@ -168,8 +168,58 @@ function AdminPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search name, email, brand, niche…"
-            className="input-glass mb-4"
+            className="input-glass mb-3"
           />
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2 mb-3">
+            <input
+              value={nameQ}
+              onChange={(e) => setNameQ(e.target.value)}
+              placeholder="Filter by name"
+              className="input-glass"
+            />
+            <select value={serviceQ} onChange={(e) => setServiceQ(e.target.value)} className="input-glass">
+              <option value="all">All services</option>
+              {services.map((s) => <option key={s} value={s}>{s}</option>)}
+            </select>
+            <select value={nicheQ} onChange={(e) => setNicheQ(e.target.value)} className="input-glass">
+              <option value="all">All niches</option>
+              {niches.map((s) => <option key={s} value={s}>{s}</option>)}
+            </select>
+            <select value={budgetQ} onChange={(e) => setBudgetQ(e.target.value)} className="input-glass">
+              <option value="all">All budgets</option>
+              {budgets.map((s) => <option key={s} value={s}>{s}</option>)}
+            </select>
+            <input
+              type="date"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+              className="input-glass"
+              aria-label="From date"
+            />
+            <input
+              type="date"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+              className="input-glass"
+              aria-label="To date"
+            />
+          </div>
+
+          <div className="flex items-center justify-between mb-4 text-xs opacity-70">
+            <span>{filtered.length} result{filtered.length === 1 ? "" : "s"}</span>
+            {(nameQ || serviceQ !== "all" || nicheQ !== "all" || budgetQ !== "all" || dateFrom || dateTo || search) && (
+              <button
+                onClick={() => {
+                  setNameQ(""); setServiceQ("all"); setNicheQ("all");
+                  setBudgetQ("all"); setDateFrom(""); setDateTo(""); setSearch("");
+                }}
+                className="uppercase tracking-[0.2em] hover:text-white"
+              >
+                Clear filters
+              </button>
+            )}
+          </div>
 
           {isLoading && <p className="opacity-70">Loading…</p>}
           {error && (
