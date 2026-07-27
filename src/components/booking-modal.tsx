@@ -164,7 +164,7 @@ export function BookingModal({ open, onClose }: Props) {
 
     setSubmitting(true);
     const v = parsed.data;
-    const insertPayload: Record<string, unknown> = {
+    const insertPayload = {
       name: v.name,
       brand: v.brand || null,
       email: v.email,
@@ -173,10 +173,8 @@ export function BookingModal({ open, onClose }: Props) {
       budget: v.budget,
       niche: v.niche || null,
       message: v.message || null,
+      ...(user ? { user_id: user.id } : {}),
     };
-    if (user) {
-      insertPayload.user_id = user.id;
-    }
     const { error } = await supabase.from("bookings").insert(insertPayload);
     setSubmitting(false);
     if (error) {
