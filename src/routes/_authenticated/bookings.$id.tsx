@@ -236,8 +236,21 @@ function BookingDetailPage() {
                 <div className="glass rounded-xl p-4 whitespace-pre-wrap text-sm">
                   {booking.message || "—"}
                 </div>
+              <div className="mt-6">
+                <p className="text-[10px] uppercase tracking-[0.25em] opacity-70 mb-2">Message</p>
+                <div className="glass rounded-xl p-4 whitespace-pre-wrap text-sm">
+                  {booking.message || "—"}
+                </div>
               </div>
             </section>
+
+            <QuickActions
+              booking={booking}
+              admins={admins ?? []}
+              assigneeProfile={assigneeProfile ?? null}
+              onAssign={(uid) => assign.mutate(uid)}
+              assigning={assign.isPending}
+            />
 
             <section className="glass rounded-2xl p-6">
               <p className="text-[10px] uppercase tracking-[0.25em] opacity-70 mb-3">Status</p>
