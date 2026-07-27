@@ -244,7 +244,7 @@ function Index() {
               >
                 <span className="block">STORIES</span>
                 <span className="block">
-                  <span className="text-[color:var(--reelio-red)]">SHOT.</span>{" "}
+                  <span className="text-shimmer">SHOT.</span>{" "}
                   <span className="italic font-body font-light lowercase text-white/70 text-[10vw] md:text-[6.5vw] xl:text-[5.5vw] 2xl:text-[92px]">
                     cut,
                   </span>
