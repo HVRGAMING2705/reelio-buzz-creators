@@ -70,6 +70,13 @@ function NotificationsBell({
     return () => document.removeEventListener("mousedown", onDoc);
   }, [open]);
 
+  // Auto-mark as read shortly after opening the dropdown
+  useEffect(() => {
+    if (!open || unreadCount === 0) return;
+    const t = setTimeout(onMarkAllSeen, 600);
+    return () => clearTimeout(t);
+  }, [open, unreadCount, onMarkAllSeen]);
+
   const recent = useMemo(
     () => [...bookings]
       .sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at))
