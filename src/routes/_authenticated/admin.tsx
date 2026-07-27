@@ -209,6 +209,21 @@ function NotificationsBell({
     [bookings]
   );
 
+  // Infinite scroll: load more notifications when the sentinel enters view
+  useEffect(() => {
+    if (!open || !sentinelRef.current || !hasMoreNotifications) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          setNotifLimit((n) => n + 8);
+        }
+      },
+      { root: scrollRef.current, threshold: 0.1 },
+    );
+    observer.observe(sentinelRef.current);
+    return () => observer.disconnect();
+  }, [open, hasMoreNotifications, notifLimit]);
+
   const activeNotifFilters =
     notifStatus !== "all" ||
     notifUnreadOnly ||
