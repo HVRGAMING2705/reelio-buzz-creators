@@ -2180,97 +2180,125 @@ function SettingsModal({
 
         <div className="mt-6 pt-4 border-t border-white/10">
           <p className="text-[10px] uppercase tracking-[0.3em] opacity-50 mb-2">Delivery test</p>
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-xs opacity-70 flex-1">
-              Fires a sample toast using your current draft settings — no booking is created.
-            </p>
-            <button
-              type="button"
-              onClick={() => {
-                const quietNow = isQuietNow(draft);
-                const inAppOn = draft.channelInApp && !quietNow;
-                const pushOn = draft.channelPush && !quietNow && pushPerm === "granted";
-                const emailOn = draft.channelEmail;
-                if (!draft.channelInApp && !draft.channelEmail && !draft.channelPush) {
-                  logNotification({
-                    kind: "test", category: "system",
-                    title: "Test notification · Reelio Admin",
-                    subtitle: "All channels disabled",
-                    status: "suppressed", reason: "disabled",
-                  });
-                  toast.error("All delivery channels are off — nothing to deliver.");
-                  return;
-                }
-                if (!inAppOn && !pushOn && !emailOn) {
-                  logNotification({
-                    kind: "test", category: "system",
-                    title: "Test notification · Reelio Admin",
-                    subtitle: "Quiet hours active",
-                    status: "suppressed", reason: "quiet",
-                  });
-                  toast.error(
-                    `Quiet hours are active${
-                      nextTransition ? ` until ${nextTransition}` : ""
-                    } — nothing to deliver.`,
-                  );
-                  return;
-                }
-                const tags: string[] = [];
-                if (inAppOn) tags.push("in-app");
-                if (emailOn) tags.push("email");
-                if (pushOn) tags.push("push");
+          <p className="text-xs opacity-70 mb-3">
+            Fires a sample toast for a specific category using your current draft settings — no booking is created. Only enabled categories are testable.
+          </p>
+          {(() => {
+            const CATEGORIES: {
+              key: "bookings" | "outreach" | "invoices";
+              flag: "categoryBookings" | "categoryOutreach" | "categoryInvoices";
+              label: string;
+              blurb: string;
+            }[] = [
+              { key: "bookings", flag: "categoryBookings", label: "Bookings", blurb: "New submissions, status changes, notes" },
+              { key: "outreach", flag: "categoryOutreach", label: "Outreach", blurb: "Cold outreach replies & follow-ups" },
+              { key: "invoices", flag: "categoryInvoices", label: "Invoices", blurb: "Payments, overdue reminders, receipts" },
+            ];
+
+            const runTest = (cat: (typeof CATEGORIES)[number]) => {
+              const title = `Test ${cat.label} notification · Reelio Admin`;
+              const quietNow = isQuietNow(draft);
+              const inAppOn = draft.channelInApp && !quietNow;
+              const pushOn = draft.channelPush && !quietNow && pushPerm === "granted";
+              const emailOn = draft.channelEmail;
+
+              if (!draft.channelInApp && !draft.channelEmail && !draft.channelPush) {
                 logNotification({
-                  kind: "test", category: "system",
-                  title: "Test notification · Reelio Admin",
-                  subtitle: `Delivered via ${tags.join(" + ")}`,
-                  status: "delivered",
+                  kind: "test", category: cat.key,
+                  title, subtitle: "All channels disabled",
+                  status: "suppressed", reason: "disabled",
                 });
-                if (pushOn) {
-                  firePushNotification(
-                    "Test notification · Reelio Admin",
-                    "Push delivery is working.",
-                    "reelio-test",
-                  );
-                }
-                if (!inAppOn) {
-                  toast.success(`Test recorded — ${tags.join(" + ")}`);
-                  return;
-                }
-                toast.custom(
-                  (t) => (
-                    <div className="w-full rounded-xl border border-red-500/40 bg-black/90 backdrop-blur-xl shadow-2xl overflow-hidden">
-                      <div className="px-4 py-3">
-                        <div className="flex items-center justify-between gap-3">
-                          <p className="text-sm font-medium text-white">
-                            Test notification · Reelio Admin
-                          </p>
-                          <span className="text-[10px] uppercase tracking-wider text-red-400 shrink-0">
-                            Test
-                          </span>
-                        </div>
-                        <p className="text-xs text-white/70 mt-0.5">
-                          Realtime delivery is working. This is a preview of a new-booking toast.
+                toast.error("All delivery channels are off — nothing to deliver.");
+                return;
+              }
+              if (!inAppOn && !pushOn && !emailOn) {
+                logNotification({
+                  kind: "test", category: cat.key,
+                  title, subtitle: "Quiet hours active",
+                  status: "suppressed", reason: "quiet",
+                });
+                toast.error(
+                  `Quiet hours are active${nextTransition ? ` until ${nextTransition}` : ""} — nothing to deliver.`,
+                );
+                return;
+              }
+              const tags: string[] = [];
+              if (inAppOn) tags.push("in-app");
+              if (emailOn) tags.push("email");
+              if (pushOn) tags.push("push");
+              logNotification({
+                kind: "test", category: cat.key,
+                title, subtitle: `Delivered via ${tags.join(" + ")}`,
+                status: "delivered",
+              });
+              if (pushOn) {
+                firePushNotification(title, `${cat.label} push delivery is working.`, `reelio-test-${cat.key}`);
+              }
+              if (!inAppOn) {
+                toast.success(`${cat.label} test recorded — ${tags.join(" + ")}`);
+                return;
+              }
+              toast.custom(
+                (t) => (
+                  <div className="w-full rounded-xl border border-red-500/40 bg-black/90 backdrop-blur-xl shadow-2xl overflow-hidden">
+                    <div className="px-4 py-3">
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-sm font-medium text-white">{title}</p>
+                        <span className="text-[10px] uppercase tracking-wider text-red-400 shrink-0">
+                          Test · {cat.label}
+                        </span>
+                      </div>
+                      <p className="text-xs text-white/70 mt-0.5">
+                        {cat.blurb}. Delivery is working via {tags.join(" + ")}.
+                      </p>
+                    </div>
+                    <div className="border-t border-white/10 px-4 py-2 bg-white/[0.03] flex justify-end">
+                      <button
+                        onClick={() => toast.dismiss(t)}
+                        className="text-[10px] uppercase tracking-[0.2em] opacity-70 hover:opacity-100"
+                      >
+                        Dismiss
+                      </button>
+                    </div>
+                  </div>
+                ),
+                { duration: 8000 },
+              );
+            };
+
+            return (
+              <div className="space-y-2">
+                {CATEGORIES.map((cat) => {
+                  const enabled = draft[cat.flag];
+                  return (
+                    <div
+                      key={cat.key}
+                      className={`flex items-center justify-between gap-3 rounded-xl border border-white/10 px-3 py-2 ${
+                        enabled ? "bg-white/[0.03]" : "opacity-50"
+                      }`}
+                    >
+                      <div className="min-w-0">
+                        <p className="text-sm">{cat.label}</p>
+                        <p className="text-[11px] opacity-60 truncate">
+                          {enabled ? cat.blurb : "Category disabled — enable it above to test."}
                         </p>
                       </div>
-                      <div className="border-t border-white/10 px-4 py-2 bg-white/[0.03] flex justify-end">
-                        <button
-                          onClick={() => toast.dismiss(t)}
-                          className="text-[10px] uppercase tracking-[0.2em] opacity-70 hover:opacity-100"
-                        >
-                          Dismiss
-                        </button>
-                      </div>
+                      <button
+                        type="button"
+                        disabled={!enabled}
+                        onClick={() => runTest(cat)}
+                        className="rounded-full glass px-3 py-1.5 text-[10px] uppercase tracking-[0.2em] hover:bg-white/10 shrink-0 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                      >
+                        Send {cat.label} test
+                      </button>
                     </div>
-                  ),
-                  { duration: 8000 },
-                );
-              }}
-              className="rounded-full glass px-4 py-2 text-xs uppercase tracking-[0.2em] hover:bg-white/10 shrink-0"
-            >
-              Send test
-            </button>
-          </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
         </div>
+
 
         <NotificationLogPanel />
 
