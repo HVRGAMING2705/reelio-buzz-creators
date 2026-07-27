@@ -7,6 +7,7 @@ import type { Tables } from "@/integrations/supabase/types";
 import {
   logNotification,
   markReadByBookingId,
+  markAllBookingsRead,
   getReadBookingIds,
   subscribeHistory,
 } from "@/lib/notification-history";
