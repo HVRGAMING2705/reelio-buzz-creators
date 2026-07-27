@@ -2269,9 +2269,11 @@ function SettingsModal({
             >
               Send test
             </button>
+          </div>
         </div>
 
         <NotificationLogPanel />
+
 
 
         <div className="flex justify-end gap-2 mt-6">
