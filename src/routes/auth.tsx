@@ -1,7 +1,6 @@
 import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
 
 /** Only accept same-origin relative paths (e.g. "/.lovable/oauth/consent?..."). */
 function safeNext(raw: string | undefined | null): string | null {
@@ -76,22 +75,25 @@ function AuthPage() {
   };
 
   const signInWithGoogle = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const redirectBack = nextPath ?? "";
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: `${window.location.origin}${redirectBack}`,
-      });
-      if (result.error) throw result.error;
-      if (result.redirected) return;
-      await router.invalidate();
-      goAfterAuth();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Google sign-in failed");
-      setLoading(false);
-    }
-  };
+  setLoading(true);
+  setError(null);
+
+  try {
+    const redirectBack = nextPath ?? "";
+
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}${redirectBack}`,
+      },
+    });
+
+    if (error) throw error;
+  } catch (err) {
+    setError(err instanceof Error ? err.message : "Google sign-in failed");
+    setLoading(false);
+  }
+};
 
 
   return (
