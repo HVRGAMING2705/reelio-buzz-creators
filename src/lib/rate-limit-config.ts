@@ -88,7 +88,7 @@ export async function saveRateLimitConfig(
   const { error } = await supabase.from("app_settings").upsert(
     {
       key: RATE_LIMIT_SETTINGS_ROW_KEY,
-      value: normalized as unknown as Record<string, unknown>,
+      value: normalized as unknown as never,
       updated_by: userRes.user?.id ?? null,
       updated_at: new Date().toISOString(),
     },
