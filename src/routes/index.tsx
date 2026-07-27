@@ -186,13 +186,12 @@ function Index() {
         <div className="glass conic-border rounded-full px-4 md:px-6 h-14 flex items-center justify-between">
           <a href="#top" className="flex items-center gap-2.5">
             <motion.img
-              whileHover={{ rotate: 360 }}
-              transition={{ duration: 0.9 }}
-              src={logoAsset.url}
+              whileHover={{ scale: 1.05 }}
+              transition={{ duration: 0.4 }}
+              src={logoMark.url}
               alt="Reelio"
-              className="h-8 w-8 rounded-lg object-cover ring-1 ring-white/40"
+              className="h-7 md:h-8 w-auto object-contain"
             />
-            <span className="text-xl tracking-wide">REELIO</span>
           </a>
           <nav className="hidden md:flex items-center gap-7 text-xs uppercase tracking-[0.25em]">
             {["services", "niches", "package"].map((l) => (
