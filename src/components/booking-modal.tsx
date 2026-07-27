@@ -222,9 +222,12 @@ export function BookingModal({ open, onClose }: Props) {
 
     // 5. hCaptcha (only when admin enabled it with a site key)
     if (captchaActive && !captchaToken) {
-      setErrorMsg("Please complete the captcha to continue.");
+      const msg = "Please complete the captcha to continue.";
+      setCaptchaError(msg);
+      setErrorMsg(msg);
       return;
     }
+    setCaptchaError(null);
 
 
 
