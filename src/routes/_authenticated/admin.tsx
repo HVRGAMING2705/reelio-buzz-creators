@@ -7,7 +7,9 @@ import type { Tables } from "@/integrations/supabase/types";
 import { logNotification } from "@/lib/notification-history";
 
 const LAST_SEEN_KEY = "reelio.admin.lastSeenBookingAt";
-const SETTINGS_KEY = "reelio.admin.notifSettings";
+const SETTINGS_KEY_BASE = "reelio.admin.notifSettings";
+const settingsKeyFor = (userId: string | null) =>
+  userId ? `${SETTINGS_KEY_BASE}:${userId}` : SETTINGS_KEY_BASE;
 
 type NotifFrequency = "instant" | "1m" | "5m";
 
@@ -49,10 +51,12 @@ const FREQUENCY_MS: Record<NotifFrequency, number> = {
   "5m": 300_000,
 };
 
-function loadSettings(): NotifSettings {
+function loadSettings(userId: string | null): NotifSettings {
   if (typeof window === "undefined") return DEFAULT_SETTINGS;
   try {
-    const raw = window.localStorage.getItem(SETTINGS_KEY);
+    const raw =
+      window.localStorage.getItem(settingsKeyFor(userId)) ??
+      (userId ? window.localStorage.getItem(SETTINGS_KEY_BASE) : null);
     if (!raw) return DEFAULT_SETTINGS;
     return { ...DEFAULT_SETTINGS, ...JSON.parse(raw) };
   } catch { return DEFAULT_SETTINGS; }
@@ -581,15 +585,32 @@ function AdminPage() {
     return v ? Number(v) : Date.now();
   });
   const notifiedIds = useRef<Set<string>>(new Set());
-  const [settings, setSettings] = useState<NotifSettings>(() => loadSettings());
+  const [userId, setUserId] = useState<string | null>(null);
+  const [settings, setSettings] = useState<NotifSettings>(() => loadSettings(null));
   const [settingsOpen, setSettingsOpen] = useState(false);
   const settingsRef = useRef(settings);
   useEffect(() => { settingsRef.current = settings; }, [settings]);
 
+  useEffect(() => {
+    let active = true;
+    supabase.auth.getUser().then(({ data }) => {
+      if (!active) return;
+      const uid = data.user?.id ?? null;
+      setUserId(uid);
+      setSettings(loadSettings(uid));
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      const uid = session?.user?.id ?? null;
+      setUserId(uid);
+      setSettings(loadSettings(uid));
+    });
+    return () => { active = false; sub.subscription.unsubscribe(); };
+  }, []);
+
   const saveSettings = (next: NotifSettings) => {
     setSettings(next);
     if (typeof window !== "undefined") {
-      window.localStorage.setItem(SETTINGS_KEY, JSON.stringify(next));
+      window.localStorage.setItem(settingsKeyFor(userId), JSON.stringify(next));
     }
   };
 
