@@ -26,6 +26,32 @@ const LAST_SEEN_KEY = "reelio.admin.lastSeenBookingAt";
 const SETTINGS_KEY_BASE = "reelio.admin.notifSettings";
 const settingsKeyFor = (userId: string | null) =>
   userId ? `${SETTINGS_KEY_BASE}:${userId}` : SETTINGS_KEY_BASE;
+const NOTIF_FILTERS_KEY_BASE = "reelio.admin.notifFilters";
+const notifFiltersKeyFor = (userId: string | null) =>
+  userId ? `${NOTIF_FILTERS_KEY_BASE}:${userId}` : NOTIF_FILTERS_KEY_BASE;
+
+type NotifFilters = {
+  unreadOnly: boolean;
+  todayOnly: boolean;
+  service: "all" | string;
+};
+const DEFAULT_NOTIF_FILTERS: NotifFilters = { unreadOnly: false, todayOnly: false, service: "all" };
+
+function loadNotifFilters(userId: string | null): NotifFilters {
+  if (typeof window === "undefined") return DEFAULT_NOTIF_FILTERS;
+  try {
+    const raw = window.localStorage.getItem(notifFiltersKeyFor(userId));
+    if (!raw) return DEFAULT_NOTIF_FILTERS;
+    return { ...DEFAULT_NOTIF_FILTERS, ...JSON.parse(raw) };
+  } catch { return DEFAULT_NOTIF_FILTERS; }
+}
+
+function saveNotifFilters(userId: string | null, filters: NotifFilters) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(notifFiltersKeyFor(userId), JSON.stringify(filters));
+  } catch { /* ignore */ }
+}
 
 type NotifFrequency = "instant" | "1m" | "5m";
 
