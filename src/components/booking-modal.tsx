@@ -457,6 +457,15 @@ export function BookingModal({ open, onClose }: Props) {
                     />
                   </Field>
 
+                  {captchaActive && (
+                    <div>
+                      <span className="block text-[10px] uppercase tracking-[0.25em] opacity-80 mb-2">
+                        Verify you're human
+                      </span>
+                      <div ref={captchaContainerRef} className="min-h-[78px]" />
+                    </div>
+                  )}
+
                   {errorMsg && <p className="text-sm text-red-300" role="alert">{errorMsg}</p>}
                   {remainingCooldown > 0 && !errorMsg && (
                     <p className="text-[11px] opacity-60">
