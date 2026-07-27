@@ -244,6 +244,31 @@ function NotificationsBell({
   const [notifSearch, setNotifSearch] = useState("");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [notifLimit, setNotifLimit] = useState(8);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [loadMoreError, setLoadMoreError] = useState<string | null>(null);
+  const loadMoreTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const loadMoreNotifications = useCallback(() => {
+    if (loadingMore) return;
+    setLoadMoreError(null);
+    setLoadingMore(true);
+    if (loadMoreTimer.current) clearTimeout(loadMoreTimer.current);
+    loadMoreTimer.current = setTimeout(() => {
+      try {
+        setNotifLimit((n) => n + 8);
+        setLoadingMore(false);
+      } catch (err) {
+        setLoadingMore(false);
+        setLoadMoreError(err instanceof Error ? err.message : "Failed to load older notifications");
+      }
+    }, 350);
+  }, [loadingMore]);
+
+  useEffect(() => {
+    return () => {
+      if (loadMoreTimer.current) clearTimeout(loadMoreTimer.current);
+    };
+  }, []);
 
   // Persist the filter choices per user so they survive reloads and re-openings.
   useEffect(() => {
