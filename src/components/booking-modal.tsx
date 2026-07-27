@@ -250,6 +250,13 @@ export function BookingModal({ open, onClose }: Props) {
                   Tell us about your brand — we'll get back within 24 hours.
                 </p>
 
+                {user && (
+                  <div className="mt-4 inline-flex items-center gap-2 self-start rounded-full border border-white/20 bg-white/5 px-3 py-1.5 text-[11px] uppercase tracking-wider text-white/80">
+                    <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                    Booking as {user.email}
+                  </div>
+                )}
+
                 <form onSubmit={submit} className="mt-8 grid gap-4" noValidate>
                   {/* Honeypot: hidden from users, visible to naive bots */}
                   <div
