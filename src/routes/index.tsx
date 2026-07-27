@@ -265,37 +265,37 @@ function Index() {
 
           {/* Orbit + logo */}
           <div className="relative mt-16 md:mt-24 mx-auto h-64 md:h-80 max-w-2xl block">
-            <div className="absolute inset-0 grid place-items-center">
-              <motion.img
-                animate={{ rotate: [0, 6, -6, 0] }}
-                transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-                src={logoAsset.url}
-                alt=""
-                className="h-32 w-32 rounded-3xl object-cover ring-2 ring-white/40 shadow-2xl"
-              />
-            </div>
-            <div className="absolute inset-0 orbit">
-              {orbitIcons.map((ic, i) => {
-                const angle = (i / orbitIcons.length) * Math.PI * 2;
-                const r = 150;
-                const x = Math.cos(angle) * r;
-                const y = Math.sin(angle) * r;
-                return (
-                  <div
-                    key={i}
-                    className="absolute left-1/2 top-1/2 glass-chip rounded-full h-11 w-11 grid place-items-center text-lg"
-                    style={{ transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))` }}
-                  >
-                    {ic}
-                  </div>
-                );
-              })}
-            </div>
-            <div className="absolute inset-0 grid place-items-center pointer-events-none">
-              <div
-                className="h-[300px] w-[300px] rounded-full border border-white/20"
-                style={{ boxShadow: "inset 0 0 40px oklch(1 0 0 / 0.1)" }}
-              />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="relative scale-75 md:scale-100 origin-center">
+                <motion.img
+                  animate={{ rotate: [0, 6, -6, 0] }}
+                  transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+                  src={logoAsset.url}
+                  alt=""
+                  className="h-32 w-32 rounded-3xl object-cover ring-2 ring-white/40 shadow-2xl relative z-10"
+                />
+                <div className="absolute inset-0 orbit pointer-events-none">
+                  {orbitIcons.map((ic, i) => {
+                    const angle = (i / orbitIcons.length) * Math.PI * 2;
+                    const r = 130;
+                    const x = Math.cos(angle) * r;
+                    const y = Math.sin(angle) * r;
+                    return (
+                      <div
+                        key={i}
+                        className="absolute left-1/2 top-1/2 glass-chip rounded-full h-11 w-11 grid place-items-center text-lg"
+                        style={{ transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))` }}
+                      >
+                        {ic}
+                      </div>
+                    );
+                  })}
+                </div>
+                <div
+                  className="absolute left-1/2 top-1/2 h-[280px] w-[280px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/20 pointer-events-none"
+                  style={{ boxShadow: "inset 0 0 40px oklch(1 0 0 / 0.1)" }}
+                />
+              </div>
             </div>
           </div>
 
