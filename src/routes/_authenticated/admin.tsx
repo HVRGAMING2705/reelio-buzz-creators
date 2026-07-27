@@ -1157,6 +1157,53 @@ function SettingsModal({
         )}
 
         <div className="mt-6 pt-4 border-t border-white/10">
+          <p className="text-[10px] uppercase tracking-[0.3em] opacity-50 mb-1">Alert types</p>
+          <p className="text-xs opacity-60 mb-2">Choose which events trigger admin alerts.</p>
+          {([
+            ["notifyNewBooking", "New booking submissions"],
+            ["notifyStatusChange", "Booking status changes"],
+            ["notifyNoteUpdate", "Internal notes updated"],
+          ] as const).map(([key, label]) => (
+            <label key={key} className="flex items-center justify-between gap-4 py-2 cursor-pointer">
+              <span className="text-sm">{label}</span>
+              <input
+                type="checkbox"
+                className="h-5 w-5 accent-red-500"
+                checked={draft[key]}
+                onChange={(e) => setDraft({ ...draft, [key]: e.target.checked })}
+              />
+            </label>
+          ))}
+
+          <div className="mt-3">
+            <label className="text-[10px] uppercase tracking-[0.25em] opacity-60">Alert frequency</label>
+            <div className="mt-2 grid grid-cols-3 gap-2">
+              {([
+                ["instant", "Instant"],
+                ["1m", "Every 1 min"],
+                ["5m", "Every 5 min"],
+              ] as const).map(([val, label]) => (
+                <button
+                  key={val}
+                  type="button"
+                  onClick={() => setDraft({ ...draft, frequency: val })}
+                  className={`rounded-lg border px-3 py-2 text-xs uppercase tracking-[0.15em] transition ${
+                    draft.frequency === val
+                      ? "bg-red-500 border-red-500 text-white"
+                      : "bg-white/5 border-white/10 hover:bg-white/10"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <p className="text-xs opacity-60 mt-2">
+              Batched frequencies group multiple events into a single summary toast.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-6 pt-4 border-t border-white/10">
           <p className="text-[10px] uppercase tracking-[0.3em] opacity-50 mb-1">Spam protection</p>
           <label className="flex items-start justify-between gap-4 py-3 border-b border-white/10 cursor-pointer">
             <div className="min-w-0">
