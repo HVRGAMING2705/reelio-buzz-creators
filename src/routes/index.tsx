@@ -11,6 +11,7 @@ import {
 import logoAsset from "@/assets/reelio-logo.jpeg.asset.json";
 import { useReveal } from "@/hooks/use-reveal";
 import { Magnetic, TiltCard, CursorGlow } from "@/components/motion-fx";
+import { BookingModal } from "@/components/booking-modal";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -100,6 +101,7 @@ function SplitWords({ text, className = "", delay = 0 }: { text: string; classNa
 function Index() {
   useReveal();
   const [scrolled, setScrolled] = useState(false);
+  const [bookingOpen, setBookingOpen] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
 
   const { scrollY } = useScroll();
@@ -121,6 +123,7 @@ function Index() {
   return (
     <div className="relative min-h-screen bg-background text-foreground overflow-hidden">
       <CursorGlow />
+      <BookingModal open={bookingOpen} onClose={() => setBookingOpen(false)} />
 
       {/* Scroll progress bar */}
       <motion.div
@@ -185,14 +188,13 @@ function Index() {
             ))}
           </nav>
           <Magnetic strength={0.4}>
-            <a
-              href="https://forms.gle/Px5NuE51UrGZMSKx8"
-              target="_blank"
-              rel="noreferrer"
+            <button
+              type="button"
+              onClick={() => setBookingOpen(true)}
               className="glass-chip rounded-full px-4 py-1.5 text-xs uppercase tracking-[0.2em] liquid-shine inline-block"
             >
-              Get in touch
-            </a>
+              Book a call
+            </button>
           </Magnetic>
         </div>
       </motion.header>
@@ -239,17 +241,16 @@ function Index() {
             </p>
             <div className="flex flex-wrap gap-3 md:justify-end">
               <Magnetic>
-                <a
-                  href="https://forms.gle/Px5NuE51UrGZMSKx8"
-                  target="_blank"
-                  rel="noreferrer"
+                <button
+                  type="button"
+                  onClick={() => setBookingOpen(true)}
                   className="group relative inline-flex items-center gap-2 rounded-full bg-white text-[color:var(--reelio-black)] px-6 py-3.5 uppercase tracking-[0.2em] text-xs liquid-shine shadow-2xl"
                 >
-                  Start a Project
+                  Book a call
                   <motion.span animate={{ x: [0, 4, 0] }} transition={{ duration: 1.8, repeat: Infinity }}>
                     →
                   </motion.span>
-                </a>
+                </button>
               </Magnetic>
               <Magnetic>
                 <a
@@ -263,38 +264,38 @@ function Index() {
           </motion.div>
 
           {/* Orbit + logo */}
-          <div className="relative mt-24 mx-auto h-64 md:h-80 max-w-2xl hidden md:block">
-            <div className="absolute inset-0 grid place-items-center">
-              <motion.img
-                animate={{ rotate: [0, 6, -6, 0] }}
-                transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-                src={logoAsset.url}
-                alt=""
-                className="h-32 w-32 rounded-3xl object-cover ring-2 ring-white/40 shadow-2xl"
-              />
-            </div>
-            <div className="absolute inset-0 orbit">
-              {orbitIcons.map((ic, i) => {
-                const angle = (i / orbitIcons.length) * Math.PI * 2;
-                const r = 150;
-                const x = Math.cos(angle) * r;
-                const y = Math.sin(angle) * r;
-                return (
-                  <div
-                    key={i}
-                    className="absolute left-1/2 top-1/2 glass-chip rounded-full h-11 w-11 grid place-items-center text-lg"
-                    style={{ transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))` }}
-                  >
-                    {ic}
-                  </div>
-                );
-              })}
-            </div>
-            <div className="absolute inset-0 grid place-items-center pointer-events-none">
-              <div
-                className="h-[300px] w-[300px] rounded-full border border-white/20"
-                style={{ boxShadow: "inset 0 0 40px oklch(1 0 0 / 0.1)" }}
-              />
+          <div className="relative mt-16 md:mt-24 mx-auto h-64 md:h-80 max-w-2xl block">
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="relative scale-75 md:scale-100 origin-center">
+                <motion.img
+                  animate={{ rotate: [0, 6, -6, 0] }}
+                  transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+                  src={logoAsset.url}
+                  alt=""
+                  className="h-32 w-32 rounded-3xl object-cover ring-2 ring-white/40 shadow-2xl relative z-10"
+                />
+                <div className="absolute inset-0 orbit pointer-events-none">
+                  {orbitIcons.map((ic, i) => {
+                    const angle = (i / orbitIcons.length) * Math.PI * 2;
+                    const r = 130;
+                    const x = Math.cos(angle) * r;
+                    const y = Math.sin(angle) * r;
+                    return (
+                      <div
+                        key={i}
+                        className="absolute left-1/2 top-1/2 glass-chip rounded-full h-11 w-11 grid place-items-center text-lg"
+                        style={{ transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))` }}
+                      >
+                        {ic}
+                      </div>
+                    );
+                  })}
+                </div>
+                <div
+                  className="absolute left-1/2 top-1/2 h-[280px] w-[280px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/20 pointer-events-none"
+                  style={{ boxShadow: "inset 0 0 40px oklch(1 0 0 / 0.1)" }}
+                />
+              </div>
             </div>
           </div>
 
@@ -505,17 +506,16 @@ function Index() {
 
             <div className="mt-12 flex flex-wrap gap-3">
               <Magnetic>
-                <a
-                  href="https://forms.gle/Px5NuE51UrGZMSKx8"
-                  target="_blank"
-                  rel="noreferrer"
+                <button
+                  type="button"
+                  onClick={() => setBookingOpen(true)}
                   className="group inline-flex items-center gap-2 rounded-full bg-white text-[color:var(--reelio-black)] px-7 py-4 uppercase tracking-[0.2em] text-xs liquid-shine shadow-2xl"
                 >
                   Book Reelio Package
                   <motion.span animate={{ x: [0, 4, 0] }} transition={{ duration: 1.6, repeat: Infinity }}>
                     →
                   </motion.span>
-                </a>
+                </button>
               </Magnetic>
               <Magnetic>
                 <a
@@ -562,23 +562,22 @@ function Index() {
             </motion.span>
           </h2>
           <p className="mt-8 max-w-xl mx-auto text-lg opacity-90">
-            Brands looking to grow, or creators looking to join the team — start with a single form.
+            Brands looking to grow, or creators looking to join the team — book a call in one tap.
           </p>
 
           <div className="mt-12 inline-flex relative">
             <span className="absolute inset-0 rounded-full animate-pulse-ring" />
             <Magnetic strength={0.5}>
-              <a
-                href="https://forms.gle/Px5NuE51UrGZMSKx8"
-                target="_blank"
-                rel="noreferrer"
+              <button
+                type="button"
+                onClick={() => setBookingOpen(true)}
                 className="relative inline-flex items-center gap-3 rounded-full bg-white text-[color:var(--reelio-black)] px-10 py-5 uppercase tracking-[0.25em] text-sm liquid-shine shadow-2xl"
               >
-                Fill the Form
+                Book a call
                 <motion.span animate={{ x: [0, 6, 0] }} transition={{ duration: 1.6, repeat: Infinity }} className="text-xl">
                   →
                 </motion.span>
-              </a>
+              </button>
             </Magnetic>
           </div>
         </div>
