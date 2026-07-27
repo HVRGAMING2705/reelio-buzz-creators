@@ -126,9 +126,11 @@ function AdminPage() {
           notifiedIds.current.add(b.id);
           toast.success("New booking submission", {
             description: `${b.name}${b.brand ? ` · ${b.brand}` : ""} — ${b.service ?? "—"}`,
+            duration: 10000,
             action: {
-              label: "Open",
-              onClick: () => setSelectedId(b.id),
+              label: "View details",
+              onClick: () =>
+                navigate({ to: "/bookings/$id", params: { id: b.id } }),
             },
           });
           qc.invalidateQueries({ queryKey: ["bookings"] });
@@ -138,7 +140,7 @@ function AdminPage() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [qc]);
+  }, [qc, navigate]);
 
   const unreadCount = useMemo(
     () => (bookings ?? []).filter((b) => new Date(b.created_at).getTime() > lastSeen).length,
