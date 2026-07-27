@@ -1,16 +1,19 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { markReadByBookingId } from "@/lib/notification-history";
 import type { Tables } from "@/integrations/supabase/types";
 
-type Booking = Tables<"bookings">;
+type Booking = Tables<"bookings"> & { assigned_to: string | null };
 type BookingEvent = Tables<"booking_events">;
 type Profile = Tables<"profiles">;
 
 const STATUSES = ["new", "confirmed", "canceled"] as const;
 type Status = (typeof STATUSES)[number];
+
+type AdminOption = { user_id: string; display_name: string | null; avatar_url: string | null };
 
 export const Route = createFileRoute("/_authenticated/bookings/$id")({
   head: () => ({
@@ -72,6 +75,62 @@ function BookingDetailPage() {
       return data as Profile | null;
     },
     enabled: !!booking?.user_id,
+  });
+
+  // List of admin users (for assign dropdown)
+  const { data: admins } = useQuery({
+    queryKey: ["admins-list"],
+    queryFn: async () => {
+      const { data: roles, error: rolesErr } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .eq("role", "admin");
+      if (rolesErr) throw rolesErr;
+      const ids = (roles ?? []).map((r) => r.user_id);
+      if (ids.length === 0) return [] as AdminOption[];
+      const { data: profs, error: profErr } = await supabase
+        .from("profiles")
+        .select("user_id, display_name, avatar_url")
+        .in("user_id", ids);
+      if (profErr) throw profErr;
+      const map = new Map((profs ?? []).map((p) => [p.user_id, p]));
+      return ids.map((id) => ({
+        user_id: id,
+        display_name: map.get(id)?.display_name ?? null,
+        avatar_url: map.get(id)?.avatar_url ?? null,
+      })) as AdminOption[];
+    },
+  });
+
+  const { data: assigneeProfile } = useQuery({
+    queryKey: ["booking-assignee", booking?.assigned_to],
+    queryFn: async () => {
+      if (!booking?.assigned_to) return null;
+      const { data } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("user_id", booking.assigned_to)
+        .maybeSingle();
+      return data as Profile | null;
+    },
+    enabled: !!booking?.assigned_to,
+  });
+
+  const assign = useMutation({
+    mutationFn: async (userId: string | null) => {
+      const { error } = await supabase
+        .from("bookings")
+        .update({ assigned_to: userId })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: (_, userId) => {
+      qc.invalidateQueries({ queryKey: ["booking", id] });
+      qc.invalidateQueries({ queryKey: ["booking-events", id] });
+      qc.invalidateQueries({ queryKey: ["bookings"] });
+      toast.success(userId ? "Assigned" : "Unassigned");
+    },
+    onError: (e: Error) => toast.error(e.message),
   });
 
   const updateStatus = useMutation({
@@ -180,6 +239,14 @@ function BookingDetailPage() {
               </div>
             </section>
 
+            <QuickActions
+              booking={booking}
+              admins={admins ?? []}
+              assigneeProfile={assigneeProfile ?? null}
+              onAssign={(uid) => assign.mutate(uid)}
+              assigning={assign.isPending}
+            />
+
             <section className="glass rounded-2xl p-6">
               <p className="text-[10px] uppercase tracking-[0.25em] opacity-70 mb-3">Status</p>
               <div className="flex flex-wrap gap-2">
@@ -278,11 +345,124 @@ function eventLabel(ev: BookingEvent) {
     case "created": return "Submission received";
     case "status_changed": return "Status changed";
     case "note_updated": return "Notes updated";
+    case "assigned": return "Assignment updated";
     case "email_sent": return "Confirmation email sent";
     case "email_confirmed": return "Client confirmed via email";
     default: return ev.event_type;
   }
 }
+
+function QuickActions({
+  booking,
+  admins,
+  assigneeProfile,
+  onAssign,
+  assigning,
+}: {
+  booking: Booking;
+  admins: AdminOption[];
+  assigneeProfile: Profile | null;
+  onAssign: (userId: string | null) => void;
+  assigning: boolean;
+}) {
+  const [assignOpen, setAssignOpen] = useState(false);
+
+  const handleMarkRead = () => {
+    markReadByBookingId(booking.id);
+    toast.success("Marked as read");
+  };
+
+  const respondSubject = encodeURIComponent(
+    `Re: your Reelio booking (${booking.service || "inquiry"})`,
+  );
+  const respondBody = encodeURIComponent(
+    `Hi ${booking.name.split(" ")[0] || ""},\n\nThanks for reaching out to Reelio about ${booking.brand || "your brand"}. `,
+  );
+
+  return (
+    <section className="glass rounded-2xl p-4 md:p-5">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <p className="text-[10px] uppercase tracking-[0.25em] opacity-70">Quick actions</p>
+        {booking.assigned_to && (
+          <div className="inline-flex items-center gap-2 text-xs">
+            <span className="opacity-60">Assigned to</span>
+            <Avatar profile={assigneeProfile} name={assigneeProfile?.display_name || "?"} size={22} />
+            <span className="font-medium">{assigneeProfile?.display_name || "Admin"}</span>
+          </div>
+        )}
+      </div>
+
+      <div className="mt-3 flex flex-wrap gap-2">
+        <button onClick={handleMarkRead} className="glass hover:bg-white/10 rounded-full px-4 py-2 text-[11px] uppercase tracking-[0.15em]">
+          ✓ Mark read
+        </button>
+        <a
+          href={`mailto:${booking.email}?subject=${respondSubject}&body=${respondBody}`}
+          className="glass hover:bg-white/10 rounded-full px-4 py-2 text-[11px] uppercase tracking-[0.15em]"
+        >
+          ✉ Respond
+        </a>
+        <a
+          href={`tel:${booking.phone}`}
+          className="glass hover:bg-white/10 rounded-full px-4 py-2 text-[11px] uppercase tracking-[0.15em]"
+        >
+          ☎ Call
+        </a>
+
+        <div className="relative">
+          <button
+            onClick={() => setAssignOpen((v) => !v)}
+            disabled={assigning}
+            className="glass hover:bg-white/10 rounded-full px-4 py-2 text-[11px] uppercase tracking-[0.15em]"
+          >
+            ⇢ {booking.assigned_to ? "Reassign" : "Assign"}
+          </button>
+          {assignOpen && (
+            <div className="absolute right-0 mt-2 z-30 min-w-[220px] rounded-xl border border-white/10 bg-black/85 backdrop-blur-xl shadow-2xl overflow-hidden">
+              <ul className="max-h-64 overflow-auto py-1 text-sm">
+                {admins.length === 0 && (
+                  <li className="px-3 py-2 opacity-60 text-xs">No admins found</li>
+                )}
+                {admins.map((a) => {
+                  const active = a.user_id === booking.assigned_to;
+                  return (
+                    <li key={a.user_id}>
+                      <button
+                        onClick={() => {
+                          onAssign(a.user_id);
+                          setAssignOpen(false);
+                        }}
+                        className={`w-full text-left px-3 py-2 flex items-center gap-2 hover:bg-white/10 ${active ? "bg-white/5" : ""}`}
+                      >
+                        <Avatar profile={{ avatar_url: a.avatar_url, display_name: a.display_name } as Profile} name={a.display_name || "A"} size={22} />
+                        <span className="truncate">{a.display_name || a.user_id.slice(0, 8)}</span>
+                        {active && <span className="ml-auto text-[10px] opacity-60">current</span>}
+                      </button>
+                    </li>
+                  );
+                })}
+                {booking.assigned_to && (
+                  <li className="border-t border-white/10 mt-1">
+                    <button
+                      onClick={() => {
+                        onAssign(null);
+                        setAssignOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-2 text-xs uppercase tracking-[0.15em] text-red-300 hover:bg-white/10"
+                    >
+                      Unassign
+                    </button>
+                  </li>
+                )}
+              </ul>
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 
 function StatusPill({ status }: { status: Status }) {
   const colors: Record<Status, string> = {
