@@ -2279,6 +2279,10 @@ function SettingsModal({
 
         <RateLimitsSection draft={draft} setDraft={setDraft} />
 
+        <CaptchaBurstSection draft={draft} setDraft={setDraft} />
+
+
+
 
         <div className="mt-6 pt-4 border-t border-white/10">
           <p className="text-[10px] uppercase tracking-[0.3em] opacity-50 mb-2">Delivery test</p>
