@@ -375,7 +375,15 @@ function blockLabel(reason: string) {
 
 type FilterKind = "all" | "events" | "blocks" | "captcha";
 
-function TimelineSection({ events, blocks }: { events: BookingEvent[]; blocks: BlockRow[] }) {
+function TimelineSection({
+  events,
+  blocks,
+  captchaEvents,
+}: {
+  events: BookingEvent[];
+  blocks: BlockRow[];
+  captchaEvents: CaptchaEventRow[];
+}) {
   const [filter, setFilter] = useState<FilterKind>("all");
   const [from, setFrom] = useState<string>("");
   const [to, setTo] = useState<string>("");
@@ -386,7 +394,10 @@ function TimelineSection({ events, blocks }: { events: BookingEvent[]; blocks: B
   const merged: TimelineItem[] = [
     ...events.map((ev) => ({ kind: "event" as const, at: ev.created_at, ev })),
     ...blocks.map((block) => ({ kind: "block" as const, at: block.created_at, block })),
+    ...captchaEvents.map((cap) => ({ kind: "captcha" as const, at: cap.created_at, cap })),
   ];
+
+  const captchaBlockCount = blocks.filter((b) => b.reason.startsWith("captcha")).length;
 
   const items = merged
     .filter((it) => {
@@ -396,7 +407,10 @@ function TimelineSection({ events, blocks }: { events: BookingEvent[]; blocks: B
       if (filter === "events") return it.kind === "event";
       if (filter === "blocks") return it.kind === "block";
       if (filter === "captcha")
-        return it.kind === "block" && it.block.reason.startsWith("captcha");
+        return (
+          it.kind === "captcha" ||
+          (it.kind === "block" && it.block.reason.startsWith("captcha"))
+        );
       return true;
     })
     .sort((a, b) => (a.at < b.at ? 1 : -1));
@@ -405,7 +419,7 @@ function TimelineSection({ events, blocks }: { events: BookingEvent[]; blocks: B
     all: merged.length,
     events: events.length,
     blocks: blocks.length,
-    captcha: blocks.filter((b) => b.reason.startsWith("captcha")).length,
+    captcha: captchaEvents.length + captchaBlockCount,
   };
 
   const chip = (k: FilterKind, label: string) => (
@@ -476,27 +490,65 @@ function TimelineSection({ events, blocks }: { events: BookingEvent[]; blocks: B
         </p>
       ) : (
         <ol className="relative border-l border-white/15 ml-2 space-y-4">
-          {items.map((it) =>
-            it.kind === "event" ? (
-              <li key={`e-${it.ev.id}`} className="pl-4 relative">
-                <span className="absolute -left-[6px] top-1.5 w-2.5 h-2.5 rounded-full bg-white/70 shadow-[0_0_10px_rgba(255,255,255,0.6)]" />
-                <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                  <span className="text-sm">{eventLabel(it.ev)}</span>
-                  <span className="text-[10px] uppercase tracking-[0.2em] opacity-50">
-                    {new Date(it.ev.created_at).toLocaleString()}
-                  </span>
-                </div>
-                {(it.ev.from_value || it.ev.to_value) && it.ev.event_type !== "note_updated" && (
-                  <p className="text-xs opacity-70 mt-1">
-                    {it.ev.from_value ? <><span className="opacity-60">from</span> {it.ev.from_value} </> : null}
-                    {it.ev.to_value ? <><span className="opacity-60">→</span> {it.ev.to_value}</> : null}
-                  </p>
-                )}
-                {it.ev.event_type === "note_updated" && it.ev.to_value && (
-                  <p className="text-xs opacity-70 mt-1 whitespace-pre-wrap">"{it.ev.to_value}"</p>
-                )}
-              </li>
-            ) : (
+          {items.map((it) => {
+            if (it.kind === "event") {
+              return (
+                <li key={`e-${it.ev.id}`} className="pl-4 relative">
+                  <span className="absolute -left-[6px] top-1.5 w-2.5 h-2.5 rounded-full bg-white/70 shadow-[0_0_10px_rgba(255,255,255,0.6)]" />
+                  <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                    <span className="text-sm">{eventLabel(it.ev)}</span>
+                    <span className="text-[10px] uppercase tracking-[0.2em] opacity-50">
+                      {new Date(it.ev.created_at).toLocaleString()}
+                    </span>
+                  </div>
+                  {(it.ev.from_value || it.ev.to_value) && it.ev.event_type !== "note_updated" && (
+                    <p className="text-xs opacity-70 mt-1">
+                      {it.ev.from_value ? <><span className="opacity-60">from</span> {it.ev.from_value} </> : null}
+                      {it.ev.to_value ? <><span className="opacity-60">→</span> {it.ev.to_value}</> : null}
+                    </p>
+                  )}
+                  {it.ev.event_type === "note_updated" && it.ev.to_value && (
+                    <p className="text-xs opacity-70 mt-1 whitespace-pre-wrap">"{it.ev.to_value}"</p>
+                  )}
+                </li>
+              );
+            }
+            if (it.kind === "captcha") {
+              const success = it.cap.outcome === "success";
+              const skipped = it.cap.outcome === "skipped";
+              const dotClass = success
+                ? "bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.7)]"
+                : skipped
+                  ? "bg-white/40"
+                  : "bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.7)]";
+              const textClass = success
+                ? "text-emerald-200"
+                : skipped
+                  ? "text-white/70"
+                  : "text-amber-200";
+              return (
+                <li key={`c-${it.cap.id}`} className="pl-4 relative">
+                  <span className={`absolute -left-[6px] top-1.5 w-2.5 h-2.5 rounded-full ${dotClass}`} />
+                  <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                    <span className={`text-sm ${textClass}`}>{captchaLabel(it.cap.outcome)}</span>
+                    <span className="text-[10px] uppercase tracking-[0.2em] opacity-50">
+                      {new Date(it.cap.created_at).toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[11px] opacity-70">
+                    {it.cap.reason && <span>{it.cap.reason}</span>}
+                    {it.cap.ip_hash && (
+                      <span>ip <span className="font-mono">{it.cap.ip_hash.slice(0, 8)}…</span></span>
+                    )}
+                    {it.cap.email_domain && <span>@{it.cap.email_domain}</span>}
+                    {it.cap.booking_id && it.cap.booking_id ? null : (
+                      <span className="opacity-60">unlinked</span>
+                    )}
+                  </div>
+                </li>
+              );
+            }
+            return (
               <li key={`b-${it.block.id}`} className="pl-4 relative">
                 <span className="absolute -left-[6px] top-1.5 w-2.5 h-2.5 rounded-full bg-red-400 shadow-[0_0_10px_rgba(248,113,113,0.7)]" />
                 <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
@@ -528,16 +580,17 @@ function TimelineSection({ events, blocks }: { events: BookingEvent[]; blocks: B
                   </p>
                 )}
               </li>
-            ),
-          )}
+            );
+          })}
         </ol>
       )}
 
       <p className="mt-4 text-[10px] opacity-40">
-        Security events (captcha failures, rate limits) attributed by attempted email hash.
+        Captcha successes and skips (when disabled) are logged alongside failures for a full end-to-end audit.
         Email confirmations will appear here once a sender domain is configured.
       </p>
     </section>
+
   );
 }
 
