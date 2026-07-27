@@ -76,6 +76,54 @@ const jsonError = (status: number, message: string) =>
     headers: { "content-type": "application/json" },
   });
 
+// ---- Ad-hoc in-memory rate limiting (per-instance) ----
+// Defaults: IP → 5/10min & 20/hour; Email → 3/hour & 10/day.
+type Bucket = { windowMs: number; max: number; label: string };
+const IP_BUCKETS: Bucket[] = [
+  { windowMs: 10 * 60_000, max: 5, label: "10 minutes" },
+  { windowMs: 60 * 60_000, max: 20, label: "hour" },
+];
+const EMAIL_BUCKETS: Bucket[] = [
+  { windowMs: 60 * 60_000, max: 3, label: "hour" },
+  { windowMs: 24 * 60 * 60_000, max: 10, label: "day" },
+];
+const hits = new Map<string, number[]>();
+function rateCheck(
+  key: string,
+  buckets: Bucket[],
+): { ok: true } | { ok: false; retryAfterSec: number; label: string; max: number } {
+  const now = Date.now();
+  const maxWindow = Math.max(...buckets.map((b) => b.windowMs));
+  const arr = (hits.get(key) ?? []).filter((t) => now - t < maxWindow);
+  for (const b of buckets) {
+    const inWindow = arr.filter((t) => now - t < b.windowMs);
+    if (inWindow.length >= b.max) {
+      const oldest = inWindow[0];
+      const retryAfterSec = Math.max(1, Math.ceil((b.windowMs - (now - oldest)) / 1000));
+      hits.set(key, arr);
+      return { ok: false, retryAfterSec, label: b.label, max: b.max };
+    }
+  }
+  arr.push(now);
+  hits.set(key, arr);
+  if (hits.size > 5000) {
+    for (const [k, v] of hits) {
+      const kept = v.filter((t) => now - t < maxWindow);
+      if (kept.length === 0) hits.delete(k);
+      else hits.set(k, kept);
+    }
+  }
+  return { ok: true };
+}
+const tooMany = (retryAfterSec: number, message: string) =>
+  new Response(JSON.stringify({ error: message, code: "rate_limited" }), {
+    status: 429,
+    headers: {
+      "content-type": "application/json",
+      "retry-after": String(retryAfterSec),
+    },
+  });
+
 export const Route = createFileRoute("/api/public/bookings")({
   server: {
     handlers: {
