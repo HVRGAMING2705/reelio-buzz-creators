@@ -1080,9 +1080,17 @@ function AdminPage() {
     pendingRef.current = [];
     if (events.length === 0) return;
     const s = settingsRef.current;
-    const suppressedReason: "disabled" | "quiet" | null =
-      !s.realtimeEnabled ? "disabled" : isQuietNow(s) ? "quiet" : null;
-    if (suppressedReason) {
+    const quiet = isQuietNow(s);
+    // Per-channel gating: quiet hours mute the noisy channels (toast + OS push)
+    // but leave email intact so the admin's inbox still gets the record.
+    const inAppOn = s.channelInApp && !quiet;
+    const pushOn = s.channelPush && !quiet;
+    const emailOn = s.channelEmail;
+    const anyChannelOn = inAppOn || pushOn || emailOn;
+    if (!anyChannelOn) {
+      const reason: "disabled" | "quiet" = !s.channelInApp && !s.channelEmail && !s.channelPush
+        ? "disabled"
+        : "quiet";
       for (const ev of events) {
         const b = ev.booking;
         logNotification({
@@ -1095,11 +1103,20 @@ function AdminPage() {
           subtitle: b.brand ?? b.service ?? undefined,
           bookingId: b.id,
           status: "suppressed",
-          reason: suppressedReason,
+          reason,
         });
       }
       return;
     }
+
+    const channelSubtitle = (base?: string) => {
+      const tags: string[] = [];
+      if (inAppOn) tags.push("in-app");
+      if (emailOn) tags.push("email");
+      if (pushOn) tags.push("push");
+      const suffix = tags.length ? ` · ${tags.join(" + ")}` : "";
+      return base ? `${base}${suffix}` : suffix.slice(3);
+    };
 
     if (events.length === 1) {
       const ev = events[0];
@@ -1113,10 +1130,18 @@ function AdminPage() {
         kind: ev.kind,
         category: "bookings",
         title,
-        subtitle: b.brand ?? b.service ?? undefined,
+        subtitle: channelSubtitle(b.brand ?? b.service ?? undefined),
         bookingId: b.id,
         status: "delivered",
       });
+      if (pushOn) {
+        firePushNotification(
+          title,
+          [b.brand, b.service, b.budget].filter(Boolean).join(" · ") || undefined,
+          `booking-${b.id}`,
+        );
+      }
+      if (!inAppOn) return;
       toast.custom(
         (t) => (
           <div className="w-full rounded-xl border border-white/10 bg-black/90 backdrop-blur-xl shadow-2xl overflow-hidden">
@@ -1193,9 +1218,13 @@ function AdminPage() {
         kind: "summary",
         category: "bookings",
         title: `${events.length} booking updates`,
-        subtitle: parts,
+        subtitle: channelSubtitle(parts),
         status: "delivered",
       });
+      if (pushOn) {
+        firePushNotification(`${events.length} booking updates`, parts, "booking-summary");
+      }
+      if (!inAppOn) return;
       toast.custom(
         (t) => (
           <div className="w-full rounded-xl border border-white/10 bg-black/90 backdrop-blur-xl shadow-2xl overflow-hidden">
@@ -1212,6 +1241,7 @@ function AdminPage() {
       );
     }
   };
+
 
   const enqueueEvent = (ev: PendingEvent) => {
     pendingRef.current.push(ev);
