@@ -106,6 +106,7 @@ function NotificationsBell({
   const [notifUnreadOnly, setNotifUnreadOnly] = useState(false);
   const [notifSort, setNotifSort] = useState<"newest" | "oldest">("newest");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [notifLimit, setNotifLimit] = useState(8);
 
   useEffect(() => {
     if (!open) return;
@@ -123,12 +124,13 @@ function NotificationsBell({
     return () => clearTimeout(t);
   }, [open, unreadCount, selectedIds.size, onMarkAllSeen]);
 
-  // Clear selection when dropdown closes or filters change
+  // Clear selection and reset pagination when dropdown closes or filters change
   useEffect(() => {
     if (!open) setSelectedIds(new Set());
+    setNotifLimit(8);
   }, [open, notifStatus, notifUnreadOnly, notifSort]);
 
-  const recent = useMemo(() => {
+  const filteredNotifications = useMemo(() => {
     let list = [...bookings];
     if (notifStatus !== "all") {
       list = list.filter((b) => b.status === notifStatus);
@@ -140,8 +142,14 @@ function NotificationsBell({
       const diff = +new Date(b.created_at) - +new Date(a.created_at);
       return notifSort === "newest" ? diff : -diff;
     });
-    return list.slice(0, 8);
+    return list;
   }, [bookings, lastSeen, notifStatus, notifUnreadOnly, notifSort]);
+
+  const recent = useMemo(
+    () => filteredNotifications.slice(0, notifLimit),
+    [filteredNotifications, notifLimit]
+  );
+  const hasMoreNotifications = recent.length < filteredNotifications.length;
 
   const activeNotifFilters = notifStatus !== "all" || notifUnreadOnly || notifSort !== "newest";
 
@@ -334,6 +342,17 @@ function NotificationsBell({
                   </li>
                 );
               })}
+              {hasMoreNotifications && (
+                <div className="px-4 py-3 border-t border-white/10 bg-white/[0.02]">
+                  <button
+                    onClick={() => setNotifLimit((n) => n + 8)}
+                    className="w-full text-center text-xs uppercase tracking-[0.15em] py-2 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 transition-colors"
+                    aria-label="Load older notifications"
+                  >
+                    Load more ({filteredNotifications.length - recent.length} remaining)
+                  </button>
+                </div>
+              )}
             </ul>
           )}
         </div>
