@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -311,13 +311,22 @@ function AdminPage() {
                     {new Date(selected.created_at).toLocaleString()}
                   </p>
                 </div>
-                <button
-                  onClick={() => setSelectedId(null)}
-                  className="opacity-60 hover:opacity-100 text-xl"
-                  aria-label="Close"
-                >
-                  ×
-                </button>
+                <div className="flex items-center gap-2">
+                  <Link
+                    to="/bookings/$id"
+                    params={{ id: selected.id }}
+                    className="rounded-full glass px-3 py-1 uppercase tracking-[0.2em] text-[10px] hover:bg-white/10"
+                  >
+                    Open ↗
+                  </Link>
+                  <button
+                    onClick={() => setSelectedId(null)}
+                    className="opacity-60 hover:opacity-100 text-xl"
+                    aria-label="Close"
+                  >
+                    ×
+                  </button>
+                </div>
               </div>
 
               <div className="mt-4 grid gap-3 text-sm">
