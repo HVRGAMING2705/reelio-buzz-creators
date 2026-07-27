@@ -345,6 +345,7 @@ function Index() {
 
   const [scrolled, setScrolled] = useState(false);
   const [bookingOpen, setBookingOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [user, setUser] = useState<{ email?: string; avatar_url?: string | null } | null>(null);
 
   const { scrollYProgress } = useScroll();
