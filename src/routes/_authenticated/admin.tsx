@@ -134,7 +134,7 @@ function Avatar({
 function NotificationsBell({
   bookings, lastSeen, unreadCount, onMarkAllSeen, onOpen,
 }: {
-  bookings: Booking[];
+  bookings: BookingWithProfile[];
   lastSeen: number;
   unreadCount: number;
   onMarkAllSeen: (ts?: number) => void;
