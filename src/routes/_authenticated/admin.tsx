@@ -6,6 +6,12 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { logNotification } from "@/lib/notification-history";
 import { saveCaptchaConfig, fetchCaptchaConfig } from "@/lib/captcha-config";
+import {
+  DEFAULT_RATE_LIMIT_CONFIG,
+  fetchRateLimitConfig,
+  saveRateLimitConfig,
+  type RateLimitConfig,
+} from "@/lib/rate-limit-config";
 
 const LAST_SEEN_KEY = "reelio.admin.lastSeenBookingAt";
 const SETTINGS_KEY_BASE = "reelio.admin.notifSettings";
@@ -28,6 +34,7 @@ type NotifSettings = {
   notifyStatusChange: boolean;
   notifyNoteUpdate: boolean;
   frequency: NotifFrequency;
+  rateLimits: RateLimitConfig;
 };
 
 const DEFAULT_SETTINGS: NotifSettings = {
@@ -44,6 +51,7 @@ const DEFAULT_SETTINGS: NotifSettings = {
   notifyStatusChange: true,
   notifyNoteUpdate: false,
   frequency: "instant",
+  rateLimits: DEFAULT_RATE_LIMIT_CONFIG,
 };
 
 const FREQUENCY_MS: Record<NotifFrequency, number> = {
@@ -594,11 +602,16 @@ function AdminPage() {
 
   useEffect(() => {
     let active = true;
-    const hydrateCaptcha = async (base: NotifSettings) => {
+    const hydrateGlobals = async (base: NotifSettings) => {
       try {
-        const cfg = await fetchCaptchaConfig();
+        const [cfg, rl] = await Promise.all([fetchCaptchaConfig(), fetchRateLimitConfig()]);
         if (!active) return;
-        setSettings({ ...base, captchaEnabled: cfg.enabled, hcaptchaSiteKey: cfg.siteKey });
+        setSettings({
+          ...base,
+          captchaEnabled: cfg.enabled,
+          hcaptchaSiteKey: cfg.siteKey,
+          rateLimits: rl,
+        });
       } catch { /* keep local */ }
     };
     supabase.auth.getUser().then(({ data }) => {
@@ -607,14 +620,14 @@ function AdminPage() {
       setUserId(uid);
       const base = loadSettings(uid);
       setSettings(base);
-      hydrateCaptcha(base);
+      hydrateGlobals(base);
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
       const uid = session?.user?.id ?? null;
       setUserId(uid);
       const base = loadSettings(uid);
       setSettings(base);
-      hydrateCaptcha(base);
+      hydrateGlobals(base);
     });
     return () => { active = false; sub.subscription.unsubscribe(); };
   }, []);
@@ -624,15 +637,19 @@ function AdminPage() {
     if (typeof window !== "undefined") {
       window.localStorage.setItem(settingsKeyFor(userId), JSON.stringify(next));
     }
-    // Captcha config is global — persist to backend so it stays consistent
-    // across devices and admin sessions.
+    // Captcha + rate-limit config are global — persist to backend so they
+    // stay consistent across devices and admin sessions.
     void saveCaptchaConfig({ enabled: next.captchaEnabled, siteKey: next.hcaptchaSiteKey })
       .then((res) => {
         if (!res.ok) {
           toast.error("Couldn't save captcha settings", { description: res.error });
         }
       });
+    void saveRateLimitConfig(next.rateLimits).then((res) => {
+      if (!res.ok) toast.error("Couldn't save rate limits", { description: res.error });
+    });
   };
+
 
 
   const { data: bookings, isLoading, error } = useQuery({
@@ -1528,6 +1545,7 @@ function SettingsModal({
           </div>
         </div>
 
+        <RateLimitsSection draft={draft} setDraft={setDraft} />
 
 
         <div className="mt-6 pt-4 border-t border-white/10">
@@ -1643,6 +1661,103 @@ function Row({ label, value }: { label: string; value: React.ReactNode }) {
     <div className="grid grid-cols-[90px_1fr] gap-3 items-start">
       <span className="text-[10px] uppercase tracking-[0.25em] opacity-60 pt-1">{label}</span>
       <span>{value}</span>
+    </div>
+  );
+}
+
+function RateLimitsSection({
+  draft,
+  setDraft,
+}: {
+  draft: NotifSettings;
+  setDraft: (s: NotifSettings) => void;
+}) {
+  const rl = draft.rateLimits;
+  const update = (path: "ip" | "email", bucket: "short" | "long", field: "max" | "windowMinutes", value: number) => {
+    const n = Number.isFinite(value) ? Math.max(1, Math.floor(value)) : 1;
+    setDraft({
+      ...draft,
+      rateLimits: {
+        ...rl,
+        [path]: {
+          ...rl[path],
+          [bucket]: { ...rl[path][bucket], [field]: n },
+        },
+      },
+    });
+  };
+  const resetDefaults = () => setDraft({ ...draft, rateLimits: DEFAULT_RATE_LIMIT_CONFIG });
+
+  const BucketRow = ({
+    label,
+    scope,
+    bucket,
+  }: {
+    label: string;
+    scope: "ip" | "email";
+    bucket: "short" | "long";
+  }) => {
+    const b = rl[scope][bucket];
+    return (
+      <div className="grid grid-cols-[1fr_auto_auto] gap-2 items-center py-1.5">
+        <span className="text-xs opacity-80">{label}</span>
+        <div className="flex items-center gap-1.5">
+          <input
+            type="number"
+            min={1}
+            value={b.max}
+            onChange={(e) => update(scope, bucket, "max", Number(e.target.value))}
+            className="w-16 rounded-md bg-white/5 border border-white/10 px-2 py-1 text-xs text-right"
+          />
+          <span className="text-[10px] opacity-60">requests</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="text-[10px] opacity-60">per</span>
+          <input
+            type="number"
+            min={1}
+            value={b.windowMinutes}
+            onChange={(e) => update(scope, bucket, "windowMinutes", Number(e.target.value))}
+            className="w-20 rounded-md bg-white/5 border border-white/10 px-2 py-1 text-xs text-right"
+          />
+          <span className="text-[10px] opacity-60">min</span>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="mt-6 pt-4 border-t border-white/10">
+      <div className="flex items-center justify-between mb-2">
+        <p className="text-[10px] uppercase tracking-[0.3em] opacity-50">Booking rate limits</p>
+        <button
+          type="button"
+          onClick={resetDefaults}
+          className="text-[10px] uppercase tracking-[0.2em] opacity-60 hover:opacity-100"
+        >
+          Reset defaults
+        </button>
+      </div>
+      <p className="text-xs opacity-60 mb-3">
+        Blocks repeated booking submissions from the same visitor or email. Two windows each — a
+        short burst limit and a longer sustained limit.
+      </p>
+
+      <div className="rounded-lg border border-white/10 bg-white/[0.03] p-3">
+        <p className="text-[11px] uppercase tracking-[0.2em] opacity-70 mb-1">Per IP address</p>
+        <BucketRow label="Burst window" scope="ip" bucket="short" />
+        <BucketRow label="Sustained window" scope="ip" bucket="long" />
+      </div>
+
+      <div className="mt-3 rounded-lg border border-white/10 bg-white/[0.03] p-3">
+        <p className="text-[11px] uppercase tracking-[0.2em] opacity-70 mb-1">Per email address</p>
+        <BucketRow label="Short window" scope="email" bucket="short" />
+        <BucketRow label="Long window" scope="email" bucket="long" />
+      </div>
+
+      <p className="text-[11px] opacity-50 mt-2">
+        Excess requests receive HTTP 429 with a Retry-After header. Changes apply within ~30 seconds.
+      </p>
     </div>
   );
 }

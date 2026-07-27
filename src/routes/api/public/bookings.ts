@@ -77,16 +77,59 @@ const jsonError = (status: number, message: string) =>
   });
 
 // ---- Ad-hoc in-memory rate limiting (per-instance) ----
-// Defaults: IP → 5/10min & 20/hour; Email → 3/hour & 10/day.
+// Thresholds are configurable in the admin Settings modal and persisted in
+// app_settings (key = 'rate_limits'). Defaults: IP 5/10min & 20/hour; Email
+// 3/hour & 10/day.
 type Bucket = { windowMs: number; max: number; label: string };
-const IP_BUCKETS: Bucket[] = [
-  { windowMs: 10 * 60_000, max: 5, label: "10 minutes" },
-  { windowMs: 60 * 60_000, max: 20, label: "hour" },
-];
-const EMAIL_BUCKETS: Bucket[] = [
-  { windowMs: 60 * 60_000, max: 3, label: "hour" },
-  { windowMs: 24 * 60 * 60_000, max: 10, label: "day" },
-];
+type RateBucketRow = { max?: unknown; windowMinutes?: unknown };
+type RateLimitRow = {
+  ip?: { short?: RateBucketRow; long?: RateBucketRow };
+  email?: { short?: RateBucketRow; long?: RateBucketRow };
+};
+
+const DEFAULT_LIMITS = {
+  ip: {
+    short: { max: 5, windowMinutes: 10 },
+    long: { max: 20, windowMinutes: 60 },
+  },
+  email: {
+    short: { max: 3, windowMinutes: 60 },
+    long: { max: 10, windowMinutes: 60 * 24 },
+  },
+} as const;
+
+function humanWindow(min: number) {
+  if (min < 60) return `${min} minute${min === 1 ? "" : "s"}`;
+  if (min < 60 * 24) {
+    const h = Math.round((min / 60) * 10) / 10;
+    return `${h} hour${h === 1 ? "" : "s"}`;
+  }
+  const d = Math.round((min / (60 * 24)) * 10) / 10;
+  return `${d} day${d === 1 ? "" : "s"}`;
+}
+
+function normBucket(v: RateBucketRow | undefined, fallback: { max: number; windowMinutes: number }): Bucket {
+  const max = typeof v?.max === "number" && Number.isFinite(v.max) ? Math.max(1, Math.floor(v.max)) : fallback.max;
+  const windowMinutes =
+    typeof v?.windowMinutes === "number" && Number.isFinite(v.windowMinutes)
+      ? Math.max(1, Math.floor(v.windowMinutes))
+      : fallback.windowMinutes;
+  return { max, windowMs: windowMinutes * 60_000, label: humanWindow(windowMinutes) };
+}
+
+function bucketsFromRow(row: RateLimitRow | null | undefined): { ip: Bucket[]; email: Bucket[] } {
+  return {
+    ip: [
+      normBucket(row?.ip?.short, DEFAULT_LIMITS.ip.short),
+      normBucket(row?.ip?.long, DEFAULT_LIMITS.ip.long),
+    ],
+    email: [
+      normBucket(row?.email?.short, DEFAULT_LIMITS.email.short),
+      normBucket(row?.email?.long, DEFAULT_LIMITS.email.long),
+    ],
+  };
+}
+
 const hits = new Map<string, number[]>();
 function rateCheck(
   key: string,
@@ -124,6 +167,41 @@ const tooMany = (retryAfterSec: number, message: string) =>
     },
   });
 
+// Tiny in-process cache so we don't hit the DB on every submission.
+let cachedLimits: { buckets: { ip: Bucket[]; email: Bucket[] }; at: number } | null = null;
+const LIMITS_TTL_MS = 30_000;
+async function loadLimits(url: string, key: string): Promise<{ ip: Bucket[]; email: Bucket[] }> {
+  const now = Date.now();
+  if (cachedLimits && now - cachedLimits.at < LIMITS_TTL_MS) return cachedLimits.buckets;
+  try {
+    const client = createClient<Database>(url, key, {
+      auth: { persistSession: false, autoRefreshToken: false },
+      global: {
+        fetch: (input, init) => {
+          const h = new Headers(init?.headers);
+          if (key.startsWith("sb_") && h.get("Authorization") === `Bearer ${key}`) {
+            h.delete("Authorization");
+          }
+          h.set("apikey", key);
+          return fetch(input, { ...init, headers: h });
+        },
+      },
+    });
+    const { data } = await client
+      .from("app_settings")
+      .select("value")
+      .eq("key", "rate_limits")
+      .maybeSingle();
+    const buckets = bucketsFromRow((data?.value ?? null) as RateLimitRow | null);
+    cachedLimits = { buckets, at: now };
+    return buckets;
+  } catch {
+    const buckets = bucketsFromRow(null);
+    cachedLimits = { buckets, at: now };
+    return buckets;
+  }
+}
+
 export const Route = createFileRoute("/api/public/bookings")({
   server: {
     handlers: {
@@ -140,25 +218,32 @@ export const Route = createFileRoute("/api/public/bookings")({
 
         const { form, captchaToken } = parsed.data;
 
-        // Rate limiting (defaults) — per IP and per email.
+        // Rate limiting — per IP and per email. Thresholds come from
+        // app_settings (key = 'rate_limits'), cached briefly in memory.
         const ip =
           request.headers.get("cf-connecting-ip") ??
           request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
           "unknown";
-        const ipCheck = rateCheck(`ip:${ip}`, IP_BUCKETS);
+        const rlUrl = process.env.SUPABASE_URL;
+        const rlKey = process.env.SUPABASE_PUBLISHABLE_KEY;
+        const limits = rlUrl && rlKey
+          ? await loadLimits(rlUrl, rlKey)
+          : bucketsFromRow(null);
+        const ipCheck = rateCheck(`ip:${ip}`, limits.ip);
         if (!ipCheck.ok) {
           return tooMany(
             ipCheck.retryAfterSec,
             `Too many submissions from your network. Please try again in ~${Math.ceil(ipCheck.retryAfterSec / 60)} min.`,
           );
         }
-        const emailCheck = rateCheck(`email:${form.email}`, EMAIL_BUCKETS);
+        const emailCheck = rateCheck(`email:${form.email}`, limits.email);
         if (!emailCheck.ok) {
           return tooMany(
             emailCheck.retryAfterSec,
             `This email has submitted too many bookings recently. Please try again in ~${Math.ceil(emailCheck.retryAfterSec / 60)} min.`,
           );
         }
+
 
         // If HCAPTCHA_SECRET is configured, a valid token is required.
         const hcaptchaSecret = process.env.HCAPTCHA_SECRET;
