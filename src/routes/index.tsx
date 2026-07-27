@@ -446,7 +446,7 @@ function Index() {
             )}
             <button
               type="button"
-              onClick={() => setBookingOpen(true)}
+              onClick={() => { trackClick("open_booking_modal"); setBookingOpen(true); }}
               className="btn-red !py-2.5 !px-4 md:!px-5 !text-[10px]"
             >
               Book a call
@@ -500,7 +500,7 @@ function Index() {
                 ads, and grow the room — as one crew.
               </p>
               <div className="mt-6 flex flex-wrap gap-3">
-                <button type="button" onClick={() => setBookingOpen(true)} className="btn-red">
+                <button type="button" onClick={() => { trackClick("open_booking_modal"); setBookingOpen(true); }} className="btn-red">
                   Book a call
                 </button>
                 <a href="#services" className="btn-ghost">See the work</a>
@@ -658,7 +658,7 @@ function Index() {
               </p>
 
               <div className="mt-10 flex flex-wrap gap-3">
-                <button type="button" onClick={() => setBookingOpen(true)} className="btn-red">
+                <button type="button" onClick={() => { trackClick("open_booking_modal"); setBookingOpen(true); }} className="btn-red">
                   Start the intake
                 </button>
                 <a href="#contact" className="btn-ghost">Ask a question</a>
@@ -722,7 +722,7 @@ function Index() {
                 like.
               </p>
               <div className="mt-10 flex flex-wrap gap-3">
-                <button type="button" onClick={() => setBookingOpen(true)} className="btn-red">
+                <button type="button" onClick={() => { trackClick("open_booking_modal"); setBookingOpen(true); }} className="btn-red">
                   Book the call
                 </button>
                 <a href="#contact-form" className="btn-ghost">Send a message</a>
