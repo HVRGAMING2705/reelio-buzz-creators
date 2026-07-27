@@ -341,7 +341,7 @@
 @utility cyber-grid { background: transparent; }
 @utility scanline { position: relative; }
 @utility grain { position: relative; }
-@utility orbit { }
-@utility tick-up { }
+@utility orbit { animation-name: none; }
+@utility tick-up { animation-name: none; }
 @utility text-shimmer { color: var(--reelio-red); }
 @utility text-red-glow { color: var(--reelio-red); }
