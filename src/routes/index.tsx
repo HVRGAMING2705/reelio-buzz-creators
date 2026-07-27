@@ -407,7 +407,7 @@ function Index() {
             <div className="md:col-span-7">
               <div className="rule-line mb-8" />
               <span className="slug">Included</span>
-              <ul className="mt-8 grid sm:grid-cols-2 gap-x-8">
+              <ul className="mt-8 grid sm:grid-cols-2 lg:grid-cols-2 gap-x-8 lg:gap-x-12">
                 {packageIncludes.map((it, i) => (
                   <li
                     key={it.title}
