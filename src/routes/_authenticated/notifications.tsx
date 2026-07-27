@@ -4,6 +4,7 @@ import {
   getHistory,
   markAllRead,
   markRead,
+  markUnread,
   clearHistory,
   subscribeHistory,
   type NotifHistoryEntry,
