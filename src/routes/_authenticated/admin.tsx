@@ -9,6 +9,32 @@ type Booking = Tables<"bookings">;
 const STATUSES = ["new", "confirmed", "canceled"] as const;
 type Status = (typeof STATUSES)[number];
 
+const CSV_COLUMNS = [
+  "created_at", "name", "brand", "email", "phone",
+  "service", "budget", "niche", "status", "message", "notes",
+] as const;
+
+function exportBookingsCsv(rows: Booking[]) {
+  const esc = (v: unknown) => {
+    const s = v == null ? "" : String(v);
+    return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+  const header = CSV_COLUMNS.join(",");
+  const body = rows.map((r) =>
+    CSV_COLUMNS.map((k) => esc((r as Record<string, unknown>)[k])).join(","),
+  ).join("\n");
+  const csv = "\ufeff" + header + "\n" + body;
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `reelio-bookings-${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({
     meta: [
