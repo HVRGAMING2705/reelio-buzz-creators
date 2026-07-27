@@ -105,6 +105,21 @@ function BookingDetailPage() {
     enabled: !!booking?.email,
   });
 
+  const fetchCaptcha = useServerFn(getCaptchaEventsForBooking);
+  const { data: captchaEvents } = useQuery({
+    queryKey: ["booking-captcha", id, booking?.email],
+    queryFn: async () => {
+      if (!booking?.email) return [] as CaptchaEventRow[];
+      try {
+        const rows = await fetchCaptcha({ data: { bookingId: id, email: booking.email } });
+        return rows as CaptchaEventRow[];
+      } catch {
+        return [] as CaptchaEventRow[];
+      }
+    },
+    enabled: !!booking?.email,
+  });
+
 
   const { data: profile } = useQuery({
     queryKey: ["booking-creator", booking?.user_id],
