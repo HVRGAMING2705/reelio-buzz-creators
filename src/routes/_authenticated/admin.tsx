@@ -339,6 +339,12 @@ function AdminPage() {
     }
   };
 
+  const markAllSeenRef = useRef(markAllSeen);
+  useEffect(() => {
+    markAllSeenRef.current = markAllSeen;
+  });
+
+
   const signOut = async () => {
     await qc.cancelQueries();
     qc.clear();
