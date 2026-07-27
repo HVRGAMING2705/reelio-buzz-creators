@@ -227,7 +227,18 @@ function AdminPage() {
     const v = window.localStorage.getItem(LAST_SEEN_KEY);
     return v ? Number(v) : Date.now();
   });
-  const notifiedIds = useRef<Set<string>>(new Set());
+  const [settings, setSettings] = useState<NotifSettings>(() => loadSettings());
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const settingsRef = useRef(settings);
+  useEffect(() => { settingsRef.current = settings; }, [settings]);
+
+  const saveSettings = (next: NotifSettings) => {
+    setSettings(next);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(SETTINGS_KEY, JSON.stringify(next));
+    }
+  };
+
 
   const { data: bookings, isLoading, error } = useQuery({
     queryKey: ["bookings"],
