@@ -342,7 +342,7 @@ function BookingDetailPage() {
               />
             </section>
 
-            <TimelineSection events={events ?? []} blocks={blocks ?? []} />
+            <TimelineSection events={events ?? []} blocks={blocks ?? []} captchaEvents={captchaEvents ?? []} />
 
 
 
