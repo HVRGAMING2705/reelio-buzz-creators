@@ -645,7 +645,11 @@ function NotificationsBell({
                 const unread = new Date(b.created_at).getTime() > lastSeen && !readIds.has(b.id);
                 const checked = selectedIds.has(b.id);
                 return (
-                  <li key={b.id} className="group flex items-center gap-1 px-4 py-3 hover:bg-white/5">
+                  <li
+                    key={b.id}
+                    ref={b.id === firstUnreadBooking?.id ? firstUnreadRef : undefined}
+                    className="group flex items-center gap-1 px-4 py-3 hover:bg-white/5"
+                  >
                     <input
                       type="checkbox"
                       className="h-3.5 w-3.5 accent-red-500 shrink-0"
