@@ -289,6 +289,39 @@ function StatusPill({ status }: { status: Status }) {
   );
 }
 
+function Avatar({
+  profile,
+  name,
+  size = 32,
+}: {
+  profile: Profile | null;
+  name: string;
+  size?: number;
+}) {
+  const src = profile?.avatar_url;
+  const label = profile?.display_name || name;
+  return (
+    <span
+      className="inline-flex items-center justify-center rounded-full bg-white/10 text-white/90 font-semibold shrink-0 overflow-hidden"
+      style={{ width: size, height: size, fontSize: Math.max(10, size / 2.5) }}
+      title={label}
+      aria-hidden
+    >
+      {src ? (
+        <img src={src} alt="" className="h-full w-full object-cover" />
+      ) : (
+        name
+          .split(/\s+/)
+          .map((p) => p[0])
+          .filter(Boolean)
+          .slice(0, 2)
+          .join("")
+          .toUpperCase()
+      )}
+    </span>
+  );
+}
+
 function Row({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="grid grid-cols-[100px_1fr] gap-3 items-start">
