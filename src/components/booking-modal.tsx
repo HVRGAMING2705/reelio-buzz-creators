@@ -54,8 +54,8 @@ const schema = z.object({
     .min(7, "Enter a valid phone")
     .max(20, "Phone is too long")
     .regex(/^[+\d][\d\s\-()]{6,19}$/, "Digits, spaces, +, -, () only"),
-  service: z.enum(services, { errorMap: () => ({ message: "Pick a service" }) }),
-  budget: z.enum(budgets, { errorMap: () => ({ message: "Pick a budget" }) }),
+  service: z.enum([...services] as [string, ...string[]], { message: "Pick a service" }),
+  budget: z.enum([...budgets] as [string, ...string[]], { message: "Pick a budget" }),
   niche: z.string().trim().max(80, "Niche is too long").optional().or(z.literal("")),
   message: z
     .string()
