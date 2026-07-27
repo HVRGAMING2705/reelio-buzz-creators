@@ -970,9 +970,15 @@ function AdminPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [qc, navigate, profileMap]);
 
+  const [readBookingIds, setReadBookingIds] = useState<Set<string>>(() => getReadBookingIds());
+  useEffect(() => subscribeHistory(() => setReadBookingIds(getReadBookingIds())), []);
+
   const unreadCount = useMemo(
-    () => (bookings ?? []).filter((b) => new Date(b.created_at).getTime() > lastSeen).length,
-    [bookings, lastSeen],
+    () =>
+      (bookings ?? []).filter(
+        (b) => new Date(b.created_at).getTime() > lastSeen && !readBookingIds.has(b.id),
+      ).length,
+    [bookings, lastSeen, readBookingIds],
   );
 
   const markAllSeen = (ts?: number) => {
