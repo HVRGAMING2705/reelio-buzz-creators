@@ -11,14 +11,14 @@ import { trackClick, trackFormSubmit, trackEvent } from "@/lib/analytics";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Reelio SMMA — A Cinematic Social Media Consortium for Brands" },
+      { title: "Reelio Social Consortium — A Cinematic Social Media Agency for Brands" },
       {
         name: "description",
         content:
-          "Reelio is a cinematic social media agency. Reels, photo/video shoots, editing, Meta ads, outreach and creator growth — one crew, monthly retainer from ₹10K.",
+          "Reelio Social Consortium is a cinematic social media agency. Reels, photo/video shoots, editing, Meta ads, outreach and creator growth — one crew, monthly retainer from ₹10K.",
       },
-      { name: "keywords", content: "social media agency, SMMA, reels, content creation, Meta ads, influencer outreach, video production India, Reelio" },
-      { property: "og:title", content: "Reelio SMMA — A Cinematic Social Media Consortium" },
+      { name: "keywords", content: "social media agency, SMMA, reels, content creation, Meta ads, influencer outreach, video production India, Reelio Social Consortium" },
+      { property: "og:title", content: "Reelio Social Consortium — A Cinematic Social Media Agency" },
       {
         property: "og:description",
         content:
@@ -26,9 +26,9 @@ export const Route = createFileRoute("/")({
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "/" },
-      { property: "og:site_name", content: "Reelio SMMA" },
+      { property: "og:site_name", content: "Reelio Social Consortium" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Reelio SMMA — A Cinematic Social Media Consortium" },
+      { name: "twitter:title", content: "Reelio Social Consortium — A Cinematic Social Media Agency" },
       {
         name: "twitter:description",
         content: "Reels, shoots, editing, ads and outreach — one crew shipping weekly.",
