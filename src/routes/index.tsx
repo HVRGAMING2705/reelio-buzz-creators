@@ -645,7 +645,7 @@ function Index() {
           <div className="grid md:grid-cols-12 gap-6 md:gap-8 pb-10 md:pb-16 border-b border-white/15">
             <div className="md:col-span-5 lg:col-span-4">
               <span className="slug">§ Services</span>
-              <h2 className="mt-6 font-display text-5xl md:text-7xl lg:text-8xl leading-[0.9]">
+              <h2 className="mt-6 font-display text-4xl sm:text-5xl md:text-7xl lg:text-8xl leading-[0.9] break-words">
                 The<br />
                 <span className="text-[color:var(--reelio-red)]">Index.</span>
               </h2>
@@ -668,7 +668,7 @@ function Index() {
                   <span className="col-span-2 md:col-span-1 font-display text-2xl md:text-4xl lg:text-5xl text-white/40 group-hover:text-white transition-colors">
                     {s.n}
                   </span>
-                  <span className="col-span-10 md:col-span-5 font-display text-3xl md:text-6xl lg:text-7xl leading-none group-hover:text-white transition-colors">
+                  <span className="col-span-10 md:col-span-5 font-display text-2xl sm:text-3xl md:text-6xl lg:text-7xl leading-none group-hover:text-white transition-colors break-words">
                     {s.title}
                   </span>
                   <span className="hidden sm:block col-span-6 md:col-span-3 font-body text-[11px] lg:text-xs uppercase tracking-[0.25em] text-white/50 group-hover:text-white/90 transition-colors">
@@ -692,7 +692,7 @@ function Index() {
               <span className="font-body text-[10px] uppercase tracking-[0.3em] font-semibold text-white/80">
                 § Feature
               </span>
-              <h2 className="mt-4 font-display text-6xl md:text-[8vw] xl:text-[7vw] 2xl:text-[120px] leading-[0.9]">
+              <h2 className="mt-4 font-display text-5xl sm:text-6xl md:text-[8vw] xl:text-[7vw] 2xl:text-[120px] leading-[0.9] break-words">
                 Who we<br />shoot for.
               </h2>
             </div>
@@ -709,7 +709,7 @@ function Index() {
             {niches.map((n, i) => (
               <li
                 key={n}
-                className="flex items-baseline justify-between py-6 md:py-10 lg:py-12 font-display text-4xl md:text-7xl lg:text-8xl uppercase tracking-[-0.01em] hover:pl-4 transition-all duration-500"
+                className="flex items-baseline justify-between gap-4 py-6 md:py-10 lg:py-12 font-display text-3xl sm:text-4xl md:text-7xl lg:text-8xl uppercase tracking-[-0.01em] hover:pl-4 transition-all duration-500 break-words"
               >
                 <span className="flex items-baseline gap-6">
                   <span className="font-body text-xs md:text-sm text-white/60 tabular-nums">
