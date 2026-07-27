@@ -514,7 +514,7 @@ function Index() {
       <section id="contact" className="relative py-24 md:py-32 lg:py-40 border-t border-white/15">
         <div className="mx-auto max-w-[1600px] px-5 sm:px-8 md:px-10 lg:px-14">
           <div className="grid md:grid-cols-12 gap-8 lg:gap-12">
-            <div className="md:col-span-8">
+            <div className="md:col-span-7">
               <span className="slug">§ End Sheet</span>
               <h2 className="mt-6 font-display text-6xl md:text-[10vw] xl:text-[8.5vw] 2xl:text-[150px] leading-[0.88]">
                 Roll the<br />
@@ -529,34 +529,21 @@ function Index() {
                 <button type="button" onClick={() => setBookingOpen(true)} className="btn-red">
                   Book the call
                 </button>
-                <a
-                  href="https://forms.gle/Px5NuE51UrGZMSKx8"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="btn-ghost"
-                >
-                  Open the form
-                </a>
+                <a href="#contact-form" className="btn-ghost">Send a message</a>
+              </div>
+              <div className="mt-12 grid grid-cols-2 gap-6 max-w-xl">
+                <div>
+                  <span className="font-body text-[10px] uppercase tracking-[0.3em] text-white/40">Studio</span>
+                  <p className="mt-2 font-body text-white/80">Available across India · Remote worldwide</p>
+                </div>
+                <div>
+                  <span className="font-body text-[10px] uppercase tracking-[0.3em] text-white/40">Response</span>
+                  <p className="mt-2 font-body text-white/80">Within 24 hours, weekdays</p>
+                </div>
               </div>
             </div>
-            <div className="md:col-span-4 flex flex-col justify-end gap-6 pt-10 md:pt-0">
-              <div className="rule-line" />
-              <div>
-                <span className="font-body text-[10px] uppercase tracking-[0.3em] text-white/40">
-                  Studio
-                </span>
-                <p className="mt-2 font-body text-white/80">
-                  Available across India · Remote worldwide
-                </p>
-              </div>
-              <div>
-                <span className="font-body text-[10px] uppercase tracking-[0.3em] text-white/40">
-                  Response
-                </span>
-                <p className="mt-2 font-body text-white/80">
-                  Within 24 hours, weekdays
-                </p>
-              </div>
+            <div id="contact-form" className="md:col-span-5">
+              <ContactForm />
             </div>
           </div>
         </div>
