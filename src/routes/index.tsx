@@ -433,16 +433,16 @@ function Index() {
       </section>
 
       {/* ============ CONTACT / CTA ============ */}
-      <section id="contact" className="relative py-24 md:py-40 border-t border-white/15">
-        <div className="mx-auto max-w-[1400px] px-5 md:px-10">
-          <div className="grid md:grid-cols-12 gap-8">
+      <section id="contact" className="relative py-24 md:py-32 lg:py-40 border-t border-white/15">
+        <div className="mx-auto max-w-[1600px] px-5 sm:px-8 md:px-10 lg:px-14">
+          <div className="grid md:grid-cols-12 gap-8 lg:gap-12">
             <div className="md:col-span-8">
               <span className="slug">§ End Sheet</span>
-              <h2 className="mt-6 font-display text-6xl md:text-[10vw] leading-[0.88]">
+              <h2 className="mt-6 font-display text-6xl md:text-[10vw] xl:text-[8.5vw] 2xl:text-[150px] leading-[0.88]">
                 Roll the<br />
                 <span className="text-[color:var(--reelio-red)]">next reel.</span>
               </h2>
-              <p className="mt-8 font-body text-lg md:text-xl text-white/70 max-w-2xl">
+              <p className="mt-8 font-body text-lg md:text-xl lg:text-2xl text-white/70 max-w-2xl">
                 Twenty minutes on a call. We'll walk you through the crew, the
                 pipeline, and what your first month at Reelio actually looks
                 like.
