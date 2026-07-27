@@ -1845,20 +1845,81 @@ function SettingsModal({
           </div>
         </div>
 
-        <p className="text-[10px] uppercase tracking-[0.3em] opacity-50 mt-2 mb-1">Notifications</p>
+        <p className="text-[10px] uppercase tracking-[0.3em] opacity-50 mt-2 mb-1">Delivery channels</p>
+        <p className="text-xs opacity-60 mb-2">Pick which channels receive booking alerts. Turn one off to mute it without losing the entry in the notifications bell.</p>
 
         <label className="flex items-start justify-between gap-4 py-3 border-b border-white/10 cursor-pointer">
           <div className="min-w-0">
-            <p className="text-sm">Realtime in-app notifications</p>
-            <p className="text-xs opacity-60 mt-1">Toast alerts when a new booking is submitted.</p>
+            <p className="text-sm">In-app <span className="opacity-50">· toast + bell</span></p>
+            <p className="text-xs opacity-60 mt-1">Realtime toast in the dashboard and unread badge on the bell.</p>
           </div>
           <input
             type="checkbox"
             className="h-5 w-5 accent-red-500 mt-1"
-            checked={draft.realtimeEnabled}
-            onChange={(e) => setDraft({ ...draft, realtimeEnabled: e.target.checked })}
+            checked={draft.channelInApp}
+            onChange={(e) =>
+              setDraft({ ...draft, channelInApp: e.target.checked, realtimeEnabled: e.target.checked })
+            }
           />
         </label>
+
+        <label className="flex items-start justify-between gap-4 py-3 border-b border-white/10 cursor-pointer">
+          <div className="min-w-0">
+            <p className="text-sm">Email <span className="opacity-50">· admin inbox</span></p>
+            <p className="text-xs opacity-60 mt-1">Send a summary email for qualifying booking events. Requires a verified sender domain in Cloud → Emails.</p>
+          </div>
+          <input
+            type="checkbox"
+            className="h-5 w-5 accent-red-500 mt-1"
+            checked={draft.channelEmail}
+            onChange={(e) => setDraft({ ...draft, channelEmail: e.target.checked })}
+          />
+        </label>
+
+        <div className="flex items-start justify-between gap-4 py-3 border-b border-white/10">
+          <div className="min-w-0">
+            <p className="text-sm">Push <span className="opacity-50">· browser notifications</span></p>
+            <p className="text-xs opacity-60 mt-1">
+              {pushPerm === "unsupported"
+                ? "This browser doesn't support notifications."
+                : pushPerm === "denied"
+                  ? "Notifications are blocked in browser settings — allow them for this site to use push."
+                  : pushPerm === "granted"
+                    ? "System notifications will fire even when this tab is in the background."
+                    : "We'll ask for permission when you enable this."}
+            </p>
+          </div>
+          <input
+            type="checkbox"
+            className="h-5 w-5 accent-red-500 mt-1 disabled:opacity-40"
+            disabled={pushPerm === "unsupported"}
+            checked={draft.channelPush && pushPerm !== "denied"}
+            onChange={async (e) => {
+              const want = e.target.checked;
+              if (!want) {
+                setDraft({ ...draft, channelPush: false });
+                return;
+              }
+              const perm = await ensurePushPermission();
+              setPushPerm(perm);
+              if (perm === "granted") {
+                setDraft({ ...draft, channelPush: true });
+                toast.success("Push notifications enabled");
+              } else {
+                setDraft({ ...draft, channelPush: false });
+                toast.error(
+                  perm === "unsupported"
+                    ? "Push notifications aren't supported in this browser."
+                    : "Push permission was blocked — update browser settings to allow them.",
+                );
+              }
+            }}
+          />
+        </div>
+
+        <p className="text-[10px] uppercase tracking-[0.3em] opacity-50 mt-6 mb-1">Notifications</p>
+
+
 
         <label className="flex items-start justify-between gap-4 py-3 border-b border-white/10 cursor-pointer">
           <div className="min-w-0">
