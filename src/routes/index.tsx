@@ -152,11 +152,11 @@ function Index() {
             : "bg-transparent"
         }`}
       >
-        <div className="mx-auto max-w-[1400px] px-4 md:px-8 h-14 md:h-16 grid grid-cols-[minmax(0,auto)_1fr_auto] md:flex items-center md:justify-between gap-4 md:gap-6">
+        <div className="mx-auto max-w-[1600px] px-4 sm:px-6 md:px-8 lg:px-10 h-14 md:h-16 lg:h-20 grid grid-cols-[minmax(0,auto)_1fr_auto] md:flex items-center md:justify-between gap-4 md:gap-6 lg:gap-10">
           <a href="#top" className="flex items-center shrink-0 -my-2 md:-my-4">
-            <img src={logoMark.url} alt="Reelio" className="h-9 md:h-14 w-auto object-contain block" />
+            <img src={logoMark.url} alt="Reelio" className="h-9 md:h-14 lg:h-16 w-auto object-contain block" />
           </a>
-          <nav className="hidden md:flex items-center gap-10 text-[11px] tracking-[0.28em] uppercase font-body font-medium">
+          <nav className="hidden md:flex items-center gap-8 lg:gap-12 text-[11px] lg:text-[12px] tracking-[0.28em] uppercase font-body font-medium">
             <a href="#services" className="hover:text-[color:var(--reelio-red)] transition-colors">Services</a>
             <a href="#niches" className="hover:text-[color:var(--reelio-red)] transition-colors">Niches</a>
             <a href="#package" className="hover:text-[color:var(--reelio-red)] transition-colors">Package</a>
@@ -197,8 +197,8 @@ function Index() {
       </header>
 
       {/* ============ MASTHEAD / HERO ============ */}
-      <section id="top" className="relative pt-28 md:pt-36 pb-16 md:pb-24">
-        <div className="mx-auto max-w-[1400px] px-5 md:px-10">
+      <section id="top" className="relative pt-28 md:pt-36 lg:pt-44 pb-16 md:pb-24 lg:pb-32">
+        <div className="mx-auto max-w-[1600px] px-5 sm:px-8 md:px-10 lg:px-14">
           {/* issue bar */}
           <div className="flex items-end justify-between gap-4 pb-6 border-b border-white/15">
             <div className="flex items-baseline gap-6">
@@ -221,12 +221,12 @@ function Index() {
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.9, ease: [0.2, 0.7, 0.2, 1] }}
-                className="font-display text-[15vw] md:text-[10.5vw] leading-[0.86] tracking-[-0.02em]"
+                className="font-display text-[15vw] md:text-[10.5vw] xl:text-[9vw] 2xl:text-[150px] leading-[0.86] tracking-[-0.02em]"
               >
                 <span className="block">STORIES</span>
                 <span className="block">
                   <span className="text-[color:var(--reelio-red)]">SHOT.</span>{" "}
-                  <span className="italic font-body font-light lowercase text-white/70 text-[10vw] md:text-[6.5vw]">
+                  <span className="italic font-body font-light lowercase text-white/70 text-[10vw] md:text-[6.5vw] xl:text-[5.5vw] 2xl:text-[92px]">
                     cut,
                   </span>
                 </span>
@@ -250,7 +250,7 @@ function Index() {
           </div>
 
           {/* Byline strip */}
-          <div className="mt-16 md:mt-24 grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-10 pt-8 border-t border-white/15">
+          <div className="mt-16 md:mt-24 grid grid-cols-2 sm:grid-cols-4 gap-6 md:gap-10 lg:gap-14 pt-8 border-t border-white/15">
             {[
               { k: "50+", v: "Brands scaled" },
               { k: "10M+", v: "Reels views" },
@@ -258,7 +258,7 @@ function Index() {
               { k: "24/7", v: "Content engine" },
             ].map((s) => (
               <div key={s.v}>
-                <div className="font-display text-4xl md:text-6xl text-white leading-none">{s.k}</div>
+                <div className="font-display text-4xl md:text-6xl lg:text-7xl text-white leading-none">{s.k}</div>
                 <div className="mt-2 font-body text-[10px] md:text-xs uppercase tracking-[0.28em] text-white/50">
                   {s.v}
                 </div>
@@ -281,18 +281,18 @@ function Index() {
       </section>
 
       {/* ============ SERVICES — CASE INDEX ============ */}
-      <section id="services" className="relative py-24 md:py-40">
-        <div className="mx-auto max-w-[1400px] px-5 md:px-10">
+      <section id="services" className="relative py-24 md:py-32 lg:py-40">
+        <div className="mx-auto max-w-[1600px] px-5 sm:px-8 md:px-10 lg:px-14">
           <div className="grid md:grid-cols-12 gap-6 md:gap-8 pb-10 md:pb-16 border-b border-white/15">
-            <div className="md:col-span-4">
+            <div className="md:col-span-5 lg:col-span-4">
               <span className="slug">§ Services</span>
-              <h2 className="mt-6 font-display text-5xl md:text-7xl leading-[0.9]">
+              <h2 className="mt-6 font-display text-5xl md:text-7xl lg:text-8xl leading-[0.9]">
                 The<br />
                 <span className="text-[color:var(--reelio-red)]">Index.</span>
               </h2>
             </div>
             <div className="md:col-span-6 md:col-start-7 flex items-end">
-              <p className="font-body text-lg text-white/70 max-w-md">
+              <p className="font-body text-lg lg:text-xl text-white/70 max-w-md">
                 Six departments. One crew. Every service below is built and
                 delivered in-house — no agency-of-agencies, no handoffs.
               </p>
@@ -304,18 +304,18 @@ function Index() {
               <li key={s.n} className="case-row group">
                 <a
                   href="#contact"
-                  className="grid grid-cols-12 items-center gap-4 md:gap-8 py-6 md:py-10 px-2 md:px-4 transition-colors"
+                  className="grid grid-cols-12 items-center gap-4 md:gap-8 py-6 md:py-10 lg:py-12 px-2 md:px-4 transition-colors"
                 >
-                  <span className="col-span-2 md:col-span-1 font-display text-2xl md:text-4xl text-white/40 group-hover:text-white transition-colors">
+                  <span className="col-span-2 md:col-span-1 font-display text-2xl md:text-4xl lg:text-5xl text-white/40 group-hover:text-white transition-colors">
                     {s.n}
                   </span>
-                  <span className="col-span-10 md:col-span-5 font-display text-3xl md:text-6xl leading-none group-hover:text-white transition-colors">
+                  <span className="col-span-10 md:col-span-5 font-display text-3xl md:text-6xl lg:text-7xl leading-none group-hover:text-white transition-colors">
                     {s.title}
                   </span>
-                  <span className="hidden md:block md:col-span-3 font-body text-[11px] uppercase tracking-[0.25em] text-white/50 group-hover:text-white/90 transition-colors">
+                  <span className="hidden sm:block col-span-6 md:col-span-3 font-body text-[11px] lg:text-xs uppercase tracking-[0.25em] text-white/50 group-hover:text-white/90 transition-colors">
                     {s.kicker}
                   </span>
-                  <span className="col-span-12 md:col-span-3 font-body text-sm text-white/60 group-hover:text-white/90 transition-colors">
+                  <span className="col-span-12 sm:col-span-6 md:col-span-3 font-body text-sm lg:text-[15px] text-white/60 group-hover:text-white/90 transition-colors">
                     {s.desc}
                   </span>
                 </a>
@@ -326,19 +326,19 @@ function Index() {
       </section>
 
       {/* ============ NICHES — EDITORIAL SPREAD ============ */}
-      <section id="niches" className="relative py-24 md:py-40 bg-[color:var(--reelio-red)] text-white">
-        <div className="mx-auto max-w-[1400px] px-5 md:px-10">
+      <section id="niches" className="relative py-24 md:py-32 lg:py-40 bg-[color:var(--reelio-red)] text-white">
+        <div className="mx-auto max-w-[1600px] px-5 sm:px-8 md:px-10 lg:px-14">
           <div className="grid md:grid-cols-12 gap-6 md:gap-8">
             <div className="md:col-span-5">
               <span className="font-body text-[10px] uppercase tracking-[0.3em] font-semibold text-white/80">
                 § Feature
               </span>
-              <h2 className="mt-4 font-display text-6xl md:text-[8vw] leading-[0.9]">
+              <h2 className="mt-4 font-display text-6xl md:text-[8vw] xl:text-[7vw] 2xl:text-[120px] leading-[0.9]">
                 Who we<br />shoot for.
               </h2>
             </div>
             <div className="md:col-span-6 md:col-start-7 flex flex-col justify-end">
-              <p className="font-body text-lg md:text-xl leading-relaxed text-white/90 max-w-lg">
+              <p className="font-body text-lg md:text-xl lg:text-2xl leading-relaxed text-white/90 max-w-lg">
                 We work with brands that treat social as a stage — not a
                 checkbox. If you have a room to fill, a product to move, or a
                 story that hasn't been told properly, you're on the list.
@@ -350,7 +350,7 @@ function Index() {
             {niches.map((n, i) => (
               <li
                 key={n}
-                className="flex items-baseline justify-between py-6 md:py-10 font-display text-4xl md:text-7xl uppercase tracking-[-0.01em] hover:pl-4 transition-all duration-500"
+                className="flex items-baseline justify-between py-6 md:py-10 lg:py-12 font-display text-4xl md:text-7xl lg:text-8xl uppercase tracking-[-0.01em] hover:pl-4 transition-all duration-500"
               >
                 <span className="flex items-baseline gap-6">
                   <span className="font-body text-xs md:text-sm text-white/60 tabular-nums">
@@ -368,18 +368,18 @@ function Index() {
       </section>
 
       {/* ============ PACKAGE / PRICING SPREAD ============ */}
-      <section id="package" className="relative py-24 md:py-40">
-        <div className="mx-auto max-w-[1400px] px-5 md:px-10">
-          <div className="grid md:grid-cols-12 gap-8 md:gap-12">
+      <section id="package" className="relative py-24 md:py-32 lg:py-40">
+        <div className="mx-auto max-w-[1600px] px-5 sm:px-8 md:px-10 lg:px-14">
+          <div className="grid md:grid-cols-12 gap-8 md:gap-12 lg:gap-16">
             {/* left column — the "cover" */}
             <div className="md:col-span-5 md:sticky md:top-28 self-start">
               <span className="slug">§ The Package</span>
-              <h2 className="mt-6 font-display text-6xl md:text-8xl leading-[0.88]">
+              <h2 className="mt-6 font-display text-6xl md:text-8xl lg:text-9xl leading-[0.88]">
                 Reelio<br />
                 <span className="text-[color:var(--reelio-red)]">Monthly.</span>
               </h2>
               <div className="mt-10 flex items-baseline gap-3">
-                <span className="font-display text-6xl md:text-8xl leading-none">₹50K</span>
+                <span className="font-display text-6xl md:text-8xl lg:text-9xl leading-none">₹50K</span>
                 <span className="font-body text-sm uppercase tracking-[0.25em] text-white/50">
                   / month
                 </span>
@@ -407,7 +407,7 @@ function Index() {
             <div className="md:col-span-7">
               <div className="rule-line mb-8" />
               <span className="slug">Included</span>
-              <ul className="mt-8 grid sm:grid-cols-2 gap-x-8">
+              <ul className="mt-8 grid sm:grid-cols-2 lg:grid-cols-2 gap-x-8 lg:gap-x-12">
                 {packageIncludes.map((it, i) => (
                   <li
                     key={it.title}
@@ -433,16 +433,16 @@ function Index() {
       </section>
 
       {/* ============ CONTACT / CTA ============ */}
-      <section id="contact" className="relative py-24 md:py-40 border-t border-white/15">
-        <div className="mx-auto max-w-[1400px] px-5 md:px-10">
-          <div className="grid md:grid-cols-12 gap-8">
+      <section id="contact" className="relative py-24 md:py-32 lg:py-40 border-t border-white/15">
+        <div className="mx-auto max-w-[1600px] px-5 sm:px-8 md:px-10 lg:px-14">
+          <div className="grid md:grid-cols-12 gap-8 lg:gap-12">
             <div className="md:col-span-8">
               <span className="slug">§ End Sheet</span>
-              <h2 className="mt-6 font-display text-6xl md:text-[10vw] leading-[0.88]">
+              <h2 className="mt-6 font-display text-6xl md:text-[10vw] xl:text-[8.5vw] 2xl:text-[150px] leading-[0.88]">
                 Roll the<br />
                 <span className="text-[color:var(--reelio-red)]">next reel.</span>
               </h2>
-              <p className="mt-8 font-body text-lg md:text-xl text-white/70 max-w-2xl">
+              <p className="mt-8 font-body text-lg md:text-xl lg:text-2xl text-white/70 max-w-2xl">
                 Twenty minutes on a call. We'll walk you through the crew, the
                 pipeline, and what your first month at Reelio actually looks
                 like.
@@ -486,7 +486,7 @@ function Index() {
 
       {/* ============ COLOPHON / FOOTER ============ */}
       <footer className="border-t border-white/15 py-10">
-        <div className="mx-auto max-w-[1400px] px-5 md:px-10 flex flex-wrap items-center justify-between gap-4">
+        <div className="mx-auto max-w-[1600px] px-5 sm:px-8 md:px-10 lg:px-14 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <img src={logoMark.url} alt="Reelio" className="h-5 w-auto object-contain" />
             <span className="font-body text-[10px] uppercase tracking-[0.3em] text-white/40">
