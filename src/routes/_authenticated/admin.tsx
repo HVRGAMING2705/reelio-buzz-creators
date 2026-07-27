@@ -206,20 +206,30 @@ function AdminPage() {
             />
           </div>
 
-          <div className="flex items-center justify-between mb-4 text-xs opacity-70">
+          <div className="flex items-center justify-between mb-4 text-xs opacity-70 gap-3 flex-wrap">
             <span>{filtered.length} result{filtered.length === 1 ? "" : "s"}</span>
-            {(nameQ || serviceQ !== "all" || nicheQ !== "all" || budgetQ !== "all" || dateFrom || dateTo || search) && (
+            <div className="flex items-center gap-3">
               <button
-                onClick={() => {
-                  setNameQ(""); setServiceQ("all"); setNicheQ("all");
-                  setBudgetQ("all"); setDateFrom(""); setDateTo(""); setSearch("");
-                }}
-                className="uppercase tracking-[0.2em] hover:text-white"
+                onClick={() => exportBookingsCsv(filtered)}
+                disabled={filtered.length === 0}
+                className="uppercase tracking-[0.2em] rounded-full glass px-4 py-2 text-[10px] hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed"
               >
-                Clear filters
+                ↓ Export CSV
               </button>
-            )}
+              {(nameQ || serviceQ !== "all" || nicheQ !== "all" || budgetQ !== "all" || dateFrom || dateTo || search) && (
+                <button
+                  onClick={() => {
+                    setNameQ(""); setServiceQ("all"); setNicheQ("all");
+                    setBudgetQ("all"); setDateFrom(""); setDateTo(""); setSearch("");
+                  }}
+                  className="uppercase tracking-[0.2em] hover:text-white"
+                >
+                  Clear filters
+                </button>
+              )}
+            </div>
           </div>
+
 
           {isLoading && <p className="opacity-70">Loading…</p>}
           {error && (
