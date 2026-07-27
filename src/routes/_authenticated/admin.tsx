@@ -148,13 +148,14 @@ function Avatar({
 }
 
 function NotificationsBell({
-  bookings, lastSeen, unreadCount, onMarkAllSeen, onOpen,
+  bookings, lastSeen, unreadCount, onMarkAllSeen, onOpen, onUpdateStatus,
 }: {
   bookings: BookingWithProfile[];
   lastSeen: number;
   unreadCount: number;
   onMarkAllSeen: (ts?: number) => void;
   onOpen: (id: string) => void;
+  onUpdateStatus: (id: string, status: Status) => void;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
