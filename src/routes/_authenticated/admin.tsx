@@ -153,11 +153,13 @@ function AdminPage() {
     }
   };
 
+  const signOut = async () => {
     await qc.cancelQueries();
     qc.clear();
     await supabase.auth.signOut();
     navigate({ to: "/auth", replace: true });
   };
+
 
   const uniq = (vals: (string | null)[]) =>
     Array.from(new Set(vals.filter((v): v is string => !!v && v.trim() !== ""))).sort();
