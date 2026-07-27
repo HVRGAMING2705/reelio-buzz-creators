@@ -197,8 +197,8 @@ function Index() {
       </header>
 
       {/* ============ MASTHEAD / HERO ============ */}
-      <section id="top" className="relative pt-28 md:pt-36 pb-16 md:pb-24">
-        <div className="mx-auto max-w-[1400px] px-5 md:px-10">
+      <section id="top" className="relative pt-28 md:pt-36 lg:pt-44 pb-16 md:pb-24 lg:pb-32">
+        <div className="mx-auto max-w-[1600px] px-5 sm:px-8 md:px-10 lg:px-14">
           {/* issue bar */}
           <div className="flex items-end justify-between gap-4 pb-6 border-b border-white/15">
             <div className="flex items-baseline gap-6">
