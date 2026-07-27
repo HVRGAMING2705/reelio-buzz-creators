@@ -1,6 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { markReadByBookingId } from "@/lib/notification-history";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Booking = Tables<"bookings">;
