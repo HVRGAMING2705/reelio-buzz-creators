@@ -106,6 +106,7 @@ function NotificationsBell({
   const [notifUnreadOnly, setNotifUnreadOnly] = useState(false);
   const [notifSort, setNotifSort] = useState<"newest" | "oldest">("newest");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [notifLimit, setNotifLimit] = useState(8);
 
   useEffect(() => {
     if (!open) return;
@@ -123,9 +124,10 @@ function NotificationsBell({
     return () => clearTimeout(t);
   }, [open, unreadCount, selectedIds.size, onMarkAllSeen]);
 
-  // Clear selection when dropdown closes or filters change
+  // Clear selection and reset pagination when dropdown closes or filters change
   useEffect(() => {
     if (!open) setSelectedIds(new Set());
+    setNotifLimit(8);
   }, [open, notifStatus, notifUnreadOnly, notifSort]);
 
   const recent = useMemo(() => {
