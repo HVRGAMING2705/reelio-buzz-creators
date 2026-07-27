@@ -433,6 +433,16 @@ function eventLabel(ev: BookingEvent) {
   }
 }
 
+function blockLabel(reason: string) {
+  switch (reason) {
+    case "captcha_failed": return "Captcha verification failed";
+    case "captcha_missing": return "Captcha token missing";
+    case "ip_rate_limit": return "Blocked · IP rate limit";
+    case "email_rate_limit": return "Blocked · email rate limit";
+    default: return `Blocked · ${reason}`;
+  }
+}
+
 function QuickActions({
   booking,
   admins,
