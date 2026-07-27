@@ -693,7 +693,33 @@ function AdminPage() {
                 </div>
               </div>
             </button>
-            <div className="border-t border-white/10 px-4 py-2 bg-white/[0.03] flex justify-end">
+            <div className="border-t border-white/10 px-4 py-2 bg-white/[0.03] flex items-center justify-between gap-2 flex-wrap">
+              <div className="flex items-center gap-1.5">
+                {ev.kind === "new" && (
+                  <>
+                    <button
+                      onClick={() => {
+                        updateStatus.mutate({ id: b.id, status: "confirmed" });
+                        toast.dismiss(t);
+                        markAllSeenRef.current?.();
+                      }}
+                      className="text-[10px] uppercase tracking-[0.12em] font-semibold px-2 py-1 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30"
+                    >
+                      ✓ Approve
+                    </button>
+                    <button
+                      onClick={() => {
+                        updateStatus.mutate({ id: b.id, status: "canceled" });
+                        toast.dismiss(t);
+                        markAllSeenRef.current?.();
+                      }}
+                      className="text-[10px] uppercase tracking-[0.12em] font-semibold px-2 py-1 rounded-md bg-red-500/20 text-red-300 border border-red-500/40 hover:bg-red-500/30"
+                    >
+                      ✕ Reject
+                    </button>
+                  </>
+                )}
+              </div>
               <button
                 onClick={() => { toast.dismiss(t); markAllSeenRef.current?.(); }}
                 className="text-[10px] uppercase tracking-[0.2em] opacity-70 hover:opacity-100"
