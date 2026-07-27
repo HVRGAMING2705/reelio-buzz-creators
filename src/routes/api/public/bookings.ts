@@ -241,6 +241,51 @@ async function loadLimits(url: string, key: string): Promise<{ ip: Bucket[]; ema
   }
 }
 
+// ---- Captcha enabled flag (from app_settings, admin-controlled) ----
+type CaptchaSettingRow = { enabled?: unknown; siteKey?: unknown };
+let cachedCaptcha: { enabled: boolean; siteKey: string; at: number } | null = null;
+const CAPTCHA_TTL_MS = 30_000;
+async function loadCaptchaSetting(
+  url: string,
+  key: string,
+): Promise<{ enabled: boolean; siteKey: string }> {
+  const now = Date.now();
+  if (cachedCaptcha && now - cachedCaptcha.at < CAPTCHA_TTL_MS) {
+    return { enabled: cachedCaptcha.enabled, siteKey: cachedCaptcha.siteKey };
+  }
+  try {
+    const client = createClient<Database>(url, key, {
+      auth: { persistSession: false, autoRefreshToken: false },
+      global: {
+        fetch: (input, init) => {
+          const h = new Headers(init?.headers);
+          if (key.startsWith("sb_") && h.get("Authorization") === `Bearer ${key}`) {
+            h.delete("Authorization");
+          }
+          h.set("apikey", key);
+          return fetch(input, { ...init, headers: h });
+        },
+      },
+    });
+    const { data } = await client
+      .from("app_settings")
+      .select("value")
+      .eq("key", "captcha")
+      .maybeSingle();
+    const v = (data?.value ?? {}) as CaptchaSettingRow;
+    const out = {
+      enabled: !!v.enabled,
+      siteKey: typeof v.siteKey === "string" ? v.siteKey : "",
+    };
+    cachedCaptcha = { ...out, at: now };
+    return out;
+  } catch {
+    const out = { enabled: false, siteKey: "" };
+    cachedCaptcha = { ...out, at: now };
+    return out;
+  }
+}
+
 export const Route = createFileRoute("/api/public/bookings")({
   server: {
     handlers: {
