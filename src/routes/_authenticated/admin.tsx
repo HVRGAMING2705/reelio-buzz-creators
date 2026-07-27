@@ -212,6 +212,19 @@ function AdminPage() {
               </span>
             )}
             <button
+              onClick={markAllSeen}
+              className="relative rounded-full glass px-3 py-2 text-sm hover:bg-white/10"
+              aria-label={`Notifications${unreadCount ? ` (${unreadCount} new)` : ""}`}
+              title={unreadCount ? `${unreadCount} new since last check` : "No new bookings"}
+            >
+              <span aria-hidden>🔔</span>
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center shadow-[0_0_12px_rgba(239,68,68,0.8)] animate-pulse">
+                  {unreadCount > 99 ? "99+" : unreadCount}
+                </span>
+              )}
+            </button>
+            <button
               onClick={signOut}
               className="rounded-full glass px-4 py-2 uppercase tracking-[0.2em] text-[10px]"
             >
