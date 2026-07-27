@@ -2458,6 +2458,7 @@ function NotificationLogPanel() {
     note: "Note update",
     summary: "Summary",
     test: "Test",
+    security: "Security alert",
   };
 
   const fmt = (ts: number) => {
