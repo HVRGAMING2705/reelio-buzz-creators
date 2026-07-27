@@ -514,7 +514,7 @@ function Index() {
                 <button
                   type="button"
                   onClick={() => setBookingOpen(true)}
-                  className="group inline-flex items-center gap-2 rounded-full bg-white text-[color:var(--reelio-black)] px-7 py-4 uppercase tracking-[0.2em] text-xs liquid-shine shadow-2xl"
+                  className="group inline-flex items-center gap-2 rounded-full bg-black text-white px-7 py-4 uppercase tracking-[0.2em] text-xs liquid-shine shadow-2xl font-bold"
                 >
                   Book Reelio Package
                   <motion.span animate={{ x: [0, 4, 0] }} transition={{ duration: 1.6, repeat: Infinity }}>
