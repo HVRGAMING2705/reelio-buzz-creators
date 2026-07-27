@@ -135,8 +135,26 @@ function Index() {
   const issue = String(year).slice(-2);
 
   return (
-    <div className="relative min-h-screen bg-background text-foreground">
+    <div className="relative min-h-screen bg-background text-foreground overflow-hidden">
       <BookingModal open={bookingOpen} onClose={() => setBookingOpen(false)} />
+
+      {/* ============ AMBIENT LIQUID BACKDROP ============ */}
+      <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+        <div className="glow-orb animate-float-orb"
+             style={{ width: 520, height: 520, top: '-8%', left: '-6%',
+                      background: 'radial-gradient(circle, oklch(0.58 0.22 27 / 0.55), transparent 60%)' }} />
+        <div className="glow-orb animate-float-orb-alt"
+             style={{ width: 620, height: 620, top: '40%', right: '-10%',
+                      background: 'radial-gradient(circle, oklch(0.55 0.2 27 / 0.35), transparent 60%)' }} />
+        <div className="glow-orb animate-float-orb"
+             style={{ width: 400, height: 400, bottom: '-6%', left: '30%', animationDelay: '-6s',
+                      background: 'radial-gradient(circle, oklch(0.7 0.18 340 / 0.28), transparent 60%)' }} />
+        {/* subtle grid */}
+        <div className="absolute inset-0 opacity-[0.05]"
+             style={{ backgroundImage:
+               'linear-gradient(oklch(1 0 0 / 1) 1px, transparent 1px), linear-gradient(90deg, oklch(1 0 0 / 1) 1px, transparent 1px)',
+               backgroundSize: '80px 80px' }} />
+      </div>
 
       {/* scroll progress */}
       <motion.div
@@ -146,12 +164,13 @@ function Index() {
 
       {/* ============ NAV ============ */}
       <header
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
           scrolled
-            ? "bg-background/85 backdrop-blur-md border-b border-white/10"
+            ? "glass-dark border-b border-white/10 shadow-[0_10px_40px_-20px_oklch(0_0_0/0.6)]"
             : "bg-transparent"
         }`}
       >
+
         <div className="mx-auto max-w-[1600px] px-4 sm:px-6 md:px-8 lg:px-10 h-14 md:h-16 lg:h-20 grid grid-cols-[minmax(0,auto)_1fr_auto] md:flex items-center md:justify-between gap-4 md:gap-6 lg:gap-10">
           <a href="#top" className="flex items-center shrink-0 -my-2 md:-my-4">
             <img src={logoMark.url} alt="Reelio" className="h-9 md:h-14 lg:h-16 w-auto object-contain block" />
@@ -225,7 +244,7 @@ function Index() {
               >
                 <span className="block">STORIES</span>
                 <span className="block">
-                  <span className="text-[color:var(--reelio-red)]">SHOT.</span>{" "}
+                  <span className="text-shimmer">SHOT.</span>{" "}
                   <span className="italic font-body font-light lowercase text-white/70 text-[10vw] md:text-[6.5vw] xl:text-[5.5vw] 2xl:text-[92px]">
                     cut,
                   </span>
@@ -250,26 +269,35 @@ function Index() {
           </div>
 
           {/* Byline strip */}
-          <div className="mt-16 md:mt-24 grid grid-cols-2 sm:grid-cols-4 gap-6 md:gap-10 lg:gap-14 pt-8 border-t border-white/15">
+          <div className="mt-16 md:mt-24 grid grid-cols-2 sm:grid-cols-4 gap-4 md:gap-6 pt-8 border-t border-white/15">
             {[
               { k: "50+", v: "Brands scaled" },
               { k: "10M+", v: "Reels views" },
               { k: "6", v: "Core services" },
               { k: "24/7", v: "Content engine" },
-            ].map((s) => (
-              <div key={s.v}>
+            ].map((s, i) => (
+              <motion.div
+                key={s.v}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-80px" }}
+                transition={{ duration: 0.7, delay: i * 0.08, ease: [0.2, 0.7, 0.2, 1] }}
+                whileHover={{ y: -4 }}
+                className="liquid-glass p-5 md:p-6"
+              >
                 <div className="font-display text-4xl md:text-6xl lg:text-7xl text-white leading-none">{s.k}</div>
-                <div className="mt-2 font-body text-[10px] md:text-xs uppercase tracking-[0.28em] text-white/50">
+                <div className="mt-2 font-body text-[10px] md:text-xs uppercase tracking-[0.28em] text-white/60">
                   {s.v}
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
 
       {/* ============ MARQUEE / TICKER ============ */}
-      <section className="relative py-4 md:py-5 border-y border-white/15 bg-[color:var(--reelio-red)] overflow-hidden">
+      <section className="relative py-4 md:py-5 border-y border-white/15 bg-[color:var(--reelio-red)] overflow-hidden liquid-shine">
+
         <div className="flex whitespace-nowrap animate-marquee font-display text-xl md:text-3xl tracking-[-0.01em]">
           {[...marqueeItems, ...marqueeItems, ...marqueeItems].map((it, i) => (
             <span key={i} className="flex items-center gap-8 md:gap-12 pr-8 md:pr-12 text-white">
@@ -407,11 +435,16 @@ function Index() {
             <div className="md:col-span-7">
               <div className="rule-line mb-8" />
               <span className="slug">Included</span>
-              <ul className="mt-8 grid sm:grid-cols-2 lg:grid-cols-2 gap-x-8 lg:gap-x-12">
+              <ul className="mt-8 grid sm:grid-cols-2 gap-4 lg:gap-5">
                 {packageIncludes.map((it, i) => (
-                  <li
+                  <motion.li
                     key={it.title}
-                    className="flex gap-5 py-6 border-b border-white/10"
+                    initial={{ opacity: 0, y: 24 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-60px" }}
+                    transition={{ duration: 0.55, delay: i * 0.05, ease: [0.2, 0.7, 0.2, 1] }}
+                    whileHover={{ y: -4, scale: 1.01 }}
+                    className="liquid-glass flex gap-4 p-5"
                   >
                     <span className="font-display text-2xl text-[color:var(--reelio-red)] tabular-nums pt-1">
                       {String(i + 1).padStart(2, "0")}
@@ -420,13 +453,14 @@ function Index() {
                       <h3 className="font-display text-xl md:text-2xl leading-tight">
                         {it.title}
                       </h3>
-                      <p className="mt-2 font-body text-sm text-white/60 leading-relaxed">
+                      <p className="mt-2 font-body text-sm text-white/70 leading-relaxed">
                         {it.desc}
                       </p>
                     </div>
-                  </li>
+                  </motion.li>
                 ))}
               </ul>
+
             </div>
           </div>
         </div>
