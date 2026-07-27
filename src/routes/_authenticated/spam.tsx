@@ -129,6 +129,9 @@ function SpamPage() {
         (r.email_hash ?? "").toLowerCase().includes(needle) ||
         (r.email_domain ?? "").toLowerCase().includes(needle) ||
         (r.attempted_email ?? "").toLowerCase().includes(needle) ||
+        (r.user_agent ?? "").toLowerCase().includes(needle) ||
+        (r.referrer ?? "").toLowerCase().includes(needle) ||
+        (r.page_url ?? "").toLowerCase().includes(needle) ||
         r.reason.toLowerCase().includes(needle)
       );
     });
