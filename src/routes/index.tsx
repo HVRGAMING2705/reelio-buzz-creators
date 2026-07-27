@@ -354,6 +354,10 @@ function Index() {
   const { scrollYProgress } = useScroll();
   const progress = useSpring(scrollYProgress, { stiffness: 100, damping: 20, restDelta: 0.001 });
 
+  const logoSrcSet = `${logoMark128.url} 128w, ${logoMark256.url} 256w, ${logoMark512.url} 512w, ${logoMark1024.url} 1024w`;
+  const logoSizes = "(max-width: 767px) 56px, (max-width: 1023px) 80px, 96px";
+  const footerLogoSizes = "24px";
+
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       setUser(
