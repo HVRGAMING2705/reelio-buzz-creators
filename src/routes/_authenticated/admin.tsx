@@ -17,6 +17,9 @@ type NotifSettings = {
   quietEnd: string;   // "HH:MM"
   captchaEnabled: boolean;
   hcaptchaSiteKey: string;
+  categoryBookings: boolean;
+  categoryOutreach: boolean;
+  categoryInvoices: boolean;
   notifyNewBooking: boolean;
   notifyStatusChange: boolean;
   notifyNoteUpdate: boolean;
@@ -30,6 +33,9 @@ const DEFAULT_SETTINGS: NotifSettings = {
   quietEnd: "08:00",
   captchaEnabled: false,
   hcaptchaSiteKey: "",
+  categoryBookings: true,
+  categoryOutreach: true,
+  categoryInvoices: true,
   notifyNewBooking: true,
   notifyStatusChange: true,
   notifyNoteUpdate: false,
@@ -790,6 +796,7 @@ function AdminPage() {
           notifiedIds.current.add(b.id);
           prevBookings.current.set(b.id, b);
           qc.invalidateQueries({ queryKey: ["bookings"] });
+          if (!settingsRef.current.categoryBookings) return;
           if (!settingsRef.current.notifyNewBooking) return;
           enqueueEvent({ kind: "new", booking: b });
         },
@@ -803,6 +810,7 @@ function AdminPage() {
           prevBookings.current.set(next.id, next);
           qc.invalidateQueries({ queryKey: ["bookings"] });
           if (!prev) return;
+          if (!settingsRef.current.categoryBookings) return;
           if (prev.status !== next.status && settingsRef.current.notifyStatusChange) {
             enqueueEvent({ kind: "status", booking: next, from: prev.status, to: next.status });
           }
@@ -1288,8 +1296,31 @@ function SettingsModal({
         )}
 
         <div className="mt-6 pt-4 border-t border-white/10">
-          <p className="text-[10px] uppercase tracking-[0.3em] opacity-50 mb-1">Alert types</p>
-          <p className="text-xs opacity-60 mb-2">Choose which events trigger admin alerts.</p>
+          <p className="text-[10px] uppercase tracking-[0.3em] opacity-50 mb-1">Notification categories</p>
+          <p className="text-xs opacity-60 mb-2">Master switches for each channel of admin alerts.</p>
+          {([
+            ["categoryBookings", "Bookings", "New submissions, status changes, notes"],
+            ["categoryOutreach", "Outreach", "Cold outreach replies & follow-ups"],
+            ["categoryInvoices", "Invoices", "Payments, overdue reminders, receipts"],
+          ] as const).map(([key, label, hint]) => (
+            <label key={key} className="flex items-center justify-between gap-4 py-2 cursor-pointer">
+              <span>
+                <span className="block text-sm">{label}</span>
+                <span className="block text-[11px] opacity-50">{hint}</span>
+              </span>
+              <input
+                type="checkbox"
+                className="h-5 w-5 accent-red-500"
+                checked={draft[key]}
+                onChange={(e) => setDraft({ ...draft, [key]: e.target.checked })}
+              />
+            </label>
+          ))}
+        </div>
+
+        <div className={`mt-6 pt-4 border-t border-white/10 transition ${draft.categoryBookings ? "" : "opacity-40 pointer-events-none"}`}>
+          <p className="text-[10px] uppercase tracking-[0.3em] opacity-50 mb-1">Booking alert types</p>
+          <p className="text-xs opacity-60 mb-2">Fine-tune which booking events trigger alerts.</p>
           {([
             ["notifyNewBooking", "New booking submissions"],
             ["notifyStatusChange", "Booking status changes"],
