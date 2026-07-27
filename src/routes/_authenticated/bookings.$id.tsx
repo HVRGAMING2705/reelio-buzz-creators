@@ -51,6 +51,21 @@ function BookingDetailPage() {
     },
   });
 
+  const { data: profile } = useQuery({
+    queryKey: ["booking-creator", booking?.user_id],
+    queryFn: async () => {
+      if (!booking?.user_id) return null;
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("user_id", booking.user_id)
+        .maybeSingle();
+      if (error) throw error;
+      return data as Profile | null;
+    },
+    enabled: !!booking?.user_id,
+  });
+
   const updateStatus = useMutation({
     mutationFn: async (status: Status) => {
       const { error } = await supabase.from("bookings").update({ status }).eq("id", id);
