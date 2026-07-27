@@ -1299,13 +1299,44 @@ function AdminPage() {
               userId={userId}
               onMarkAllRead={(ids) => {
                 markAllBookingsRead(ids);
-                markAllSeen();
+                // Only advance the "seen" watermark if every currently unread
+                // booking is included; otherwise a partial "Mark filtered as
+                // read" would silently clear the badge for items outside the
+                // filter and desync the count.
+                const idSet = new Set(ids);
+                const stillUnread = (bookings ?? []).some(
+                  (b) =>
+                    !idSet.has(b.id) &&
+                    !readBookingIds.has(b.id) &&
+                    new Date(b.created_at).getTime() > lastSeen,
+                );
+                if (!stillUnread) markAllSeen();
               }}
               onMarkAllUnread={(ids) => {
                 markAllBookingsUnread(ids);
+                // If any of the re-flagged items are older than the current
+                // watermark, back-date it so the badge count reflects them
+                // again after paginating to older alerts.
+                const idSet = new Set(ids);
+                let oldest = Infinity;
+                for (const b of bookings ?? []) {
+                  if (!idSet.has(b.id)) continue;
+                  const t = new Date(b.created_at).getTime();
+                  if (t < oldest) oldest = t;
+                }
+                if (Number.isFinite(oldest) && oldest <= lastSeen) {
+                  markAllSeen(oldest - 1);
+                }
               }}
               onMarkRead={(id) => markReadByBookingId(id)}
-              onMarkUnread={(id) => markUnreadByBookingId(id)}
+              onMarkUnread={(id) => {
+                markUnreadByBookingId(id);
+                const b = (bookings ?? []).find((x) => x.id === id);
+                if (b) {
+                  const t = new Date(b.created_at).getTime();
+                  if (t <= lastSeen) markAllSeen(t - 1);
+                }
+              }}
               onOpen={(id) => {
                 markReadByBookingId(id);
                 navigate({ to: "/bookings/$id", params: { id } });
