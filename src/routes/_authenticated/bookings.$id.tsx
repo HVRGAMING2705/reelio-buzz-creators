@@ -474,12 +474,22 @@ function TimelineSection({
         <p className="text-[10px] uppercase tracking-[0.25em] opacity-70">
           Activity & confirmation history
         </p>
-        <span className="text-[10px] opacity-50">
-          {items.length} of {merged.length} shown
-          {counts.blocks > 0 && (
-            <span className="ml-2 text-red-300/80">· {counts.blocks} security</span>
-          )}
-        </span>
+        <div className="flex items-center gap-3">
+          <span className="text-[10px] opacity-50">
+            {items.length} of {merged.length} shown
+            {counts.blocks > 0 && (
+              <span className="ml-2 text-red-300/80">· {counts.blocks} security</span>
+            )}
+          </span>
+          <button
+            onClick={() => exportSecurityCsv({ bookingId, blocks, captchaEvents, fromMs, toMs })}
+            disabled={blocks.length + captchaEvents.length === 0}
+            className="rounded-full border border-white/15 px-2.5 py-1 text-[10px] uppercase tracking-[0.15em] hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed"
+            title="Download captcha failures and blocked submissions as CSV"
+          >
+            Export CSV
+          </button>
+        </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-2 mb-4">
