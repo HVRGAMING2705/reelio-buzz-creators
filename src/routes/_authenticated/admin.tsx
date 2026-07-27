@@ -235,7 +235,7 @@ function NotificationsBell({
       list = list.filter((b) => b.status === notifStatus);
     }
     if (notifUnreadOnly) {
-      list = list.filter((b) => new Date(b.created_at).getTime() > lastSeen);
+      list = list.filter((b) => new Date(b.created_at).getTime() > lastSeen && !readIds.has(b.id));
     }
     if (notifTodayOnly) {
       const today = new Date();
