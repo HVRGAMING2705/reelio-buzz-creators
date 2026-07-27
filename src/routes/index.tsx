@@ -428,8 +428,8 @@ function Index() {
         }`}
       >
 
-        <div className="mx-auto max-w-[1600px] px-4 sm:px-6 md:px-8 lg:px-10 h-16 md:h-24 lg:h-28 flex items-center justify-between gap-4 md:gap-6 lg:gap-10">
-          <a href="#top" aria-label="Reelio — back to top" className="flex items-center shrink-0 -my-2 md:-my-5 lg:-my-6">
+        <div className="mx-auto max-w-[1600px] px-4 sm:px-6 md:px-8 lg:px-10 h-20 md:h-28 lg:h-32 flex items-center justify-between gap-6 md:gap-8 lg:gap-12">
+          <a href="#top" aria-label="Reelio — back to top" className="flex items-center shrink-0 -my-1 md:-my-3 lg:-my-4">
             <img
               src={logoMark.url}
               alt=""
@@ -440,13 +440,13 @@ function Index() {
               className="h-14 md:h-20 lg:h-24 w-auto max-w-[200px] sm:max-w-[260px] md:max-w-none object-contain block"
             />
           </a>
-          <nav aria-label="Primary" className="hidden md:flex items-center gap-8 lg:gap-12 text-[11px] lg:text-[12px] tracking-[0.28em] uppercase font-body font-medium">
+          <nav aria-label="Primary" className="hidden md:flex items-center gap-8 lg:gap-14 text-[11px] lg:text-[12px] tracking-[0.28em] uppercase font-body font-medium">
             <a href="#services" className="hover:text-[color:var(--reelio-red)] transition-colors">Services</a>
             <a href="#niches" className="hover:text-[color:var(--reelio-red)] transition-colors">Niches</a>
             <a href="#package" className="hover:text-[color:var(--reelio-red)] transition-colors">Package</a>
             <a href="#contact" className="hover:text-[color:var(--reelio-red)] transition-colors">Contact</a>
           </nav>
-          <div className="flex items-center gap-2 md:gap-3">
+          <div className="flex items-center gap-3 md:gap-4">
             {user ? (
               <Link
                 to="/admin"
