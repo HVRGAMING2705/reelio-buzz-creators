@@ -192,7 +192,7 @@ function Index() {
             <button
               type="button"
               onClick={() => setBookingOpen(true)}
-              className="glass-chip rounded-full px-4 py-1.5 text-xs uppercase tracking-[0.2em] liquid-shine inline-block"
+              className="rounded-full px-4 py-1.5 text-xs uppercase tracking-[0.2em] liquid-shine inline-block bg-[color:var(--reelio-red)] text-white font-bold shadow-[var(--shadow-red-glow)]"
             >
               Book a call
             </button>
