@@ -565,7 +565,7 @@ function TimelineSection({
                       {new Date(it.cap.created_at).toLocaleString()}
                     </span>
                   </div>
-                  <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[11px] opacity-70">
+                  <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] opacity-70">
                     {it.cap.reason && <span>{it.cap.reason}</span>}
                     {it.cap.ip_hash && (
                       <span>ip <span className="font-mono">{it.cap.ip_hash.slice(0, 8)}…</span></span>
@@ -574,6 +574,12 @@ function TimelineSection({
                     {it.cap.booking_id && it.cap.booking_id ? null : (
                       <span className="opacity-60">unlinked</span>
                     )}
+                    <button
+                      onClick={() => setDetail({ kind: "captcha", cap: it.cap })}
+                      className="ml-auto rounded-full border border-white/15 px-2 py-0.5 text-[10px] uppercase tracking-[0.15em] hover:bg-white/10"
+                    >
+                      Details
+                    </button>
                   </div>
                 </li>
               );
