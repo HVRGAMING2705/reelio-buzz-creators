@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import {
   getHistory,
-  markAllRead,
+  markFilteredRead,
   markRead,
   markUnread,
   clearHistory,
@@ -91,11 +91,11 @@ function NotificationHistoryPage() {
               ← Admin
             </Link>
             <button
-              onClick={() => markAllRead()}
-              disabled={unread === 0}
+              onClick={() => markFilteredRead(filtered.map((e) => e.id))}
+              disabled={!filtered.some((e) => !e.read)}
               className="rounded-full glass px-4 py-2 text-[10px] uppercase tracking-[0.2em] hover:bg-white/10 disabled:opacity-40"
             >
-              Mark all read
+              Mark filtered as read
             </button>
             <button
               onClick={() => {
