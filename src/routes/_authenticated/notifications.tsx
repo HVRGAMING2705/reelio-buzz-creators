@@ -197,7 +197,15 @@ function NotificationHistoryPage() {
                       Open →
                     </button>
                   )}
-                  {!e.read && (
+                  {e.read ? (
+                    <button
+                      onClick={() => markUnread(e.id)}
+                      className="text-[10px] uppercase tracking-[0.15em] px-2 py-1 rounded-md bg-white/5 hover:bg-white/10 border border-white/10"
+                      title="Mark as unread for later review"
+                    >
+                      Mark unread
+                    </button>
+                  ) : (
                     <button
                       onClick={() => markRead(e.id)}
                       className="text-[10px] uppercase tracking-[0.15em] px-2 py-1 rounded-md bg-white/5 hover:bg-white/10 border border-white/10"
