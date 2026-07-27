@@ -342,6 +342,17 @@ function NotificationsBell({
                   </li>
                 );
               })}
+              {hasMoreNotifications && (
+                <div className="px-4 py-3 border-t border-white/10 bg-white/[0.02]">
+                  <button
+                    onClick={() => setNotifLimit((n) => n + 8)}
+                    className="w-full text-center text-xs uppercase tracking-[0.15em] py-2 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 transition-colors"
+                    aria-label="Load older notifications"
+                  >
+                    Load more ({filteredNotifications.length - recent.length} remaining)
+                  </button>
+                </div>
+              )}
             </ul>
           )}
         </div>
