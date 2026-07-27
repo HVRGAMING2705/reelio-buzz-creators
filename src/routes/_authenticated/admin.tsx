@@ -493,10 +493,19 @@ function AdminPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("bookings")
-        .select("*, profiles:user_id (id, user_id, avatar_url, display_name, created_at, updated_at)")
+        .select("*")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return (data as BookingWithProfile[] | null) ?? [];
+      return (data ?? []) as Booking[];
+    },
+  });
+
+  const { data: profiles } = useQuery({
+    queryKey: ["profiles"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("profiles").select("*");
+      if (error) throw error;
+      return (data ?? []) as Profile[];
     },
   });
 
