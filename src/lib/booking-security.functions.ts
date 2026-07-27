@@ -53,3 +53,35 @@ export const hashEmailForSearch = createServerFn({ method: "GET" })
     }
     return { email_hash: shortHash(data.email) };
   });
+
+export const getCaptchaEventsForBooking = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) =>
+    z
+      .object({
+        bookingId: z.string().uuid(),
+        email: z.string().trim().toLowerCase().email().max(160),
+      })
+      .parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const { data: roles } = await context.supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", context.userId)
+      .eq("role", "admin")
+      .limit(1);
+    if (!roles || roles.length === 0) {
+      throw new Response("Forbidden", { status: 403 });
+    }
+
+    const email_hash = shortHash(data.email);
+    const { data: rows, error } = await context.supabase
+      .from("captcha_events")
+      .select("id, outcome, reason, ip_hash, email_hash, email_domain, user_agent, booking_id, created_at")
+      .or(`booking_id.eq.${data.bookingId},email_hash.eq.${email_hash}`)
+      .order("created_at", { ascending: false })
+      .limit(100);
+    if (error) throw error;
+    return rows ?? [];
+  });

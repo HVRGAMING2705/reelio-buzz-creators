@@ -205,6 +205,50 @@ async function logBlocked(entry: BlockLog) {
   }
 }
 
+type CaptchaOutcome = "success" | "failed" | "missing" | "skipped" | "server_secret_missing";
+async function logCaptchaEvent(entry: {
+  outcome: CaptchaOutcome;
+  reason?: string | null;
+  ip?: string;
+  email?: string;
+  userAgent?: string | null;
+  bookingId?: string | null;
+}): Promise<string | null> {
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data } = await supabaseAdmin
+      .from("captcha_events")
+      .insert({
+        outcome: entry.outcome,
+        reason: entry.reason ?? null,
+        ip_hash: entry.ip ? shortHash(entry.ip) : null,
+        email_hash: entry.email ? shortHash(entry.email) : null,
+        email_domain: entry.email ? emailDomainOf(entry.email) : null,
+        user_agent: entry.userAgent ?? null,
+        booking_id: entry.bookingId ?? null,
+      })
+      .select("id")
+      .maybeSingle();
+    return data?.id ?? null;
+  } catch {
+    return null;
+  }
+}
+
+async function linkCaptchaEventToBooking(eventId: string | null, bookingId: string) {
+  if (!eventId) return;
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await supabaseAdmin
+      .from("captcha_events")
+      .update({ booking_id: bookingId })
+      .eq("id", eventId);
+  } catch {
+    // best-effort
+  }
+}
+
+
 
 // Tiny in-process cache so we don't hit the DB on every submission.
 let cachedLimits: { buckets: { ip: Bucket[]; email: Bucket[] }; at: number } | null = null;
@@ -357,6 +401,7 @@ export const Route = createFileRoute("/api/public/bookings")({
             ? await loadCaptchaSetting(rlUrl, rlKey)
             : { enabled: false, siteKey: "" };
         const hcaptchaSecret = process.env.HCAPTCHA_SECRET;
+        let captchaEventId: string | null = null;
         if (captchaSetting.enabled) {
           if (!hcaptchaSecret) {
             await logBlocked({
@@ -364,6 +409,13 @@ export const Route = createFileRoute("/api/public/bookings")({
               ip,
               email: form.email,
               windowLabel: "server_secret_missing",
+              userAgent: ua,
+            });
+            await logCaptchaEvent({
+              outcome: "server_secret_missing",
+              reason: "HCAPTCHA_SECRET missing",
+              ip,
+              email: form.email,
               userAgent: ua,
             });
             return new Response(
@@ -378,6 +430,13 @@ export const Route = createFileRoute("/api/public/bookings")({
           }
           if (!captchaToken) {
             await logBlocked({ reason: "captcha_missing", ip, email: form.email, userAgent: ua });
+            await logCaptchaEvent({
+              outcome: "missing",
+              reason: "no token submitted",
+              ip,
+              email: form.email,
+              userAgent: ua,
+            });
             return new Response(
               JSON.stringify({ error: "Please complete the captcha to continue.", field: "captcha", code: "captcha_missing" }),
               { status: 400, headers: { "content-type": "application/json" } },
@@ -404,12 +463,34 @@ export const Route = createFileRoute("/api/public/bookings")({
               windowLabel: reason || undefined,
               userAgent: ua,
             });
+            await logCaptchaEvent({
+              outcome: "failed",
+              reason: reason || "unknown",
+              ip,
+              email: form.email,
+              userAgent: ua,
+            });
 
             return new Response(
               JSON.stringify({ error: msg, field: "captcha", code: "captcha_failed", reason }),
               { status: 403, headers: { "content-type": "application/json" } },
             );
           }
+
+          captchaEventId = await logCaptchaEvent({
+            outcome: "success",
+            ip,
+            email: form.email,
+            userAgent: ua,
+          });
+        } else {
+          captchaEventId = await logCaptchaEvent({
+            outcome: "skipped",
+            reason: "captcha disabled in settings",
+            ip,
+            email: form.email,
+            userAgent: ua,
+          });
         }
 
 
@@ -432,20 +513,27 @@ export const Route = createFileRoute("/api/public/bookings")({
           },
         });
 
-        const { error } = await supabase.from("bookings").insert({
-          name: form.name,
-          brand: form.brand || null,
-          email: form.email,
-          phone: form.phone,
-          service: form.service,
-          budget: form.budget,
-          niche: form.niche || null,
-          message: form.message || null,
-          user_id: form.userId ?? null,
-        });
+        const { data: inserted, error } = await supabase
+          .from("bookings")
+          .insert({
+            name: form.name,
+            brand: form.brand || null,
+            email: form.email,
+            phone: form.phone,
+            service: form.service,
+            budget: form.budget,
+            niche: form.niche || null,
+            message: form.message || null,
+            user_id: form.userId ?? null,
+          })
+          .select("id")
+          .maybeSingle();
 
         if (error) return jsonError(500, "Couldn't save booking");
-        return Response.json({ ok: true });
+        if (inserted?.id) {
+          await linkCaptchaEventToBooking(captchaEventId, inserted.id);
+        }
+        return Response.json({ ok: true, id: inserted?.id ?? null });
       },
     },
   },

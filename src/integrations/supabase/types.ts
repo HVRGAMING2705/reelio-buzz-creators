@@ -172,6 +172,50 @@ export type Database = {
         }
         Relationships: []
       }
+      captcha_events: {
+        Row: {
+          booking_id: string | null
+          created_at: string
+          email_domain: string | null
+          email_hash: string | null
+          id: string
+          ip_hash: string | null
+          outcome: string
+          reason: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          booking_id?: string | null
+          created_at?: string
+          email_domain?: string | null
+          email_hash?: string | null
+          id?: string
+          ip_hash?: string | null
+          outcome: string
+          reason?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          booking_id?: string | null
+          created_at?: string
+          email_domain?: string | null
+          email_hash?: string | null
+          id?: string
+          ip_hash?: string | null
+          outcome?: string
+          reason?: string | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "captcha_events_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
