@@ -331,9 +331,10 @@ export const Route = createFileRoute("/api/public/bookings")({
               reason: "captcha_failed",
               ip,
               email: form.email,
-              windowLabel: reason || null as unknown as string | undefined,
+              windowLabel: reason || undefined,
               userAgent: ua,
             });
+
             return new Response(
               JSON.stringify({ error: msg, field: "captcha", code: "captcha_failed", reason }),
               { status: 403, headers: { "content-type": "application/json" } },
