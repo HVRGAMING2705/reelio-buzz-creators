@@ -1,3 +1,4 @@
+import * as React from "react";
 import { motion, useMotionValue, useSpring, useTransform } from "motion/react";
 import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { Magnetic, TiltCard } from "@/components/motion-fx";
