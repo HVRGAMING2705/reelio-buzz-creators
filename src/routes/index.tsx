@@ -241,17 +241,16 @@ function Index() {
             </p>
             <div className="flex flex-wrap gap-3 md:justify-end">
               <Magnetic>
-                <a
-                  href="https://forms.gle/Px5NuE51UrGZMSKx8"
-                  target="_blank"
-                  rel="noreferrer"
+                <button
+                  type="button"
+                  onClick={() => setBookingOpen(true)}
                   className="group relative inline-flex items-center gap-2 rounded-full bg-white text-[color:var(--reelio-black)] px-6 py-3.5 uppercase tracking-[0.2em] text-xs liquid-shine shadow-2xl"
                 >
-                  Start a Project
+                  Book a call
                   <motion.span animate={{ x: [0, 4, 0] }} transition={{ duration: 1.8, repeat: Infinity }}>
                     →
                   </motion.span>
-                </a>
+                </button>
               </Magnetic>
               <Magnetic>
                 <a
