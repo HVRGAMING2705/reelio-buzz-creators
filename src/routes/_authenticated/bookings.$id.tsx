@@ -1,16 +1,19 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { markReadByBookingId } from "@/lib/notification-history";
 import type { Tables } from "@/integrations/supabase/types";
 
-type Booking = Tables<"bookings">;
+type Booking = Tables<"bookings"> & { assigned_to: string | null };
 type BookingEvent = Tables<"booking_events">;
 type Profile = Tables<"profiles">;
 
 const STATUSES = ["new", "confirmed", "canceled"] as const;
 type Status = (typeof STATUSES)[number];
+
+type AdminOption = { user_id: string; display_name: string | null; avatar_url: string | null };
 
 export const Route = createFileRoute("/_authenticated/bookings/$id")({
   head: () => ({
