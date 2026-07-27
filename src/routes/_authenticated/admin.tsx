@@ -292,12 +292,20 @@ function NotificationsBell({
     if (notifService !== "all") {
       list = list.filter((b) => b.service === notifService);
     }
+    if (notifSearch.trim()) {
+      const q = notifSearch.trim().toLowerCase();
+      list = list.filter((b) =>
+        [b.name, b.email, b.brand, b.phone, b.niche, b.service, b.message]
+          .filter((v): v is string => Boolean(v))
+          .some((v) => v.toLowerCase().includes(q))
+      );
+    }
     list.sort((a, b) => {
       const diff = +new Date(b.created_at) - +new Date(a.created_at);
       return notifSort === "newest" ? diff : -diff;
     });
     return list;
-  }, [bookings, lastSeen, readIds, notifStatus, notifUnreadOnly, notifTodayOnly, notifService, notifSort]);
+  }, [bookings, lastSeen, readIds, notifStatus, notifUnreadOnly, notifTodayOnly, notifService, notifSort, notifSearch]);
 
   const recent = useMemo(
     () => filteredNotifications.slice(0, notifLimit),
