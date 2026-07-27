@@ -412,6 +412,25 @@ function NotificationsBell({
     notifSort !== "newest" ||
     notifSearch.trim() !== "";
 
+  const firstUnreadBooking = useMemo(
+    () =>
+      recent.find(
+        (b) =>
+          b?.id &&
+          new Date(b.created_at).getTime() > lastSeen &&
+          !readIds.has(b.id),
+      ),
+    [recent, lastSeen, readIds],
+  );
+
+  const jumpToFirstUnread = useCallback(() => {
+    if (firstUnreadRef.current) {
+      firstUnreadRef.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    } else if (unreadCount > 0) {
+      toast.info("Unread notifications are hidden by current filters. Try resetting filters or enabling Unread only.");
+    }
+  }, [unreadCount]);
+
   return (
     <div className="relative" ref={ref}>
       <button
