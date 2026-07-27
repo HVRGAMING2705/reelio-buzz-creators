@@ -74,12 +74,17 @@ function makeScheduleId() {
     : `qs-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
+export type NotifChannel = "inApp" | "email" | "push";
+
 type NotifSettings = {
   realtimeEnabled: boolean;
   quietEnabled: boolean;
   quietStart: string; // legacy single window, kept for back-compat
   quietEnd: string;   // legacy single window, kept for back-compat
   quietSchedules: QuietSchedule[]; // preferred: per-day time ranges
+  channelInApp: boolean; // toast + notification bell
+  channelEmail: boolean; // send admin email on qualifying events
+  channelPush: boolean;  // browser push (Notification API)
   captchaEnabled: boolean;
   hcaptchaSiteKey: string;
   categoryBookings: boolean;
@@ -98,6 +103,9 @@ const DEFAULT_SETTINGS: NotifSettings = {
   quietStart: "22:00",
   quietEnd: "08:00",
   quietSchedules: [],
+  channelInApp: true,
+  channelEmail: false,
+  channelPush: false,
   captchaEnabled: false,
   hcaptchaSiteKey: "",
   categoryBookings: true,
