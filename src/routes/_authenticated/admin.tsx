@@ -339,7 +339,8 @@ function NotificationsBell({
     notifUnreadOnly ||
     notifTodayOnly ||
     notifService !== "all" ||
-    notifSort !== "newest";
+    notifSort !== "newest" ||
+    notifSearch.trim() !== "";
 
   return (
     <div className="relative" ref={ref}>
