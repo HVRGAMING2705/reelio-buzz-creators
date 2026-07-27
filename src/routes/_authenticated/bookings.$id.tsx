@@ -60,8 +60,7 @@ function BookingDetailPage() {
 
   useEffect(() => {
     if (!id) return;
-    const t = window.setTimeout(() => markReadByBookingId(id), 600);
-    return () => window.clearTimeout(t);
+    markReadByBookingId(id);
   }, [id]);
 
   const { data: booking, isLoading, error } = useQuery({
