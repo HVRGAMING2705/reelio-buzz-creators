@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { motion, useScroll, useSpring } from "motion/react";
+import { motion, useScroll, useSpring, AnimatePresence } from "motion/react";
+import { Menu, X } from "lucide-react";
 import logoMark from "@/assets/reelio-logo-mark.png.asset.json";
 import { useReveal } from "@/hooks/use-reveal";
 import { BookingModal } from "@/components/booking-modal";
@@ -10,14 +11,14 @@ import { trackClick, trackFormSubmit, trackEvent } from "@/lib/analytics";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Reelio SMMA — A Cinematic Social Media Studio for Brands" },
+      { title: "Reelio Social Consortium — A Cinematic Social Media Agency for Brands" },
       {
         name: "description",
         content:
-          "Reelio is a cinematic social media agency. Reels, photo/video shoots, editing, Meta ads, outreach and creator growth — one crew, monthly retainer from ₹10K.",
+          "Reelio Social Consortium is a cinematic social media agency. Reels, photo/video shoots, editing, Meta ads, outreach and creator growth — one crew, monthly retainer from ₹10K.",
       },
-      { name: "keywords", content: "social media agency, SMMA, reels, content creation, Meta ads, influencer outreach, video production India, Reelio" },
-      { property: "og:title", content: "Reelio SMMA — A Cinematic Social Media Studio" },
+      { name: "keywords", content: "social media agency, SMMA, reels, content creation, Meta ads, influencer outreach, video production India, Reelio Social Consortium" },
+      { property: "og:title", content: "Reelio Social Consortium — A Cinematic Social Media Agency" },
       {
         property: "og:description",
         content:
@@ -25,9 +26,9 @@ export const Route = createFileRoute("/")({
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "/" },
-      { property: "og:site_name", content: "Reelio SMMA" },
+      { property: "og:site_name", content: "Reelio Social Consortium" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Reelio SMMA — A Cinematic Social Media Studio" },
+      { name: "twitter:title", content: "Reelio Social Consortium — A Cinematic Social Media Agency" },
       {
         name: "twitter:description",
         content: "Reels, shoots, editing, ads and outreach — one crew shipping weekly.",
@@ -43,7 +44,7 @@ export const Route = createFileRoute("/")({
         children: JSON.stringify({
           "@context": "https://schema.org",
           "@type": "Organization",
-          name: "Reelio SMMA",
+          name: "Reelio Social Consortium",
           description:
             "Cinematic social media agency delivering content, shoots, editing, ads and creator outreach.",
           url: "/",
@@ -58,7 +59,7 @@ export const Route = createFileRoute("/")({
           "@context": "https://schema.org",
           "@type": "Service",
           serviceType: "Social Media Marketing Agency",
-          provider: { "@type": "Organization", name: "Reelio SMMA" },
+          provider: { "@type": "Organization", name: "Reelio Social Consortium" },
           areaServed: "IN",
           offers: {
             "@type": "AggregateOffer",
@@ -81,7 +82,7 @@ const services = [
     title: "Content Creation",
     kicker: "Reels · Posts · Stories",
     desc:
-      "Platform-native reels and posts built for hook, retention and share. We ship weekly at studio pace.",
+      "Platform-native reels and posts built for hook, retention and share. We ship weekly at consortium pace.",
   },
   {
     n: "02",
@@ -344,6 +345,7 @@ function Index() {
 
   const [scrolled, setScrolled] = useState(false);
   const [bookingOpen, setBookingOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [user, setUser] = useState<{ email?: string; avatar_url?: string | null } | null>(null);
 
   const { scrollYProgress } = useScroll();
@@ -373,6 +375,15 @@ function Index() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  useEffect(() => {
+    if (mobileOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => { document.body.style.overflow = ""; };
+  }, [mobileOpen]);
 
   const year = new Date().getFullYear();
   const issue = String(year).slice(-2);
@@ -417,7 +428,7 @@ function Index() {
         }`}
       >
 
-        <div className="mx-auto max-w-[1600px] px-4 sm:px-6 md:px-8 lg:px-10 h-16 md:h-20 lg:h-24 grid grid-cols-[minmax(0,auto)_1fr_auto] md:flex items-center md:justify-between gap-4 md:gap-6 lg:gap-10">
+        <div className="mx-auto max-w-[1600px] px-4 sm:px-6 md:px-8 lg:px-10 h-16 md:h-20 lg:h-24 flex items-center justify-between gap-4 md:gap-6 lg:gap-10">
           <a href="#top" aria-label="Reelio — back to top" className="flex items-center shrink-0 -my-3 md:-my-6 lg:-my-7">
             <img
               src={logoMark.url}
@@ -426,7 +437,7 @@ function Index() {
               height={96}
               decoding="async"
               fetchPriority="high"
-              className="h-12 md:h-16 lg:h-20 w-auto object-contain block"
+              className="h-12 md:h-16 lg:h-20 w-auto max-w-[180px] sm:max-w-[220px] md:max-w-none object-contain block"
             />
           </a>
           <nav aria-label="Primary" className="hidden md:flex items-center gap-8 lg:gap-12 text-[11px] lg:text-[12px] tracking-[0.28em] uppercase font-body font-medium">
@@ -435,7 +446,7 @@ function Index() {
             <a href="#package" className="hover:text-[color:var(--reelio-red)] transition-colors">Package</a>
             <a href="#contact" className="hover:text-[color:var(--reelio-red)] transition-colors">Contact</a>
           </nav>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 md:gap-3">
             {user ? (
               <Link
                 to="/admin"
@@ -448,7 +459,7 @@ function Index() {
                     user.email?.[0]?.toUpperCase() ?? "U"
                   )}
                 </span>
-                Studio
+                Consortium
               </Link>
             ) : (
               <Link
@@ -461,13 +472,87 @@ function Index() {
             <button
               type="button"
               onClick={() => { trackClick("open_booking_modal"); setBookingOpen(true); }}
-              className="btn-red !py-2.5 !px-4 md:!px-5 !text-[10px]"
+              className="btn-red !py-2.5 !px-3 md:!px-5 !text-[10px] whitespace-nowrap"
             >
               Book a call
+            </button>
+            <button
+              type="button"
+              aria-label="Open menu"
+              aria-expanded={mobileOpen}
+              aria-controls="mobile-menu"
+              onClick={() => setMobileOpen(true)}
+              className="md:hidden inline-flex items-center justify-center h-10 w-10 rounded-full glass-chip text-white"
+            >
+              <Menu className="w-5 h-5" />
             </button>
           </div>
         </div>
       </header>
+
+      {/* Mobile menu overlay */}
+      <AnimatePresence>
+        {mobileOpen && (
+          <>
+            <motion.div
+              id="mobile-menu-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.25 }}
+              className="fixed inset-0 z-[60] bg-black/70 backdrop-blur-sm"
+              onClick={() => setMobileOpen(false)}
+            />
+            <motion.nav
+              id="mobile-menu"
+              initial={{ opacity: 0, x: "100%" }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: "100%" }}
+              transition={{ duration: 0.3, ease: [0.2, 0.7, 0.2, 1] }}
+              className="fixed top-0 right-0 bottom-0 z-[70] w-[min(85vw,320px)] glass-dark border-l border-white/10 p-6 flex flex-col"
+              aria-label="Mobile"
+            >
+              <div className="flex items-center justify-between mb-10">
+                <span className="font-display text-xs tracking-[0.25em] uppercase text-white/60">Menu</span>
+                <button
+                  type="button"
+                  aria-label="Close menu"
+                  onClick={() => setMobileOpen(false)}
+                  className="inline-flex items-center justify-center h-10 w-10 rounded-full glass-chip text-white"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="flex flex-col gap-6 font-display text-3xl tracking-[-0.01em]">
+                {[
+                  { label: "Services", href: "#services" },
+                  { label: "Niches", href: "#niches" },
+                  { label: "Package", href: "#package" },
+                  { label: "Contact", href: "#contact" },
+                ].map((item) => (
+                  <a
+                    key={item.label}
+                    href={item.href}
+                    onClick={() => setMobileOpen(false)}
+                    className="hover:text-[color:var(--reelio-red)] transition-colors"
+                  >
+                    {item.label}
+                  </a>
+                ))}
+              </div>
+              <div className="mt-auto pt-8 border-t border-white/10">
+                <button
+                  type="button"
+                  onClick={() => { setMobileOpen(false); trackClick("open_booking_modal"); setBookingOpen(true); }}
+                  className="btn-red w-full justify-center"
+                >
+                  Book a call
+                </button>
+              </div>
+            </motion.nav>
+          </>
+        )}
+      </AnimatePresence>
 
       <main id="main">
       {/* ============ MASTHEAD / HERO ============ */}
@@ -484,7 +569,7 @@ function Index() {
               </span>
             </div>
             <span className="font-body text-[10px] md:text-xs uppercase tracking-[0.28em] text-white/50">
-              A Cinematic Social Studio
+              A Cinematic Social Media Consortium
             </span>
           </div>
 
@@ -495,12 +580,12 @@ function Index() {
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.9, ease: [0.2, 0.7, 0.2, 1] }}
-                className="font-display text-[15vw] md:text-[10.5vw] xl:text-[9vw] 2xl:text-[150px] leading-[0.86] tracking-[-0.02em]"
+                className="font-display text-[13vw] sm:text-[14vw] md:text-[10.5vw] xl:text-[9vw] 2xl:text-[150px] leading-[0.86] tracking-[-0.02em] break-words"
               >
                 <span className="block">STORIES</span>
                 <span className="block">
                   <span className="text-shimmer">SHOT.</span>{" "}
-                  <span className="italic font-body font-light lowercase text-white/70 text-[10vw] md:text-[6.5vw] xl:text-[5.5vw] 2xl:text-[92px]">
+                  <span className="italic font-body font-light lowercase text-white/70 text-[9vw] sm:text-[9.5vw] md:text-[6.5vw] xl:text-[5.5vw] 2xl:text-[92px]">
                     cut,
                   </span>
                 </span>
@@ -510,7 +595,7 @@ function Index() {
             <div className="md:col-span-3 flex flex-col justify-end">
               <span className="slug mb-3">The Lede</span>
               <p className="font-body text-base md:text-[17px] leading-relaxed text-white/80">
-                Reelio is a social media studio for brands that refuse to look
+                Reelio Social Consortium is a social media agency for brands that refuse to look
                 like everyone else. We shoot the story, cut the reel, run the
                 ads, and grow the room — as one crew.
               </p>
@@ -569,7 +654,7 @@ function Index() {
           <div className="grid md:grid-cols-12 gap-6 md:gap-8 pb-10 md:pb-16 border-b border-white/15">
             <div className="md:col-span-5 lg:col-span-4">
               <span className="slug">§ Services</span>
-              <h2 className="mt-6 font-display text-5xl md:text-7xl lg:text-8xl leading-[0.9]">
+              <h2 className="mt-6 font-display text-4xl sm:text-5xl md:text-7xl lg:text-8xl leading-[0.9] break-words">
                 The<br />
                 <span className="text-[color:var(--reelio-red)]">Index.</span>
               </h2>
@@ -592,7 +677,7 @@ function Index() {
                   <span className="col-span-2 md:col-span-1 font-display text-2xl md:text-4xl lg:text-5xl text-white/40 group-hover:text-white transition-colors">
                     {s.n}
                   </span>
-                  <span className="col-span-10 md:col-span-5 font-display text-3xl md:text-6xl lg:text-7xl leading-none group-hover:text-white transition-colors">
+                  <span className="col-span-10 md:col-span-5 font-display text-2xl sm:text-3xl md:text-6xl lg:text-7xl leading-none group-hover:text-white transition-colors break-words">
                     {s.title}
                   </span>
                   <span className="hidden sm:block col-span-6 md:col-span-3 font-body text-[11px] lg:text-xs uppercase tracking-[0.25em] text-white/50 group-hover:text-white/90 transition-colors">
@@ -616,7 +701,7 @@ function Index() {
               <span className="font-body text-[10px] uppercase tracking-[0.3em] font-semibold text-white/80">
                 § Feature
               </span>
-              <h2 className="mt-4 font-display text-6xl md:text-[8vw] xl:text-[7vw] 2xl:text-[120px] leading-[0.9]">
+              <h2 className="mt-4 font-display text-5xl sm:text-6xl md:text-[8vw] xl:text-[7vw] 2xl:text-[120px] leading-[0.9] break-words">
                 Who we<br />shoot for.
               </h2>
             </div>
@@ -633,7 +718,7 @@ function Index() {
             {niches.map((n, i) => (
               <li
                 key={n}
-                className="flex items-baseline justify-between py-6 md:py-10 lg:py-12 font-display text-4xl md:text-7xl lg:text-8xl uppercase tracking-[-0.01em] hover:pl-4 transition-all duration-500"
+                className="flex items-baseline justify-between gap-4 py-6 md:py-10 lg:py-12 font-display text-3xl sm:text-4xl md:text-7xl lg:text-8xl uppercase tracking-[-0.01em] hover:pl-4 transition-all duration-500 break-words"
               >
                 <span className="flex items-baseline gap-6">
                   <span className="font-body text-xs md:text-sm text-white/60 tabular-nums">
@@ -657,12 +742,12 @@ function Index() {
             {/* left column — the "cover" */}
             <div className="md:col-span-5 md:sticky md:top-28 self-start">
               <span className="slug">§ The Package</span>
-              <h2 className="mt-6 font-display text-6xl md:text-8xl lg:text-9xl leading-[0.88]">
+              <h2 className="mt-6 font-display text-5xl sm:text-6xl md:text-8xl lg:text-9xl leading-[0.88] break-words">
                 Reelio<br />
                 <span className="text-[color:var(--reelio-red)]">Monthly.</span>
               </h2>
               <div className="mt-10 flex items-baseline gap-3">
-                <span className="font-display text-6xl md:text-8xl lg:text-9xl leading-none">₹50K</span>
+                <span className="font-display text-5xl sm:text-6xl md:text-8xl lg:text-9xl leading-none">₹50K</span>
                 <span className="font-body text-sm uppercase tracking-[0.25em] text-white/50">
                   / month
                 </span>
@@ -727,7 +812,7 @@ function Index() {
           <div className="grid md:grid-cols-12 gap-8 lg:gap-12">
             <div className="md:col-span-7">
               <span className="slug">§ End Sheet</span>
-              <h2 className="mt-6 font-display text-6xl md:text-[10vw] xl:text-[8.5vw] 2xl:text-[150px] leading-[0.88]">
+              <h2 className="mt-6 font-display text-5xl sm:text-6xl md:text-[10vw] xl:text-[8.5vw] 2xl:text-[150px] leading-[0.88] break-words">
                 Roll the<br />
                 <span className="text-[color:var(--reelio-red)]">next reel.</span>
               </h2>
@@ -744,7 +829,7 @@ function Index() {
               </div>
               <div className="mt-12 grid grid-cols-2 gap-6 max-w-xl">
                 <div>
-                  <span className="font-body text-[10px] uppercase tracking-[0.3em] text-white/40">Studio</span>
+                  <span className="font-body text-[10px] uppercase tracking-[0.3em] text-white/40">Consortium</span>
                   <p className="mt-2 font-body text-white/80">Available across India · Remote worldwide</p>
                 </div>
                 <div>
@@ -763,11 +848,11 @@ function Index() {
 
       {/* ============ COLOPHON / FOOTER ============ */}
       <footer className="border-t border-white/15 py-10">
-        <div className="mx-auto max-w-[1600px] px-5 sm:px-8 md:px-10 lg:px-14 flex flex-wrap items-center justify-between gap-4">
+        <div className="mx-auto max-w-[1600px] px-5 sm:px-8 md:px-10 lg:px-14 flex flex-col sm:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-4">
-            <img src={logoMark.url} alt="" loading="lazy" decoding="async" width={120} height={40} className="h-5 w-auto object-contain" />
+            <img src={logoMark.url} alt="" loading="lazy" decoding="async" width={120} height={48} className="h-6 w-auto object-contain" />
             <span className="font-body text-[10px] uppercase tracking-[0.3em] text-white/70">
-              © {year} Reelio Studio · Issue №{issue}
+              © {year} Reelio Social Consortium · Issue №{issue}
             </span>
           </div>
           <nav aria-label="Footer" className="flex items-center gap-6 font-body text-[10px] uppercase tracking-[0.3em] text-white/70">
