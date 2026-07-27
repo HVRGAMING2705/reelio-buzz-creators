@@ -173,6 +173,21 @@ function NotificationsBell({
     setNotifLimit(8);
   }, [open, notifStatus, notifUnreadOnly, notifTodayOnly, notifService, notifSort]);
 
+  // Infinite scroll: load more notifications when the sentinel enters view
+  useEffect(() => {
+    if (!open || !sentinelRef.current || !hasMoreNotifications) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          setNotifLimit((n) => n + 8);
+        }
+      },
+      { root: ref.current?.querySelector('[class*="max-h-[70vh]"]') || null, threshold: 0.1 },
+    );
+    observer.observe(sentinelRef.current);
+    return () => observer.disconnect();
+  }, [open, hasMoreNotifications, notifLimit, filteredNotifications.length]);
+
   const filteredNotifications = useMemo(() => {
     let list = [...bookings];
     if (notifStatus !== "all") {
