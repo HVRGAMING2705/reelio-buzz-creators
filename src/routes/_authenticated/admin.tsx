@@ -8,6 +8,8 @@ import type { Tables } from "@/integrations/supabase/types";
 const LAST_SEEN_KEY = "reelio.admin.lastSeenBookingAt";
 const SETTINGS_KEY = "reelio.admin.notifSettings";
 
+type NotifFrequency = "instant" | "1m" | "5m";
+
 type NotifSettings = {
   realtimeEnabled: boolean;
   quietEnabled: boolean;
@@ -15,6 +17,10 @@ type NotifSettings = {
   quietEnd: string;   // "HH:MM"
   captchaEnabled: boolean;
   hcaptchaSiteKey: string;
+  notifyNewBooking: boolean;
+  notifyStatusChange: boolean;
+  notifyNoteUpdate: boolean;
+  frequency: NotifFrequency;
 };
 
 const DEFAULT_SETTINGS: NotifSettings = {
@@ -24,6 +30,16 @@ const DEFAULT_SETTINGS: NotifSettings = {
   quietEnd: "08:00",
   captchaEnabled: false,
   hcaptchaSiteKey: "",
+  notifyNewBooking: true,
+  notifyStatusChange: true,
+  notifyNoteUpdate: false,
+  frequency: "instant",
+};
+
+const FREQUENCY_MS: Record<NotifFrequency, number> = {
+  instant: 0,
+  "1m": 60_000,
+  "5m": 300_000,
 };
 
 function loadSettings(): NotifSettings {
