@@ -275,6 +275,27 @@ function NotificationsBell({
     return () => document.removeEventListener("mousedown", onDoc);
   }, [open]);
 
+  // Keyboard shortcut: press "U" to toggle Unread only while the dropdown is open.
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.repeat) return;
+      const target = e.target as HTMLElement;
+      const isTyping =
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.tagName === "SELECT" ||
+        target.isContentEditable;
+      if (isTyping) return;
+      if (e.key === "u" || e.key === "U") {
+        e.preventDefault();
+        setNotifUnreadOnly((v) => !v);
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open]);
+
   // Clear selection and reset pagination when dropdown closes or filters change
   useEffect(() => {
     if (!open) setSelectedIds(new Set());
@@ -409,13 +430,14 @@ function NotificationsBell({
                     ? "bg-red-500/20 border-red-500/50 text-white"
                     : "bg-white/5 border-white/10 text-white/80 hover:bg-white/10"
                 }`}
-                title="Show only unread notifications"
+                title="Show only unread notifications (press U)"
               >
                 <input
                   type="checkbox"
                   className="h-3.5 w-3.5 accent-red-500"
                   checked={notifUnreadOnly}
                   onChange={(e) => setNotifUnreadOnly(e.target.checked)}
+                  aria-label="Unread only notifications"
                 />
                 Unread only
               </label>
