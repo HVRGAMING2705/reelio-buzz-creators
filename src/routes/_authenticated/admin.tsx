@@ -13,6 +13,8 @@ type NotifSettings = {
   quietEnabled: boolean;
   quietStart: string; // "HH:MM"
   quietEnd: string;   // "HH:MM"
+  captchaEnabled: boolean;
+  hcaptchaSiteKey: string;
 };
 
 const DEFAULT_SETTINGS: NotifSettings = {
@@ -20,6 +22,8 @@ const DEFAULT_SETTINGS: NotifSettings = {
   quietEnabled: false,
   quietStart: "22:00",
   quietEnd: "08:00",
+  captchaEnabled: false,
+  hcaptchaSiteKey: "",
 };
 
 function loadSettings(): NotifSettings {
