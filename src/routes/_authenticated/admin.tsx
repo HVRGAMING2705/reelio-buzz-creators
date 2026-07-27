@@ -57,11 +57,29 @@ function saveNotifFilters(userId: string | null, filters: NotifFilters) {
 
 type NotifFrequency = "instant" | "1m" | "5m";
 
+// Day-of-week: 0 = Sunday .. 6 = Saturday, matching Date.getDay().
+export type QuietSchedule = {
+  id: string;
+  start: string; // "HH:MM"
+  end: string;   // "HH:MM"
+  days: number[]; // subset of 0..6; empty means "no days" (inactive row)
+};
+
+const ALL_DAYS: number[] = [0, 1, 2, 3, 4, 5, 6];
+const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
+
+function makeScheduleId() {
+  return typeof crypto !== "undefined" && "randomUUID" in crypto
+    ? crypto.randomUUID()
+    : `qs-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
 type NotifSettings = {
   realtimeEnabled: boolean;
   quietEnabled: boolean;
-  quietStart: string; // "HH:MM"
-  quietEnd: string;   // "HH:MM"
+  quietStart: string; // legacy single window, kept for back-compat
+  quietEnd: string;   // legacy single window, kept for back-compat
+  quietSchedules: QuietSchedule[]; // preferred: per-day time ranges
   captchaEnabled: boolean;
   hcaptchaSiteKey: string;
   categoryBookings: boolean;
@@ -79,6 +97,7 @@ const DEFAULT_SETTINGS: NotifSettings = {
   quietEnabled: false,
   quietStart: "22:00",
   quietEnd: "08:00",
+  quietSchedules: [],
   captchaEnabled: false,
   hcaptchaSiteKey: "",
   categoryBookings: true,
@@ -97,15 +116,29 @@ const FREQUENCY_MS: Record<NotifFrequency, number> = {
   "5m": 300_000,
 };
 
+function migrateSettings(s: NotifSettings): NotifSettings {
+  // Ensure existing users see their legacy single window as an editable
+  // schedule row when the modal opens.
+  if (!Array.isArray(s.quietSchedules) || s.quietSchedules.length === 0) {
+    return {
+      ...s,
+      quietSchedules: [
+        { id: makeScheduleId(), start: s.quietStart, end: s.quietEnd, days: [...ALL_DAYS] },
+      ],
+    };
+  }
+  return s;
+}
+
 function loadSettings(userId: string | null): NotifSettings {
   if (typeof window === "undefined") return DEFAULT_SETTINGS;
   try {
     const raw =
       window.localStorage.getItem(settingsKeyFor(userId)) ??
       (userId ? window.localStorage.getItem(SETTINGS_KEY_BASE) : null);
-    if (!raw) return DEFAULT_SETTINGS;
-    return { ...DEFAULT_SETTINGS, ...JSON.parse(raw) };
-  } catch { return DEFAULT_SETTINGS; }
+    if (!raw) return migrateSettings(DEFAULT_SETTINGS);
+    return migrateSettings({ ...DEFAULT_SETTINGS, ...JSON.parse(raw) });
+  } catch { return migrateSettings(DEFAULT_SETTINGS); }
 }
 
 function toMinutes(t: string) {
@@ -113,26 +146,57 @@ function toMinutes(t: string) {
   return (h || 0) * 60 + (m || 0);
 }
 
+function scheduleCoversMoment(sch: QuietSchedule, d: Date): boolean {
+  if (!sch.days || sch.days.length === 0) return false;
+  const start = toMinutes(sch.start);
+  const end = toMinutes(sch.end);
+  if (start === end) return false;
+  const day = d.getDay();
+  const nowMin = d.getHours() * 60 + d.getMinutes();
+  if (start < end) {
+    return sch.days.includes(day) && nowMin >= start && nowMin < end;
+  }
+  // Wraps past midnight: active on `day` from start until 24:00, and on the
+  // *next* day from 00:00 until end. So we're covered if either:
+  //   - today is a scheduled day AND now >= start
+  //   - yesterday was a scheduled day AND now < end
+  const prevDay = (day + 6) % 7;
+  return (
+    (sch.days.includes(day) && nowMin >= start) ||
+    (sch.days.includes(prevDay) && nowMin < end)
+  );
+}
+
 function isQuietNow(s: NotifSettings, d = new Date()) {
   if (!s.quietEnabled) return false;
-  const now = d.getHours() * 60 + d.getMinutes();
-  const start = toMinutes(s.quietStart);
-  const end = toMinutes(s.quietEnd);
-  if (start === end) return false;
-  return start < end ? now >= start && now < end : now >= start || now < end;
+  const schedules = s.quietSchedules?.length
+    ? s.quietSchedules
+    : [{ id: "legacy", start: s.quietStart, end: s.quietEnd, days: ALL_DAYS }];
+  return schedules.some((sch) => scheduleCoversMoment(sch, d));
 }
 
 function formatNextTransition(s: NotifSettings, d: Date, quietActive: boolean): string | null {
   if (!s.quietEnabled) return null;
-  const target = quietActive ? s.quietEnd : s.quietStart;
-  const [h, m] = target.split(":").map(Number);
-  if (Number.isNaN(h) || Number.isNaN(m)) return null;
-  const next = new Date(d);
-  next.setSeconds(0, 0);
-  next.setHours(h, m, 0, 0);
-  if (next <= d) next.setDate(next.getDate() + 1);
-  return next.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  // Scan forward minute-by-minute (capped at 8 days) to find the next flip.
+  // Cheap enough for a settings modal and correctly handles multiple ranges,
+  // day-of-week gaps, and wrap-past-midnight windows.
+  const cursor = new Date(d);
+  cursor.setSeconds(0, 0);
+  const stepMin = 5;
+  const maxMinutes = 8 * 24 * 60;
+  for (let i = stepMin; i <= maxMinutes; i += stepMin) {
+    const t = new Date(cursor.getTime() + i * 60_000);
+    if (isQuietNow(s, t) !== quietActive) {
+      return t.toLocaleString([], {
+        weekday: "short",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    }
+  }
+  return null;
 }
+
 
 
 
@@ -1729,32 +1793,139 @@ function SettingsModal({
           />
         </label>
 
-        <div className={`grid grid-cols-2 gap-3 mt-4 ${draft.quietEnabled ? "" : "opacity-50 pointer-events-none"}`}>
-          <div>
-            <label className="text-[10px] uppercase tracking-[0.25em] opacity-60">From</label>
-            <input
-              type="time"
-              value={draft.quietStart}
-              onChange={(e) => setDraft({ ...draft, quietStart: e.target.value })}
-              className="mt-1 w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-sm"
-            />
-          </div>
-          <div>
-            <label className="text-[10px] uppercase tracking-[0.25em] opacity-60">To</label>
-            <input
-              type="time"
-              value={draft.quietEnd}
-              onChange={(e) => setDraft({ ...draft, quietEnd: e.target.value })}
-              className="mt-1 w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-sm"
-            />
-          </div>
+        <div className={`mt-4 space-y-3 ${draft.quietEnabled ? "" : "opacity-50 pointer-events-none"}`}>
+          {(draft.quietSchedules ?? []).map((sch, idx) => {
+            const invalid = sch.start === sch.end || sch.days.length === 0;
+            const updateSchedule = (patch: Partial<QuietSchedule>) => {
+              const next = [...(draft.quietSchedules ?? [])];
+              next[idx] = { ...sch, ...patch };
+              setDraft({ ...draft, quietSchedules: next });
+            };
+            const toggleDay = (d: number) => {
+              const has = sch.days.includes(d);
+              updateSchedule({
+                days: has ? sch.days.filter((x) => x !== d) : [...sch.days, d].sort(),
+              });
+            };
+            return (
+              <div
+                key={sch.id}
+                className={`rounded-xl border ${invalid ? "border-amber-500/40 bg-amber-500/5" : "border-white/10 bg-white/[0.03]"} p-3`}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-[10px] uppercase tracking-[0.25em] opacity-60">
+                    Schedule {idx + 1}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => updateSchedule({ days: [...ALL_DAYS] })}
+                      className="text-[10px] uppercase tracking-[0.15em] opacity-60 hover:opacity-100"
+                    >
+                      Every day
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => updateSchedule({ days: [1, 2, 3, 4, 5] })}
+                      className="text-[10px] uppercase tracking-[0.15em] opacity-60 hover:opacity-100"
+                    >
+                      Weekdays
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => updateSchedule({ days: [0, 6] })}
+                      className="text-[10px] uppercase tracking-[0.15em] opacity-60 hover:opacity-100"
+                    >
+                      Weekend
+                    </button>
+                    {(draft.quietSchedules ?? []).length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const next = (draft.quietSchedules ?? []).filter((_, i) => i !== idx);
+                          setDraft({ ...draft, quietSchedules: next });
+                        }}
+                        className="text-[10px] uppercase tracking-[0.15em] text-red-400 hover:text-red-300"
+                        aria-label={`Remove schedule ${idx + 1}`}
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-1.5 mb-3" role="group" aria-label="Days of week">
+                  {DAY_LABELS.map((label, dayIdx) => {
+                    const active = sch.days.includes(dayIdx);
+                    return (
+                      <button
+                        key={label}
+                        type="button"
+                        onClick={() => toggleDay(dayIdx)}
+                        aria-pressed={active}
+                        className={`text-[11px] font-medium px-2.5 py-1 rounded-full border transition-colors ${
+                          active
+                            ? "bg-red-500/25 border-red-500/60 text-white"
+                            : "bg-white/5 border-white/10 text-white/60 hover:bg-white/10"
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[10px] uppercase tracking-[0.25em] opacity-60">From</label>
+                    <input
+                      type="time"
+                      value={sch.start}
+                      onChange={(e) => updateSchedule({ start: e.target.value })}
+                      className="mt-1 w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] uppercase tracking-[0.25em] opacity-60">To</label>
+                    <input
+                      type="time"
+                      value={sch.end}
+                      onChange={(e) => updateSchedule({ end: e.target.value })}
+                      className="mt-1 w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-sm"
+                    />
+                  </div>
+                </div>
+                {invalid && (
+                  <p className="text-[11px] text-amber-300/90 mt-2">
+                    {sch.days.length === 0
+                      ? "Pick at least one day for this schedule to apply."
+                      : "Start and end must differ."}
+                  </p>
+                )}
+              </div>
+            );
+          })}
+          <button
+            type="button"
+            onClick={() =>
+              setDraft({
+                ...draft,
+                quietSchedules: [
+                  ...(draft.quietSchedules ?? []),
+                  { id: makeScheduleId(), start: "22:00", end: "08:00", days: [...ALL_DAYS] },
+                ],
+              })
+            }
+            className="w-full rounded-lg border border-dashed border-white/15 px-3 py-2 text-xs uppercase tracking-[0.2em] opacity-70 hover:opacity-100 hover:bg-white/5"
+          >
+            + Add schedule
+          </button>
         </div>
         {draft.quietEnabled && (
           <p className="text-xs opacity-60 mt-2">
             {quietActive ? "Quiet hours are active right now." : "Quiet hours are inactive right now."}
-            {" "}Spans past midnight are supported.
+            {" "}Spans past midnight are supported per schedule.
           </p>
         )}
+
 
         <div className="mt-6 pt-4 border-t border-white/10">
           <p className="text-[10px] uppercase tracking-[0.3em] opacity-50 mb-1">Notification categories</p>
