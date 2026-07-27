@@ -294,6 +294,7 @@ export function BookingModal({ open, onClose }: Props) {
     setForm(emptyForm);
     setFieldErrors({});
     setErrorMsg(null);
+    setCaptchaError(null);
     setHoneypot("");
     setCaptchaToken(null);
     if (captchaActive && typeof window !== "undefined") {
