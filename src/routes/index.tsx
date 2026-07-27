@@ -674,6 +674,134 @@ function Index() {
         </div>
       </section>
 
+      {/* ============ FEATURE REEL — EDITORIAL GALLERY ============ */}
+      <section id="reel" aria-label="Feature reel" className="relative py-24 md:py-32 lg:py-40">
+        <div className="mx-auto max-w-[1600px] px-5 sm:px-8 md:px-10 lg:px-14">
+          <div className="grid md:grid-cols-12 gap-6 md:gap-8 pb-10 md:pb-16 border-b border-white/15">
+            <div className="md:col-span-7">
+              <span className="slug">§ Feature Reel</span>
+              <h2 className="mt-6 font-display text-4xl sm:text-5xl md:text-7xl lg:text-8xl leading-[0.9] break-words">
+                Frames from<br />
+                <span className="text-[color:var(--reelio-red)]">the floor.</span>
+              </h2>
+            </div>
+            <div className="md:col-span-4 md:col-start-9 flex items-end">
+              <p className="font-body text-base md:text-lg text-white/70">
+                Studio nights, street reels, cutting rooms — a slice of what the
+                Reelio crew has been shooting between drops.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-10 md:mt-14 grid grid-cols-12 gap-4 md:gap-6">
+            {/* Tall left */}
+            <motion.figure
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-80px" }}
+              transition={{ duration: 0.8, ease: [0.2, 0.7, 0.2, 1] }}
+              className="col-span-12 md:col-span-5 relative overflow-hidden group"
+            >
+              <img
+                src={ed1.url}
+                alt="Editorial shoot — solo talent under red rim light"
+                width={1280}
+                height={1600}
+                loading="lazy"
+                decoding="async"
+                className="w-full h-[420px] md:h-[640px] lg:h-[720px] object-cover transition-transform duration-[900ms] group-hover:scale-105"
+              />
+              <figcaption className="absolute bottom-0 left-0 right-0 p-4 md:p-6 bg-gradient-to-t from-black/80 to-transparent">
+                <span className="font-body text-[10px] uppercase tracking-[0.3em] text-white/70">Plate 01 · Editorial</span>
+                <p className="mt-1 font-display text-lg md:text-2xl">Cover Test — Studio A</p>
+              </figcaption>
+            </motion.figure>
+
+            {/* Right column stack */}
+            <div className="col-span-12 md:col-span-7 grid grid-cols-2 gap-4 md:gap-6">
+              <motion.figure
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-80px" }}
+                transition={{ duration: 0.8, delay: 0.1, ease: [0.2, 0.7, 0.2, 1] }}
+                className="col-span-2 relative overflow-hidden group"
+              >
+                <img
+                  src={ed2.url}
+                  alt="Behind the scenes of a reels shoot"
+                  width={1600}
+                  height={1200}
+                  loading="lazy"
+                  decoding="async"
+                  className="w-full h-[240px] md:h-[300px] lg:h-[340px] object-cover transition-transform duration-[900ms] group-hover:scale-105"
+                />
+                <figcaption className="absolute bottom-0 left-0 right-0 p-4 md:p-6 bg-gradient-to-t from-black/80 to-transparent">
+                  <span className="font-body text-[10px] uppercase tracking-[0.3em] text-white/70">Plate 02 · On Set</span>
+                  <p className="mt-1 font-display text-lg md:text-2xl">Two Cameras, One Cut</p>
+                </figcaption>
+              </motion.figure>
+
+              <motion.figure
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-80px" }}
+                transition={{ duration: 0.8, delay: 0.2, ease: [0.2, 0.7, 0.2, 1] }}
+                className="col-span-2 sm:col-span-1 relative overflow-hidden group"
+              >
+                <img
+                  src={ed3.url}
+                  alt="Editing workstation with reel timeline"
+                  width={1280}
+                  height={1600}
+                  loading="lazy"
+                  decoding="async"
+                  className="w-full h-[280px] md:h-[340px] lg:h-[380px] object-cover transition-transform duration-[900ms] group-hover:scale-105"
+                />
+                <figcaption className="absolute bottom-0 left-0 right-0 p-4 md:p-5 bg-gradient-to-t from-black/80 to-transparent">
+                  <span className="font-body text-[10px] uppercase tracking-[0.3em] text-white/70">Plate 03 · Cut Room</span>
+                </figcaption>
+              </motion.figure>
+
+              <motion.figure
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-80px" }}
+                transition={{ duration: 0.8, delay: 0.3, ease: [0.2, 0.7, 0.2, 1] }}
+                className="col-span-2 sm:col-span-1 relative overflow-hidden group"
+              >
+                <img
+                  src={ed4.url}
+                  alt="Creator shooting a reel on a neon-lit street"
+                  width={1280}
+                  height={1600}
+                  loading="lazy"
+                  decoding="async"
+                  className="w-full h-[280px] md:h-[340px] lg:h-[380px] object-cover transition-transform duration-[900ms] group-hover:scale-105"
+                />
+                <figcaption className="absolute bottom-0 left-0 right-0 p-4 md:p-5 bg-gradient-to-t from-black/80 to-transparent">
+                  <span className="font-body text-[10px] uppercase tracking-[0.3em] text-white/70">Plate 04 · Street</span>
+                </figcaption>
+              </motion.figure>
+            </div>
+          </div>
+
+          <div className="mt-10 flex flex-wrap items-center justify-between gap-4 pt-6 border-t border-white/15">
+            <p className="font-body text-xs uppercase tracking-[0.28em] text-white/50">
+              More on the feed — @reelio.agency
+            </p>
+            <a
+              href="https://www.instagram.com/reelio.agency"
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => trackClick("open_instagram")}
+              className="btn-ghost"
+            >
+              View on Instagram →
+            </a>
+          </div>
+        </div>
+      </section>
+
       {/* ============ SERVICES — CASE INDEX ============ */}
       <section id="services" className="relative py-24 md:py-32 lg:py-40">
         <div className="mx-auto max-w-[1600px] px-5 sm:px-8 md:px-10 lg:px-14">
