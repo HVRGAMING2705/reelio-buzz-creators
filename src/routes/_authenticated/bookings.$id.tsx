@@ -77,6 +77,62 @@ function BookingDetailPage() {
     enabled: !!booking?.user_id,
   });
 
+  // List of admin users (for assign dropdown)
+  const { data: admins } = useQuery({
+    queryKey: ["admins-list"],
+    queryFn: async () => {
+      const { data: roles, error: rolesErr } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .eq("role", "admin");
+      if (rolesErr) throw rolesErr;
+      const ids = (roles ?? []).map((r) => r.user_id);
+      if (ids.length === 0) return [] as AdminOption[];
+      const { data: profs, error: profErr } = await supabase
+        .from("profiles")
+        .select("user_id, display_name, avatar_url")
+        .in("user_id", ids);
+      if (profErr) throw profErr;
+      const map = new Map((profs ?? []).map((p) => [p.user_id, p]));
+      return ids.map((id) => ({
+        user_id: id,
+        display_name: map.get(id)?.display_name ?? null,
+        avatar_url: map.get(id)?.avatar_url ?? null,
+      })) as AdminOption[];
+    },
+  });
+
+  const { data: assigneeProfile } = useQuery({
+    queryKey: ["booking-assignee", booking?.assigned_to],
+    queryFn: async () => {
+      if (!booking?.assigned_to) return null;
+      const { data } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("user_id", booking.assigned_to)
+        .maybeSingle();
+      return data as Profile | null;
+    },
+    enabled: !!booking?.assigned_to,
+  });
+
+  const assign = useMutation({
+    mutationFn: async (userId: string | null) => {
+      const { error } = await supabase
+        .from("bookings")
+        .update({ assigned_to: userId })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: (_, userId) => {
+      qc.invalidateQueries({ queryKey: ["booking", id] });
+      qc.invalidateQueries({ queryKey: ["booking-events", id] });
+      qc.invalidateQueries({ queryKey: ["bookings"] });
+      toast.success(userId ? "Assigned" : "Unassigned");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const updateStatus = useMutation({
     mutationFn: async (status: Status) => {
       const { error } = await supabase.from("bookings").update({ status }).eq("id", id);
