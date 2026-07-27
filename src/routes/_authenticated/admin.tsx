@@ -247,7 +247,7 @@ function NotificationsBell({
         )}
       </button>
       {open && (
-        <div className="absolute right-0 mt-2 w-[340px] max-h-[70vh] overflow-auto rounded-2xl border border-white/10 bg-black/90 backdrop-blur-xl shadow-2xl z-30">
+        <div ref={scrollRef} className="absolute right-0 mt-2 w-[340px] max-h-[70vh] overflow-auto rounded-2xl border border-white/10 bg-black/90 backdrop-blur-xl shadow-2xl z-30">
           <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
             <div>
               <p className="text-[10px] uppercase tracking-[0.3em] opacity-60">Notifications</p>
