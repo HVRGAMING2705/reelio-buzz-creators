@@ -1,4 +1,4 @@
-import { defineMcp } from "@lovable.dev/mcp-js";
+import { auth, defineMcp } from "@lovable.dev/mcp-js";
 import listBookings from "./tools/list-bookings";
 import getBooking from "./tools/get-booking";
 import updateBookingStatus from "./tools/update-booking-status";
