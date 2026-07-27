@@ -9,6 +9,7 @@ import {
   type Variants,
 } from "motion/react";
 import logoAsset from "@/assets/reelio-logo.jpeg.asset.json";
+import logoMark from "@/assets/reelio-logo-mark.png.asset.json";
 import { useReveal } from "@/hooks/use-reveal";
 import { Magnetic, TiltCard, CursorGlow } from "@/components/motion-fx";
 
