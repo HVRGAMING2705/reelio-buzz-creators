@@ -162,7 +162,8 @@ function NotificationsBell({
   const hasMoreNotifications = recent.length < filteredNotifications.length;
 
   const availableNotifServices = useMemo(
-    () => Array.from(new Set(bookings.map((b) => b.service).filter(Boolean))),
+    () =>
+      Array.from(new Set(bookings.map((b) => b.service).filter((s): s is string => Boolean(s)))),
     [bookings]
   );
 
