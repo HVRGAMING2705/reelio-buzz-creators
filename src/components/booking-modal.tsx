@@ -255,13 +255,18 @@ export function BookingModal({ open, onClose }: Props) {
       setSubmitting(false);
       if (!res.ok) {
         let msg = "Couldn't send — please try again.";
+        let field: string | undefined;
         if (res.status === 400 || res.status === 403) {
           try {
-            const j = (await res.json()) as { error?: string };
+            const j = (await res.json()) as { error?: string; field?: string };
             if (j?.error) msg = j.error;
+            field = j?.field;
           } catch { /* ignore */ }
         }
         setErrorMsg(msg);
+        if (field === "captcha" || res.status === 403) {
+          setCaptchaError(msg);
+        }
         if (captchaActive && typeof window !== "undefined") {
           const hc = (window as any).hcaptcha;
           if (hc && captchaWidgetIdRef.current) {
