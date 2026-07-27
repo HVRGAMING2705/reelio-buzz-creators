@@ -250,7 +250,7 @@ function NotificationsBell({
       return notifSort === "newest" ? diff : -diff;
     });
     return list;
-  }, [bookings, lastSeen, notifStatus, notifUnreadOnly, notifTodayOnly, notifService, notifSort]);
+  }, [bookings, lastSeen, readIds, notifStatus, notifUnreadOnly, notifTodayOnly, notifService, notifSort]);
 
   const recent = useMemo(
     () => filteredNotifications.slice(0, notifLimit),
