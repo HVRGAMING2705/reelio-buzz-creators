@@ -3,7 +3,17 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 
+/** Only accept same-origin relative paths (e.g. "/.lovable/oauth/consent?..."). */
+function safeNext(raw: string | undefined | null): string | null {
+  if (!raw) return null;
+  if (!raw.startsWith("/") || raw.startsWith("//")) return null;
+  return raw;
+}
+
 export const Route = createFileRoute("/auth")({
+  validateSearch: (s: Record<string, unknown>) => ({
+    next: typeof s.next === "string" ? s.next : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Admin Sign In — Reelio" },
@@ -16,28 +26,40 @@ export const Route = createFileRoute("/auth")({
 function AuthPage() {
   const navigate = useNavigate();
   const router = useRouter();
+  const { next } = Route.useSearch();
+  const nextPath = safeNext(next);
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const goAfterAuth = () => {
+    if (nextPath) {
+      window.location.href = nextPath;
+    } else {
+      navigate({ to: "/admin", replace: true });
+    }
+  };
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/admin", replace: true });
+      if (data.session) goAfterAuth();
     });
-  }, [navigate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
     try {
+      const redirectBack = nextPath ?? "/admin";
       if (mode === "signup") {
         const { error } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: `${window.location.origin}/admin` },
+          options: { emailRedirectTo: `${window.location.origin}${redirectBack}` },
         });
         if (error) throw error;
       } else {
@@ -45,7 +67,7 @@ function AuthPage() {
         if (error) throw error;
       }
       await router.invalidate();
-      navigate({ to: "/admin", replace: true });
+      goAfterAuth();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
@@ -57,18 +79,20 @@ function AuthPage() {
     setLoading(true);
     setError(null);
     try {
+      const redirectBack = nextPath ?? "";
       const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
+        redirect_uri: `${window.location.origin}${redirectBack}`,
       });
       if (result.error) throw result.error;
       if (result.redirected) return;
       await router.invalidate();
-      navigate({ to: "/admin", replace: true });
+      goAfterAuth();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Google sign-in failed");
       setLoading(false);
     }
   };
+
 
   return (
     <div className="min-h-screen grid place-items-center p-4 bg-[color:var(--reelio-black,#0b0b0d)] text-white">

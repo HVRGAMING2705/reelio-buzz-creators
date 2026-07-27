@@ -1,0 +1,210 @@
+{
+  "version": 1,
+  "sdk_version": "0.24.0",
+  "path": "/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://pdjwkamznimxxzfebbnm.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "reelio-mcp",
+      "version": "0.1.0",
+      "title": "Reelio Social Consortium"
+    },
+    "tools": [
+      {
+        "name": "list_bookings",
+        "title": "List bookings",
+        "description": "List Reelio bookings (admins only). Returns id, name, email, service, status, and created_at, newest first.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "status": {
+              "description": "Filter by booking status.",
+              "type": "string",
+              "enum": [
+                "new",
+                "contacted",
+                "qualified",
+                "won",
+                "lost"
+              ]
+            },
+            "limit": {
+              "default": 25,
+              "description": "How many rows to return.",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            },
+            "search": {
+              "description": "Case-insensitive match on name, email, or brand.",
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_booking",
+        "title": "Get booking",
+        "description": "Fetch a single Reelio booking by id with its full details (admins only).",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "description": "Booking UUID."
+            }
+          },
+          "required": [
+            "id"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "update_booking_status",
+        "title": "Update booking status",
+        "description": "Update the pipeline status of a Reelio booking (admins only). Emits a booking_event automatically.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "description": "Booking UUID."
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "new",
+                "contacted",
+                "qualified",
+                "won",
+                "lost"
+              ],
+              "description": "New status value."
+            }
+          },
+          "required": [
+            "id",
+            "status"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "add_booking_note",
+        "title": "Add booking note",
+        "description": "Overwrite the internal notes field on a Reelio booking (admins only).",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "description": "Booking UUID."
+            },
+            "notes": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4000,
+              "description": "Note text to save."
+            }
+          },
+          "required": [
+            "id",
+            "notes"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_security_events",
+        "title": "List security events",
+        "description": "Recent spam/security events for Reelio: honeypot trips, captcha events, or blocked rate-limited submissions (admins only).",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "enum": [
+                "spam_attempts",
+                "captcha_events",
+                "blocked_submissions"
+              ],
+              "description": "Which security log to read."
+            },
+            "limit": {
+              "default": 25,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          },
+          "required": [
+            "kind"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "booking_stats",
+        "title": "Booking stats",
+        "description": "Aggregate counts for Reelio bookings: totals by status, today, and last 7 days (admins only).",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
