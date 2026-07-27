@@ -218,14 +218,14 @@ function Index() {
             Now booking for 2026
           </motion.div>
 
-          <h1 className="mt-8 text-[19vw] md:text-[9.5vw] leading-[0.88] font-normal">
-            <span className="block text-shimmer">
+          <h1 className="mt-8 text-[19vw] md:text-[9.5vw] leading-[0.85] font-normal tracking-tight drop-shadow-[0_10px_40px_oklch(0.62_0.24_27/0.35)]">
+            <span className="block text-white">
               <SplitWords text="REELS." delay={0.3} />
             </span>
-            <span className="block text-shimmer" style={{ animationDelay: "-2s" }}>
+            <span className="block text-white">
               <SplitWords text="BRANDS." delay={0.45} />
             </span>
-            <span className="block">
+            <span className="block text-shimmer">
               <SplitWords text="GROWTH." delay={0.6} />
             </span>
           </h1>
