@@ -218,17 +218,92 @@ function NotificationsBell({
               )}
             </div>
           </div>
+          {recent.length > 0 && (
+            <div className="px-4 py-2 border-b border-white/10 bg-white/[0.02] flex items-center justify-between gap-3">
+              <label className="flex items-center gap-2 text-xs cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  className="h-3.5 w-3.5 accent-red-500"
+                  checked={recent.every((b) => selectedIds.has(b.id))}
+                  ref={(el) => {
+                    if (el) {
+                      const some = recent.some((b) => selectedIds.has(b.id));
+                      el.indeterminate = some && !recent.every((b) => selectedIds.has(b.id));
+                    }
+                  }}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setSelectedIds((prev) => {
+                        const next = new Set(prev);
+                        for (const b of recent) next.add(b.id);
+                        return next;
+                      });
+                    } else {
+                      setSelectedIds((prev) => {
+                        const next = new Set(prev);
+                        for (const b of recent) next.delete(b.id);
+                        return next;
+                      });
+                    }
+                  }}
+                  aria-label="Select all visible notifications"
+                />
+                {selectedIds.size > 0 ? `${selectedIds.size} selected` : "Select all"}
+              </label>
+              {selectedIds.size > 0 && (
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setSelectedIds(new Set())}
+                    className="text-[10px] uppercase tracking-[0.15em] opacity-70 hover:opacity-100"
+                  >
+                    Clear
+                  </button>
+                  <button
+                    onClick={() => {
+                      const maxTs = Math.max(
+                        ...Array.from(selectedIds)
+                          .map((id) => recent.find((b) => b.id === id))
+                          .filter(Boolean)
+                          .map((b) => new Date(b!.created_at).getTime())
+                      );
+                      onMarkAllSeen(maxTs);
+                      setSelectedIds(new Set());
+                    }}
+                    className="text-[10px] uppercase tracking-[0.15em] font-semibold text-red-400 hover:text-red-300"
+                  >
+                    Mark selected read
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
           {recent.length === 0 ? (
             <div className="px-4 py-8 text-center text-sm opacity-60">No bookings yet</div>
           ) : (
             <ul className="divide-y divide-white/5">
               {recent.map((b) => {
                 const unread = new Date(b.created_at).getTime() > lastSeen;
+                const checked = selectedIds.has(b.id);
                 return (
-                  <li key={b.id}>
+                  <li key={b.id} className="group flex items-center gap-1 px-4 py-3 hover:bg-white/5">
+                    <input
+                      type="checkbox"
+                      className="h-3.5 w-3.5 accent-red-500 shrink-0"
+                      checked={checked}
+                      onChange={(e) => {
+                        setSelectedIds((prev) => {
+                          const next = new Set(prev);
+                          if (e.target.checked) next.add(b.id);
+                          else next.delete(b.id);
+                          return next;
+                        });
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                      aria-label={`Select ${b.name}`}
+                    />
                     <button
                       onClick={() => { setOpen(false); onOpen(b.id); }}
-                      className="w-full text-left px-4 py-3 hover:bg-white/5 flex gap-3 items-start"
+                      className="flex-1 text-left flex gap-3 items-start min-w-0"
                     >
                       <span
                         className={`mt-1.5 h-2 w-2 rounded-full shrink-0 ${
