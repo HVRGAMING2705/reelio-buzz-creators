@@ -101,12 +101,41 @@ export function markReadByBookingId(bookingId: string) {
   write(list.map((e) => (e.bookingId === bookingId ? { ...e, read: true } : e)));
 }
 
+export function markUnreadByBookingId(bookingId: string) {
+  if (typeof window === "undefined") return;
+  const current = getReadBookings().filter((id) => id !== bookingId);
+  window.localStorage.setItem(READ_BOOKINGS_KEY, JSON.stringify(current));
+  const list = getHistory();
+  if (!list.some((e) => e.bookingId === bookingId && e.read)) {
+    window.dispatchEvent(new CustomEvent("reelio:notif-history-updated"));
+    return;
+  }
+  write(list.map((e) => (e.bookingId === bookingId ? { ...e, read: false } : e)));
+}
+
 export function markAllBookingsRead(bookingIds: string[]) {
   if (typeof window === "undefined" || bookingIds.length === 0) return;
   const current = getReadBookings();
   const next = Array.from(new Set([...bookingIds, ...current])).slice(0, READ_BOOKINGS_CAP);
   window.localStorage.setItem(READ_BOOKINGS_KEY, JSON.stringify(next));
   window.dispatchEvent(new CustomEvent("reelio:notif-history-updated"));
+}
+
+export function markAllBookingsUnread(bookingIds: string[]) {
+  if (typeof window === "undefined" || bookingIds.length === 0) return;
+  const ids = new Set(bookingIds);
+  const next = getReadBookings().filter((id) => !ids.has(id));
+  window.localStorage.setItem(READ_BOOKINGS_KEY, JSON.stringify(next));
+  const list = getHistory();
+  if (!list.some((e) => e.bookingId && ids.has(e.bookingId) && e.read)) {
+    window.dispatchEvent(new CustomEvent("reelio:notif-history-updated"));
+    return;
+  }
+  write(list.map((e) => (e.bookingId && ids.has(e.bookingId) ? { ...e, read: false } : e)));
+}
+
+export function markUnread(id: string) {
+  write(getHistory().map((e) => (e.id === id ? { ...e, read: false } : e)));
 }
 
 export function clearHistory() {
