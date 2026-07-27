@@ -298,6 +298,10 @@ function AdminPage() {
           const b = payload.new as Booking;
           if (notifiedIds.current.has(b.id)) return;
           notifiedIds.current.add(b.id);
+          // Always keep data fresh so the bell/list stay in sync
+          qc.invalidateQueries({ queryKey: ["bookings"] });
+          const s = settingsRef.current;
+          if (!s.realtimeEnabled || isQuietNow(s)) return;
           toast.success("New booking submission", {
             description: `${b.name}${b.brand ? ` · ${b.brand}` : ""} — ${b.service ?? "—"}`,
             duration: 10000,
@@ -307,7 +311,6 @@ function AdminPage() {
                 navigate({ to: "/bookings/$id", params: { id: b.id } }),
             },
           });
-          qc.invalidateQueries({ queryKey: ["bookings"] });
         },
       )
       .subscribe();
