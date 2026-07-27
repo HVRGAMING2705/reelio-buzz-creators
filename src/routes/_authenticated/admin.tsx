@@ -140,12 +140,20 @@ function NotificationsBell({
     if (notifUnreadOnly) {
       list = list.filter((b) => new Date(b.created_at).getTime() > lastSeen);
     }
+    if (notifTodayOnly) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      list = list.filter((b) => new Date(b.created_at) >= today);
+    }
+    if (notifService !== "all") {
+      list = list.filter((b) => b.service === notifService);
+    }
     list.sort((a, b) => {
       const diff = +new Date(b.created_at) - +new Date(a.created_at);
       return notifSort === "newest" ? diff : -diff;
     });
     return list;
-  }, [bookings, lastSeen, notifStatus, notifUnreadOnly, notifSort]);
+  }, [bookings, lastSeen, notifStatus, notifUnreadOnly, notifTodayOnly, notifService, notifSort]);
 
   const recent = useMemo(
     () => filteredNotifications.slice(0, notifLimit),
@@ -153,7 +161,17 @@ function NotificationsBell({
   );
   const hasMoreNotifications = recent.length < filteredNotifications.length;
 
-  const activeNotifFilters = notifStatus !== "all" || notifUnreadOnly || notifSort !== "newest";
+  const availableNotifServices = useMemo(
+    () => Array.from(new Set(bookings.map((b) => b.service).filter(Boolean))),
+    [bookings]
+  );
+
+  const activeNotifFilters =
+    notifStatus !== "all" ||
+    notifUnreadOnly ||
+    notifTodayOnly ||
+    notifService !== "all" ||
+    notifSort !== "newest";
 
   return (
     <div className="relative" ref={ref}>
