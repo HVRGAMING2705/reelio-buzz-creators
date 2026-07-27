@@ -33,7 +33,7 @@ export type NotifHistoryReason = "quiet" | "disabled" | "category" | "type";
 export type NotifHistoryEntry = {
   id: string;
   ts: number;
-  kind: "new" | "status" | "note" | "summary" | "test";
+  kind: "new" | "status" | "note" | "summary" | "test" | "security";
   category: "bookings" | "outreach" | "invoices" | "system";
   title: string;
   subtitle?: string;

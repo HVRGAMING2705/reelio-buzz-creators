@@ -98,6 +98,9 @@ type NotifSettings = {
   notifyNoteUpdate: boolean;
   frequency: NotifFrequency;
   rateLimits: RateLimitConfig;
+  captchaBurstEnabled: boolean;
+  captchaBurstThreshold: number; // failures within window to trigger
+  captchaBurstWindowMin: number; // rolling window in minutes
 };
 
 const DEFAULT_SETTINGS: NotifSettings = {
@@ -119,6 +122,9 @@ const DEFAULT_SETTINGS: NotifSettings = {
   notifyNoteUpdate: false,
   frequency: "instant",
   rateLimits: DEFAULT_RATE_LIMIT_CONFIG,
+  captchaBurstEnabled: true,
+  captchaBurstThreshold: 3,
+  captchaBurstWindowMin: 10,
 };
 
 const FREQUENCY_MS: Record<NotifFrequency, number> = {
@@ -1343,6 +1349,102 @@ function AdminPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [qc, navigate, profileMap]);
 
+  // Captcha-failure burst detector: notify when the same email_hash or ip_hash
+  // fails captcha ≥ threshold times within the configured rolling window.
+  useEffect(() => {
+    type Hit = { at: number; id: string };
+    const hitsByKey = new Map<string, Hit[]>();
+    const alertedAt = new Map<string, number>(); // debounce per key
+
+    const channel = supabase
+      .channel("admin-captcha-bursts")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "captcha_events" },
+        (payload) => {
+          const s = settingsRef.current;
+          if (!s.captchaBurstEnabled) return;
+          if (!s.categoryBookings) return;
+          const row = payload.new as {
+            id: string;
+            outcome: string;
+            email_hash: string | null;
+            ip_hash: string | null;
+            email_domain: string | null;
+            booking_id: string | null;
+            created_at: string;
+          };
+          if (row.outcome === "success" || row.outcome === "skipped") return;
+
+          const now = Date.now();
+          const windowMs = Math.max(1, s.captchaBurstWindowMin) * 60_000;
+          const threshold = Math.max(2, s.captchaBurstThreshold);
+          const cutoff = now - windowMs;
+
+          const keys: Array<{ key: string; label: string }> = [];
+          if (row.email_hash) keys.push({
+            key: `e:${row.email_hash}`,
+            label: row.email_domain ? `email @${row.email_domain}` : "email",
+          });
+          if (row.ip_hash) keys.push({
+            key: `i:${row.ip_hash}`,
+            label: `ip ${row.ip_hash.slice(0, 8)}…`,
+          });
+
+          for (const { key, label } of keys) {
+            const arr = (hitsByKey.get(key) ?? []).filter((h) => h.at >= cutoff);
+            arr.push({ at: now, id: row.id });
+            hitsByKey.set(key, arr);
+
+            if (arr.length < threshold) continue;
+            // Debounce: don't re-alert for the same key within the window.
+            const last = alertedAt.get(key) ?? 0;
+            if (now - last < windowMs) continue;
+            alertedAt.set(key, now);
+
+            const title = `Captcha burst · ${arr.length} failures`;
+            const subtitle = `${label} · last ${s.captchaBurstWindowMin}m`;
+
+            logNotification({
+              kind: "security",
+              category: "bookings",
+              title,
+              subtitle,
+              bookingId: row.booking_id ?? undefined,
+              status: "delivered",
+            });
+
+            if (s.channelInApp) {
+              toast.warning(title, {
+                description: subtitle,
+                action: row.booking_id
+                  ? {
+                      label: "Open booking",
+                      onClick: () =>
+                        navigate({
+                          to: "/bookings/$id",
+                          params: { id: row.booking_id! },
+                        }),
+                    }
+                  : {
+                      label: "Open security log",
+                      onClick: () => navigate({ to: "/security" }),
+                    },
+                duration: 10000,
+              });
+            }
+            if (s.channelPush && typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
+              try { new Notification(title, { body: subtitle, tag: `captcha-burst-${key}` }); } catch { /* noop */ }
+            }
+          }
+        },
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [navigate]);
+
   const [readBookingIds, setReadBookingIds] = useState<Set<string>>(() => getReadBookingIds());
   useEffect(() => subscribeHistory(() => setReadBookingIds(getReadBookingIds())), []);
 
@@ -2177,6 +2279,10 @@ function SettingsModal({
 
         <RateLimitsSection draft={draft} setDraft={setDraft} />
 
+        <CaptchaBurstSection draft={draft} setDraft={setDraft} />
+
+
+
 
         <div className="mt-6 pt-4 border-t border-white/10">
           <p className="text-[10px] uppercase tracking-[0.3em] opacity-50 mb-2">Delivery test</p>
@@ -2356,6 +2462,7 @@ function NotificationLogPanel() {
     note: "Note update",
     summary: "Summary",
     test: "Test",
+    security: "Security alert",
   };
 
   const fmt = (ts: number) => {
@@ -2584,6 +2691,96 @@ function RateLimitsSection({
 
       <p className="text-[11px] opacity-50 mt-2">
         Excess requests receive HTTP 429 with a Retry-After header. Changes apply within ~30 seconds.
+      </p>
+    </div>
+  );
+}
+
+function CaptchaBurstSection({
+  draft,
+  setDraft,
+}: {
+  draft: NotifSettings;
+  setDraft: (s: NotifSettings) => void;
+}) {
+  return (
+    <div className="mt-6 pt-4 border-t border-white/10">
+      <div className="flex items-center justify-between mb-2">
+        <p className="text-[10px] uppercase tracking-[0.3em] opacity-50">Captcha burst alerts</p>
+        <button
+          type="button"
+          onClick={() =>
+            setDraft({
+              ...draft,
+              captchaBurstEnabled: true,
+              captchaBurstThreshold: 3,
+              captchaBurstWindowMin: 10,
+            })
+          }
+          className="text-[10px] uppercase tracking-[0.2em] opacity-60 hover:opacity-100"
+        >
+          Reset defaults
+        </button>
+      </div>
+      <p className="text-xs opacity-60 mb-3">
+        Real-time alert when the same email or IP fails captcha repeatedly within a rolling window.
+      </p>
+
+      <label className="flex items-center justify-between gap-3 py-2">
+        <span className="text-sm">Enable burst detection</span>
+        <input
+          type="checkbox"
+          checked={draft.captchaBurstEnabled}
+          onChange={(e) => setDraft({ ...draft, captchaBurstEnabled: e.target.checked })}
+          className="h-4 w-4 accent-red-500"
+        />
+      </label>
+
+      <div
+        className={`grid grid-cols-2 gap-3 mt-2 rounded-lg border border-white/10 bg-white/[0.03] p-3 transition ${
+          draft.captchaBurstEnabled ? "" : "opacity-40 pointer-events-none"
+        }`}
+      >
+        <label className="flex flex-col gap-1">
+          <span className="text-[10px] uppercase tracking-[0.2em] opacity-60">Threshold</span>
+          <div className="flex items-center gap-1.5">
+            <input
+              type="number"
+              min={2}
+              value={draft.captchaBurstThreshold}
+              onChange={(e) =>
+                setDraft({
+                  ...draft,
+                  captchaBurstThreshold: Math.max(2, Math.floor(Number(e.target.value) || 2)),
+                })
+              }
+              className="w-16 rounded-md bg-white/5 border border-white/10 px-2 py-1 text-xs text-right"
+            />
+            <span className="text-[10px] opacity-60">failures</span>
+          </div>
+        </label>
+        <label className="flex flex-col gap-1">
+          <span className="text-[10px] uppercase tracking-[0.2em] opacity-60">Window</span>
+          <div className="flex items-center gap-1.5">
+            <input
+              type="number"
+              min={1}
+              value={draft.captchaBurstWindowMin}
+              onChange={(e) =>
+                setDraft({
+                  ...draft,
+                  captchaBurstWindowMin: Math.max(1, Math.floor(Number(e.target.value) || 1)),
+                })
+              }
+              className="w-16 rounded-md bg-white/5 border border-white/10 px-2 py-1 text-xs text-right"
+            />
+            <span className="text-[10px] opacity-60">minutes</span>
+          </div>
+        </label>
+      </div>
+
+      <p className="text-[11px] opacity-50 mt-2">
+        Each key (email hash or IP hash) alerts at most once per window to prevent spam.
       </p>
     </div>
   );
