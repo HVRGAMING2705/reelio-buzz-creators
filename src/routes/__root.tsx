@@ -134,6 +134,17 @@ function RootComponent() {
     };
   }, [queryClient, router]);
 
+  useEffect(() => {
+    initAnalytics();
+    // Initial pageview
+    trackPageview(router.state.location.pathname);
+    // Subsequent client-side navigations
+    const unsub = router.subscribe("onResolved", ({ toLocation }) => {
+      trackPageview(toLocation.pathname);
+    });
+    return () => unsub();
+  }, [router]);
+
   return (
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
