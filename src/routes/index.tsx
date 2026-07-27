@@ -2,7 +2,10 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { motion, useScroll, useSpring, AnimatePresence } from "motion/react";
 import { Menu, X } from "lucide-react";
-import logoMark from "@/assets/reelio-logo-mark.png.asset.json";
+import logoMark128 from "@/assets/reelio-logo-mark-128.png.asset.json";
+import logoMark256 from "@/assets/reelio-logo-mark-256.png.asset.json";
+import logoMark512 from "@/assets/reelio-logo-mark-512.png.asset.json";
+import logoMark1024 from "@/assets/reelio-logo-mark-1024.png.asset.json";
 import { useReveal } from "@/hooks/use-reveal";
 import { BookingModal } from "@/components/booking-modal";
 import { supabase } from "@/integrations/supabase/client";
@@ -36,7 +39,7 @@ export const Route = createFileRoute("/")({
     ],
     links: [
       { rel: "canonical", href: "/" },
-      { rel: "preload", as: "image", href: logoMark.url, fetchpriority: "high" },
+      { rel: "preload", as: "image", href: logoMark512.url, fetchpriority: "high" },
     ],
     scripts: [
       {
@@ -351,6 +354,10 @@ function Index() {
   const { scrollYProgress } = useScroll();
   const progress = useSpring(scrollYProgress, { stiffness: 100, damping: 20, restDelta: 0.001 });
 
+  const logoSrcSet = `${logoMark128.url} 128w, ${logoMark256.url} 256w, ${logoMark512.url} 512w, ${logoMark1024.url} 1024w`;
+  const logoSizes = "(max-width: 767px) 56px, (max-width: 1023px) 80px, 96px";
+  const footerLogoSizes = "24px";
+
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       setUser(
@@ -431,9 +438,11 @@ function Index() {
         <div className="mx-auto max-w-[1600px] px-4 sm:px-6 md:px-8 lg:px-10 h-20 md:h-28 lg:h-32 flex items-center justify-between gap-6 md:gap-8 lg:gap-12">
           <a href="#top" aria-label="Reelio — back to top" className="flex items-center shrink-0 -my-1 md:-my-3 lg:-my-4">
             <img
-              src={logoMark.url}
+              src={logoMark512.url}
+              srcSet={logoSrcSet}
+              sizes={logoSizes}
               alt=""
-              width={320}
+              width={96}
               height={96}
               decoding="async"
               fetchPriority="high"
@@ -850,7 +859,7 @@ function Index() {
       <footer className="border-t border-white/15 py-10">
         <div className="mx-auto max-w-[1600px] px-5 sm:px-8 md:px-10 lg:px-14 flex flex-col sm:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-4">
-            <img src={logoMark.url} alt="" loading="lazy" decoding="async" width={120} height={48} className="h-6 w-auto object-contain" />
+            <img src={logoMark256.url} srcSet={logoSrcSet} sizes={footerLogoSizes} alt="" loading="lazy" decoding="async" width={48} height={48} className="h-6 w-auto object-contain" />
             <span className="font-body text-[10px] uppercase tracking-[0.3em] text-white/70">
               © {year} Reelio Social Consortium · Issue №{issue}
             </span>
