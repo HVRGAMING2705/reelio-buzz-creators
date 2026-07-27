@@ -50,6 +50,9 @@ function isQuietNow(s: NotifSettings, d = new Date()) {
 }
 
 type Booking = Tables<"bookings">;
+type Profile = Tables<"profiles">;
+
+type BookingWithProfile = Booking & { profiles?: Profile | null };
 
 const STATUSES = ["new", "confirmed", "canceled"] as const;
 type Status = (typeof STATUSES)[number];
@@ -91,10 +94,47 @@ function timeAgo(iso: string) {
   return `${d}d ago`;
 }
 
+function initials(name: string) {
+  return name
+    .split(/\s+/)
+    .map((p) => p[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+}
+
+function Avatar({
+  profile,
+  name,
+  size = 32,
+}: {
+  profile?: Profile | null;
+  name: string;
+  size?: number;
+}) {
+  const src = profile?.avatar_url;
+  const label = profile?.display_name || name;
+  return (
+    <span
+      className="inline-flex items-center justify-center rounded-full bg-white/10 text-white/90 font-semibold shrink-0 overflow-hidden"
+      style={{ width: size, height: size, fontSize: Math.max(10, size / 2.5) }}
+      title={label}
+      aria-hidden
+    >
+      {src ? (
+        <img src={src} alt="" className="h-full w-full object-cover" />
+      ) : (
+        initials(name || "?")
+      )}
+    </span>
+  );
+}
+
 function NotificationsBell({
   bookings, lastSeen, unreadCount, onMarkAllSeen, onOpen,
 }: {
-  bookings: Booking[];
+  bookings: BookingWithProfile[];
   lastSeen: number;
   unreadCount: number;
   onMarkAllSeen: (ts?: number) => void;
@@ -368,6 +408,7 @@ function NotificationsBell({
                         }`}
                         aria-hidden
                       />
+                      <Avatar profile={b.profiles} name={b.name} size={34} />
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center justify-between gap-2">
                           <p className="text-sm truncate">
@@ -455,9 +496,29 @@ function AdminPage() {
         .select("*")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data as Booking[];
+      return (data ?? []) as Booking[];
     },
   });
+
+  const { data: profiles } = useQuery({
+    queryKey: ["profiles"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("profiles").select("*");
+      if (error) throw error;
+      return (data ?? []) as Profile[];
+    },
+  });
+
+  const profileMap = useMemo(() => {
+    const map = new Map<string, Profile>();
+    for (const p of profiles ?? []) map.set(p.user_id, p);
+    return map;
+  }, [profiles]);
+
+  const bookingsWithProfiles = useMemo<BookingWithProfile[]>(
+    () => (bookings ?? []).map((b) => ({ ...b, profiles: b.user_id ? profileMap.get(b.user_id) ?? null : null })),
+    [bookings, profileMap],
+  );
 
   const { data: role } = useQuery({
     queryKey: ["role"],
@@ -508,6 +569,7 @@ function AdminPage() {
           qc.invalidateQueries({ queryKey: ["bookings"] });
           const s = settingsRef.current;
           if (!s.realtimeEnabled || isQuietNow(s)) return;
+          const profile = b.user_id ? profileMap.get(b.user_id) ?? null : null;
           toast.custom(
             (t) => (
               <div className="w-full rounded-xl border border-white/10 bg-black/90 backdrop-blur-xl shadow-2xl overflow-hidden">
@@ -519,15 +581,20 @@ function AdminPage() {
                   }}
                   className="w-full text-left px-4 py-3 hover:bg-white/10 transition-colors"
                 >
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="text-sm font-medium text-white">New booking · {b.name}</p>
-                    <span className="text-[10px] uppercase tracking-wider text-red-400 shrink-0">View →</span>
+                  <div className="flex items-center gap-3">
+                    <Avatar profile={profile} name={b.name} size={36} />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-sm font-medium text-white">New booking · {b.name}</p>
+                        <span className="text-[10px] uppercase tracking-wider text-red-400 shrink-0">View →</span>
+                      </div>
+                      <p className="text-xs text-white/70 mt-0.5 truncate">
+                        {b.brand ? `${b.brand} · ` : ""}
+                        {b.service ?? "New submission"}
+                        {b.budget ? ` · ${b.budget}` : ""}
+                      </p>
+                    </div>
                   </div>
-                  <p className="text-xs text-white/70 mt-0.5 truncate">
-                    {b.brand ? `${b.brand} · ` : ""}
-                    {b.service ?? "New submission"}
-                    {b.budget ? ` · ${b.budget}` : ""}
-                  </p>
                 </button>
                 <div className="border-t border-white/10 px-4 py-2 bg-white/[0.03] flex justify-end">
                   <button
@@ -550,7 +617,7 @@ function AdminPage() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [qc, navigate]);
+  }, [qc, navigate, profileMap]);
 
   const unreadCount = useMemo(
     () => (bookings ?? []).filter((b) => new Date(b.created_at).getTime() > lastSeen).length,
@@ -630,7 +697,7 @@ function AdminPage() {
               </span>
             )}
             <NotificationsBell
-              bookings={bookings ?? []}
+              bookings={bookingsWithProfiles}
               lastSeen={lastSeen}
               unreadCount={unreadCount}
               onMarkAllSeen={markAllSeen}
@@ -638,7 +705,6 @@ function AdminPage() {
                 markAllSeen();
                 navigate({ to: "/bookings/$id", params: { id } });
               }}
-
             />
             <button
               onClick={() => setSettingsOpen(true)}

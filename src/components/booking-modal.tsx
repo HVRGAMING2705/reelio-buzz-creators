@@ -2,6 +2,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
+import type { User } from "@supabase/supabase-js";
 
 type Props = {
   open: boolean;
@@ -86,7 +87,19 @@ export function BookingModal({ open, onClose }: Props) {
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof FormShape, string>>>({});
   const [form, setForm] = useState<FormShape>(emptyForm);
   const [honeypot, setHoneypot] = useState(""); // hidden field — bots fill it
+  const [user, setUser] = useState<User | null>(null);
   const openedAtRef = useRef<number>(0);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setUser(data.user ?? null));
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_OUT") setUser(null);
+      else if (session) setUser(session.user);
+    });
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -151,7 +164,7 @@ export function BookingModal({ open, onClose }: Props) {
 
     setSubmitting(true);
     const v = parsed.data;
-    const { error } = await supabase.from("bookings").insert({
+    const insertPayload = {
       name: v.name,
       brand: v.brand || null,
       email: v.email,
@@ -160,7 +173,9 @@ export function BookingModal({ open, onClose }: Props) {
       budget: v.budget,
       niche: v.niche || null,
       message: v.message || null,
-    });
+      ...(user ? { user_id: user.id } : {}),
+    };
+    const { error } = await supabase.from("bookings").insert(insertPayload);
     setSubmitting(false);
     if (error) {
       setErrorMsg("Couldn't send — please try again.");
@@ -234,6 +249,13 @@ export function BookingModal({ open, onClose }: Props) {
                 <p className="mt-3 opacity-90 text-sm md:text-base">
                   Tell us about your brand — we'll get back within 24 hours.
                 </p>
+
+                {user && (
+                  <div className="mt-4 inline-flex items-center gap-2 self-start rounded-full border border-white/20 bg-white/5 px-3 py-1.5 text-[11px] uppercase tracking-wider text-white/80">
+                    <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                    Booking as {user.email}
+                  </div>
+                )}
 
                 <form onSubmit={submit} className="mt-8 grid gap-4" noValidate>
                   {/* Honeypot: hidden from users, visible to naive bots */}

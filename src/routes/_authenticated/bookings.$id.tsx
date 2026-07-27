@@ -5,6 +5,7 @@ import type { Tables } from "@/integrations/supabase/types";
 
 type Booking = Tables<"bookings">;
 type BookingEvent = Tables<"booking_events">;
+type Profile = Tables<"profiles">;
 
 const STATUSES = ["new", "confirmed", "canceled"] as const;
 type Status = (typeof STATUSES)[number];
@@ -48,6 +49,21 @@ function BookingDetailPage() {
       if (error) throw error;
       return (data ?? []) as BookingEvent[];
     },
+  });
+
+  const { data: profile } = useQuery({
+    queryKey: ["booking-creator", booking?.user_id],
+    queryFn: async () => {
+      if (!booking?.user_id) return null;
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("user_id", booking.user_id)
+        .maybeSingle();
+      if (error) throw error;
+      return data as Profile | null;
+    },
+    enabled: !!booking?.user_id,
   });
 
   const updateStatus = useMutation({
@@ -123,6 +139,19 @@ function BookingDetailPage() {
                 </div>
                 <StatusPill status={booking.status as Status} />
               </div>
+
+              {booking.user_id && (
+                <div className="mt-4 inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/5 px-3 py-1.5">
+                  <Avatar profile={profile ?? null} name={booking.name} size={28} />
+                  <div className="text-xs">
+                    <span className="opacity-60">Booked by</span>{" "}
+                    <span className="font-medium">{profile?.display_name || booking.name}</span>
+                    {profile?.display_name && profile.display_name !== booking.name && (
+                      <span className="opacity-60"> · {booking.name}</span>
+                    )}
+                  </div>
+                </div>
+              )}
 
               <div className="mt-6 grid sm:grid-cols-2 gap-4 text-sm">
                 <Row label="Email" value={<a className="underline break-all" href={`mailto:${booking.email}`}>{booking.email}</a>} />
@@ -256,6 +285,39 @@ function StatusPill({ status }: { status: Status }) {
   return (
     <span className={`text-[10px] uppercase tracking-[0.2em] px-3 py-1 rounded-full ${colors[status] ?? colors.new}`}>
       {status}
+    </span>
+  );
+}
+
+function Avatar({
+  profile,
+  name,
+  size = 32,
+}: {
+  profile: Profile | null;
+  name: string;
+  size?: number;
+}) {
+  const src = profile?.avatar_url;
+  const label = profile?.display_name || name;
+  return (
+    <span
+      className="inline-flex items-center justify-center rounded-full bg-white/10 text-white/90 font-semibold shrink-0 overflow-hidden"
+      style={{ width: size, height: size, fontSize: Math.max(10, size / 2.5) }}
+      title={label}
+      aria-hidden
+    >
+      {src ? (
+        <img src={src} alt="" className="h-full w-full object-cover" />
+      ) : (
+        name
+          .split(/\s+/)
+          .map((p) => p[0])
+          .filter(Boolean)
+          .slice(0, 2)
+          .join("")
+          .toUpperCase()
+      )}
     </span>
   );
 }
