@@ -134,20 +134,21 @@ function Index() {
       {/* ============ ANIMATED BACKGROUND ============ */}
       <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
         <div className="absolute inset-0 aurora opacity-90" />
+        <div className="absolute inset-0 cyber-grid opacity-60" />
         <motion.div
           animate={{ x: [0, 80, -40, 0], y: [0, -60, 40, 0], scale: [1, 1.15, 0.95, 1] }}
           transition={{ duration: 22, repeat: Infinity, ease: "easeInOut" }}
           className="absolute -top-40 -left-40 h-[520px] w-[520px] rounded-full blur-3xl opacity-70"
-          style={{ background: "radial-gradient(circle, oklch(0.75 0.22 30) 0%, transparent 70%)" }}
+          style={{ background: "radial-gradient(circle, oklch(0.62 0.24 27 / 0.55) 0%, transparent 70%)" }}
         />
         <motion.div
           animate={{ x: [0, -80, 60, 0], y: [0, 60, -30, 0], scale: [1, 1.2, 0.9, 1] }}
           transition={{ duration: 28, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-1/3 -right-40 h-[600px] w-[600px] rounded-full blur-3xl opacity-60"
-          style={{ background: "radial-gradient(circle, oklch(0.35 0.12 15) 0%, transparent 70%)" }}
+          className="absolute bottom-[-160px] -right-40 h-[600px] w-[600px] rounded-full blur-3xl opacity-60"
+          style={{ background: "radial-gradient(circle, oklch(0.62 0.24 27 / 0.45) 0%, transparent 70%)" }}
         />
         <div
-          className="absolute inset-0 opacity-[0.06] mix-blend-overlay"
+          className="absolute inset-0 opacity-[0.08] mix-blend-overlay"
           style={{
             backgroundImage:
               "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>\")",
