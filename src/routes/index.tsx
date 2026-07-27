@@ -134,20 +134,21 @@ function Index() {
       {/* ============ ANIMATED BACKGROUND ============ */}
       <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
         <div className="absolute inset-0 aurora opacity-90" />
+        <div className="absolute inset-0 cyber-grid opacity-60" />
         <motion.div
           animate={{ x: [0, 80, -40, 0], y: [0, -60, 40, 0], scale: [1, 1.15, 0.95, 1] }}
           transition={{ duration: 22, repeat: Infinity, ease: "easeInOut" }}
           className="absolute -top-40 -left-40 h-[520px] w-[520px] rounded-full blur-3xl opacity-70"
-          style={{ background: "radial-gradient(circle, oklch(0.75 0.22 30) 0%, transparent 70%)" }}
+          style={{ background: "radial-gradient(circle, oklch(0.62 0.24 27 / 0.55) 0%, transparent 70%)" }}
         />
         <motion.div
           animate={{ x: [0, -80, 60, 0], y: [0, 60, -30, 0], scale: [1, 1.2, 0.9, 1] }}
           transition={{ duration: 28, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-1/3 -right-40 h-[600px] w-[600px] rounded-full blur-3xl opacity-60"
-          style={{ background: "radial-gradient(circle, oklch(0.35 0.12 15) 0%, transparent 70%)" }}
+          className="absolute bottom-[-160px] -right-40 h-[600px] w-[600px] rounded-full blur-3xl opacity-60"
+          style={{ background: "radial-gradient(circle, oklch(0.62 0.24 27 / 0.45) 0%, transparent 70%)" }}
         />
         <div
-          className="absolute inset-0 opacity-[0.06] mix-blend-overlay"
+          className="absolute inset-0 opacity-[0.08] mix-blend-overlay"
           style={{
             backgroundImage:
               "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>\")",
@@ -191,7 +192,7 @@ function Index() {
             <button
               type="button"
               onClick={() => setBookingOpen(true)}
-              className="glass-chip rounded-full px-4 py-1.5 text-xs uppercase tracking-[0.2em] liquid-shine inline-block"
+              className="rounded-full px-4 py-1.5 text-xs uppercase tracking-[0.2em] liquid-shine inline-block bg-[color:var(--reelio-red)] text-white font-bold shadow-[var(--shadow-red-glow)]"
             >
               Book a call
             </button>
@@ -218,14 +219,14 @@ function Index() {
             Now booking for 2026
           </motion.div>
 
-          <h1 className="mt-8 text-[19vw] md:text-[9.5vw] leading-[0.88] font-normal">
-            <span className="block text-shimmer">
+          <h1 className="mt-8 text-[19vw] md:text-[9.5vw] leading-[0.85] font-normal tracking-tight drop-shadow-[0_10px_40px_oklch(0.62_0.24_27/0.35)]">
+            <span className="block text-white">
               <SplitWords text="REELS." delay={0.3} />
             </span>
-            <span className="block text-shimmer" style={{ animationDelay: "-2s" }}>
+            <span className="block text-white">
               <SplitWords text="BRANDS." delay={0.45} />
             </span>
-            <span className="block">
+            <span className="block text-shimmer">
               <SplitWords text="GROWTH." delay={0.6} />
             </span>
           </h1>
@@ -244,7 +245,7 @@ function Index() {
                 <button
                   type="button"
                   onClick={() => setBookingOpen(true)}
-                  className="group relative inline-flex items-center gap-2 rounded-full bg-white text-[color:var(--reelio-black)] px-6 py-3.5 uppercase tracking-[0.2em] text-xs liquid-shine shadow-2xl"
+                  className="group relative inline-flex items-center gap-2 rounded-full bg-[color:var(--reelio-red)] text-white px-6 py-3.5 uppercase tracking-[0.2em] text-xs liquid-shine shadow-[var(--shadow-red-glow)] font-bold"
                 >
                   Book a call
                   <motion.span animate={{ x: [0, 4, 0] }} transition={{ duration: 1.8, repeat: Infinity }}>
@@ -267,12 +268,19 @@ function Index() {
           <div className="relative mt-16 md:mt-24 mx-auto h-64 md:h-80 max-w-2xl block">
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="relative scale-75 md:scale-100 origin-center">
+                {/* Red halo pulse */}
+                <motion.div
+                  animate={{ scale: [1, 1.3, 1], opacity: [0.6, 0.2, 0.6] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                  className="absolute left-1/2 top-1/2 h-56 w-56 -translate-x-1/2 -translate-y-1/2 rounded-full blur-2xl"
+                  style={{ background: "radial-gradient(circle, oklch(0.62 0.24 27 / 0.7), transparent 70%)" }}
+                />
                 <motion.img
                   animate={{ rotate: [0, 6, -6, 0] }}
                   transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
                   src={logoAsset.url}
                   alt=""
-                  className="h-32 w-32 rounded-3xl object-cover ring-2 ring-white/40 shadow-2xl relative z-10"
+                  className="h-32 w-32 rounded-3xl object-cover ring-2 ring-white/40 shadow-[var(--shadow-red-glow)] relative z-10"
                 />
                 <div className="absolute inset-0 orbit pointer-events-none">
                   {orbitIcons.map((ic, i) => {
@@ -292,8 +300,8 @@ function Index() {
                   })}
                 </div>
                 <div
-                  className="absolute left-1/2 top-1/2 h-[280px] w-[280px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/20 pointer-events-none"
-                  style={{ boxShadow: "inset 0 0 40px oklch(1 0 0 / 0.1)" }}
+                  className="absolute left-1/2 top-1/2 h-[280px] w-[280px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-[color:var(--reelio-red)]/40 pointer-events-none"
+                  style={{ boxShadow: "inset 0 0 40px oklch(0.62 0.24 27 / 0.25)" }}
                 />
               </div>
             </div>
@@ -314,10 +322,10 @@ function Index() {
                 viewport={{ once: true, margin: "-50px" }}
                 transition={{ delay: i * 0.1, type: "spring", stiffness: 100 }}
                 whileHover={{ y: -6 }}
-                className="glass spotlight rounded-2xl p-5 md:p-6"
+                className="glass spotlight rounded-2xl p-5 md:p-6 hover:border-[color:var(--reelio-red)]/60 transition-colors"
               >
-                <div className="text-3xl md:text-4xl">{s.k}</div>
-                <div className="mt-1 text-[10px] md:text-xs uppercase tracking-[0.2em] opacity-80">{s.v}</div>
+                <div className="text-3xl md:text-4xl text-[color:var(--reelio-red)] font-bold">{s.k}</div>
+                <div className="mt-1 text-[10px] md:text-xs uppercase tracking-[0.2em] opacity-70 font-bold">{s.v}</div>
               </motion.div>
             ))}
           </div>
@@ -370,8 +378,12 @@ function Index() {
               transition={{ delay: i * 0.06, type: "spring", stiffness: 90, damping: 16 }}
             >
               <TiltCard className="h-full">
-                <article className="glass spotlight liquid-shine group relative rounded-3xl p-7 md:p-8 h-full">
-                  <div className="flex items-center justify-between">
+                <article className="glass spotlight liquid-shine group relative rounded-3xl p-7 md:p-8 h-full overflow-hidden hover:border-[color:var(--reelio-red)]/50 transition-colors">
+                  <div
+                    className="pointer-events-none absolute -top-24 -right-24 h-64 w-64 rounded-full blur-3xl opacity-0 group-hover:opacity-70 transition-opacity duration-500"
+                    style={{ background: "radial-gradient(circle, oklch(0.62 0.24 27 / 0.55), transparent 70%)" }}
+                  />
+                  <div className="flex items-center justify-between relative">
                     <motion.div
                       whileHover={{ scale: 1.2, rotate: 8 }}
                       transition={{ type: "spring", stiffness: 200 }}
@@ -379,13 +391,13 @@ function Index() {
                     >
                       {s.icon}
                     </motion.div>
-                    <div className="glass-chip rounded-full h-8 w-8 grid place-items-center text-xs opacity-90">
+                    <div className="rounded-md h-8 w-8 grid place-items-center text-[10px] font-bold bg-[color:var(--reelio-red)] text-white tracking-wider shadow-[var(--shadow-red-glow)]">
                       0{i + 1}
                     </div>
                   </div>
-                  <h3 className="mt-10 text-3xl md:text-4xl">{s.title}</h3>
-                  <p className="mt-3 opacity-90 leading-relaxed">{s.desc}</p>
-                  <div className="mt-8 flex items-center gap-2 text-xs uppercase tracking-[0.2em] opacity-90">
+                  <h3 className="mt-10 text-3xl md:text-4xl relative">{s.title}</h3>
+                  <p className="mt-3 opacity-80 leading-relaxed relative">{s.desc}</p>
+                  <div className="mt-8 flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-[color:var(--reelio-red)] font-bold relative">
                     Learn more
                     <motion.span
                       animate={{ x: [0, 4, 0] }}
@@ -461,13 +473,13 @@ function Index() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-80px" }}
           transition={{ type: "spring", stiffness: 80 }}
-          className="glass conic-border rounded-[2.5rem] p-6 md:p-14 relative overflow-hidden"
+          className="conic-border rounded-[2.5rem] p-6 md:p-14 relative overflow-hidden bg-[color:var(--reelio-red)] shadow-[var(--shadow-red-glow)]"
         >
           <motion.div
             animate={{ x: [0, 60, -30, 0], y: [0, -30, 40, 0] }}
             transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
             className="absolute -top-24 -right-24 h-72 w-72 rounded-full blur-3xl opacity-60"
-            style={{ background: "radial-gradient(circle, oklch(1 0 0 / 0.4), transparent 70%)" }}
+            style={{ background: "radial-gradient(circle, oklch(1 0 0 / 0.5), transparent 70%)" }}
           />
           <div className="relative">
             <p className="text-[10px] uppercase tracking-[0.4em] opacity-80">💎 Monthly Plan</p>
@@ -509,7 +521,7 @@ function Index() {
                 <button
                   type="button"
                   onClick={() => setBookingOpen(true)}
-                  className="group inline-flex items-center gap-2 rounded-full bg-white text-[color:var(--reelio-black)] px-7 py-4 uppercase tracking-[0.2em] text-xs liquid-shine shadow-2xl"
+                  className="group inline-flex items-center gap-2 rounded-full bg-black text-white px-7 py-4 uppercase tracking-[0.2em] text-xs liquid-shine shadow-2xl font-bold"
                 >
                   Book Reelio Package
                   <motion.span animate={{ x: [0, 4, 0] }} transition={{ duration: 1.6, repeat: Infinity }}>
@@ -566,12 +578,12 @@ function Index() {
           </p>
 
           <div className="mt-12 inline-flex relative">
-            <span className="absolute inset-0 rounded-full animate-pulse-ring" />
+            <span className="absolute inset-0 rounded-full animate-pulse-ring" style={{ boxShadow: "0 0 0 0 oklch(0.62 0.24 27 / 0.6)" }} />
             <Magnetic strength={0.5}>
               <button
                 type="button"
                 onClick={() => setBookingOpen(true)}
-                className="relative inline-flex items-center gap-3 rounded-full bg-white text-[color:var(--reelio-black)] px-10 py-5 uppercase tracking-[0.25em] text-sm liquid-shine shadow-2xl"
+                className="relative inline-flex items-center gap-3 rounded-full bg-[color:var(--reelio-red)] text-white px-10 py-5 uppercase tracking-[0.25em] text-sm liquid-shine shadow-[var(--shadow-red-glow)] font-bold"
               >
                 Book a call
                 <motion.span animate={{ x: [0, 6, 0] }} transition={{ duration: 1.6, repeat: Infinity }} className="text-xl">

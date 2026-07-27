@@ -63,42 +63,45 @@
 
 :root {
   --radius: 0.625rem;
-  /* Reelio brand */
-  --background: oklch(0.585 0.185 27);        /* Reelio red */
-  --foreground: oklch(1 0 0);                  /* White */
-  --card: oklch(0.52 0.19 27);
+  /* Reelio brand — hyper-red glass on deep obsidian */
+  --background: oklch(0.14 0.03 25);            /* #110202-ish */
+  --foreground: oklch(1 0 0);
+  --card: oklch(0.18 0.03 25);
   --card-foreground: oklch(1 0 0);
-  --popover: oklch(0.52 0.19 27);
+  --popover: oklch(0.18 0.03 25);
   --popover-foreground: oklch(1 0 0);
-  --primary: oklch(1 0 0);                     /* White on red */
-  --primary-foreground: oklch(0.5 0.2 27);
-  --secondary: oklch(0.5 0.2 27);
+  --primary: oklch(0.62 0.24 27);               /* #E63329 red */
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.22 0.04 25);
   --secondary-foreground: oklch(1 0 0);
-  --muted: oklch(0.55 0.18 27);
-  --muted-foreground: oklch(0.95 0.02 27);
-  --accent: oklch(0.18 0.02 27);               /* Near black */
+  --muted: oklch(0.24 0.03 25);
+  --muted-foreground: oklch(0.85 0.02 25);
+  --accent: oklch(0.62 0.24 27);
   --accent-foreground: oklch(1 0 0);
-  --destructive: oklch(0.18 0.02 27);
+  --destructive: oklch(0.62 0.24 27);
   --destructive-foreground: oklch(1 0 0);
-  --border: oklch(1 0 0 / 18%);
-  --input: oklch(1 0 0 / 20%);
-  --ring: oklch(1 0 0 / 40%);
-  --chart-1: oklch(1 0 0);
-  --chart-2: oklch(0.18 0.02 27);
-  --chart-3: oklch(0.95 0.02 27);
-  --chart-4: oklch(0.52 0.19 27);
-  --chart-5: oklch(0.72 0.15 27);
-  --sidebar: oklch(0.5 0.2 27);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.62 0.24 27 / 55%);
+  --chart-1: oklch(0.62 0.24 27);
+  --chart-2: oklch(1 0 0);
+  --chart-3: oklch(0.85 0.15 27);
+  --chart-4: oklch(0.5 0.2 27);
+  --chart-5: oklch(0.35 0.15 27);
+  --sidebar: oklch(0.16 0.03 25);
   --sidebar-foreground: oklch(1 0 0);
-  --sidebar-primary: oklch(1 0 0);
-  --sidebar-primary-foreground: oklch(0.5 0.2 27);
-  --sidebar-accent: oklch(0.18 0.02 27);
+  --sidebar-primary: oklch(0.62 0.24 27);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.22 0.04 25);
   --sidebar-accent-foreground: oklch(1 0 0);
-  --sidebar-border: oklch(1 0 0 / 15%);
-  --sidebar-ring: oklch(1 0 0 / 40%);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.62 0.24 27 / 55%);
 
-  --reelio-black: oklch(0.16 0.01 27);
-  --shadow-brand: 0 20px 60px -20px oklch(0 0 0 / 0.45);
+  --reelio-red: oklch(0.62 0.24 27);
+  --reelio-red-hex: #E63329;
+  --reelio-black: oklch(0.09 0.01 25);
+  --shadow-brand: 0 20px 60px -20px oklch(0 0 0 / 0.6);
+  --shadow-red-glow: 0 0 40px oklch(0.62 0.24 27 / 0.45);
 }
 
 
@@ -296,17 +299,21 @@
 
 @utility text-shimmer {
   background: linear-gradient(
-    90deg,
+    180deg,
     oklch(1 0 0) 0%,
-    oklch(1 0 0 / 0.55) 40%,
-    oklch(1 0 0) 60%,
-    oklch(1 0 0 / 0.55) 100%
+    oklch(1 0 0) 40%,
+    var(--reelio-red) 100%
   );
-  background-size: 200% auto;
+  background-size: 100% 200%;
   background-clip: text;
   -webkit-background-clip: text;
   color: transparent;
-  animation: shimmer-text 6s linear infinite;
+  animation: shimmer-text 6s ease-in-out infinite;
+}
+
+@utility text-red-glow {
+  color: var(--reelio-red);
+  text-shadow: 0 0 30px oklch(0.62 0.24 27 / 0.6), 0 0 60px oklch(0.62 0.24 27 / 0.35);
 }
 
 /* ============ ADVANCED FX ============ */
@@ -347,12 +354,46 @@
 }
 @utility aurora {
   background:
-    radial-gradient(60% 80% at 20% 30%, oklch(0.9 0.15 40 / 0.55), transparent 60%),
-    radial-gradient(50% 70% at 80% 40%, oklch(0.35 0.12 15 / 0.55), transparent 60%),
-    radial-gradient(70% 70% at 50% 90%, oklch(0.75 0.22 30 / 0.55), transparent 60%);
+    radial-gradient(50% 60% at 10% 20%, oklch(0.62 0.24 27 / 0.35), transparent 65%),
+    radial-gradient(50% 60% at 90% 90%, oklch(0.62 0.24 27 / 0.28), transparent 65%),
+    radial-gradient(70% 60% at 50% 50%, oklch(0.35 0.2 27 / 0.25), transparent 70%);
   background-size: 200% 200%, 200% 200%, 200% 200%;
-  animation: aurora-move 22s ease-in-out infinite;
-  filter: blur(30px) saturate(140%);
+  animation: aurora-move 24s ease-in-out infinite;
+  filter: blur(40px) saturate(150%);
+}
+
+/* Cyber grid overlay */
+@utility cyber-grid {
+  background-image:
+    linear-gradient(oklch(1 0 0 / 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, oklch(1 0 0 / 0.05) 1px, transparent 1px);
+  background-size: 60px 60px;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, #000 20%, transparent 80%);
+}
+
+/* Scanline sweep */
+@keyframes scanline {
+  0%   { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+@utility scanline {
+  position: relative;
+  &::after {
+    content: "";
+    position: absolute; left: 0; right: 0; top: 0;
+    height: 140px;
+    background: linear-gradient(
+      to bottom,
+      transparent,
+      oklch(0.62 0.24 27 / 0.12) 45%,
+      oklch(1 0 0 / 0.08) 50%,
+      oklch(0.62 0.24 27 / 0.12) 55%,
+      transparent
+    );
+    animation: scanline 7s linear infinite;
+    pointer-events: none;
+    mix-blend-mode: screen;
+  }
 }
 
 /* Fine grain */
