@@ -1059,7 +1059,7 @@ function AdminPage() {
               unreadCount={unreadCount}
               onMarkAllSeen={markAllSeen}
               onOpen={(id) => {
-                markAllSeen();
+                markReadByBookingId(id);
                 navigate({ to: "/bookings/$id", params: { id } });
               }}
               onUpdateStatus={(id, status) => updateStatus.mutate({ id, status })}
