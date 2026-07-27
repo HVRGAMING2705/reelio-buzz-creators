@@ -28,6 +28,8 @@ type Item = {
   attempted_email?: string | null;
   form?: string | null;
   user_agent?: string | null;
+  referrer?: string | null;
+  page_url?: string | null;
   window_label?: string | null;
   max_allowed?: number | null;
   retry_after_sec?: number | null;
