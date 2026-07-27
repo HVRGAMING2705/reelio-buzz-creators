@@ -135,9 +135,9 @@ export function BookingModal({ open, onClose }: Props) {
         captchaWidgetIdRef.current = hc.render(captchaContainerRef.current, {
           sitekey: captchaCfg.siteKey,
           theme: "dark",
-          callback: (token: string) => setCaptchaToken(token),
-          "expired-callback": () => setCaptchaToken(null),
-          "error-callback": () => setCaptchaToken(null),
+          callback: (token: string) => { setCaptchaToken(token); setCaptchaError(null); },
+          "expired-callback": () => { setCaptchaToken(null); setCaptchaError("Captcha expired — please tick the box again."); },
+          "error-callback": () => { setCaptchaToken(null); setCaptchaError("Captcha widget error — please retry."); },
         });
       })
       .catch(() => {
