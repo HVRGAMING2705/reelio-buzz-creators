@@ -13,6 +13,10 @@ function getReadBookings(): string[] {
   }
 }
 
+export function getReadBookingIds(): Set<string> {
+  return new Set(getReadBookings());
+}
+
 function addReadBooking(bookingId: string) {
   if (typeof window === "undefined") return;
   const current = getReadBookings().filter((id) => id !== bookingId);
