@@ -98,6 +98,8 @@ function SpamPage() {
         attempted_email: r.attempted_email,
         form: r.form,
         user_agent: r.user_agent,
+        referrer: (r as { referrer?: string | null }).referrer ?? null,
+        page_url: (r as { page_url?: string | null }).page_url ?? null,
       }));
       const blocks: Item[] = (b.data ?? []).map((r) => ({
         id: `b_${r.id}`,
