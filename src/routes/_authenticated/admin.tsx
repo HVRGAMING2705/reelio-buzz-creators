@@ -1,8 +1,11 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
+
+const LAST_SEEN_KEY = "reelio.admin.lastSeenBookingAt";
 
 type Booking = Tables<"bookings">;
 
@@ -57,6 +60,12 @@ function AdminPage() {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [lastSeen, setLastSeen] = useState<number>(() => {
+    if (typeof window === "undefined") return Date.now();
+    const v = window.localStorage.getItem(LAST_SEEN_KEY);
+    return v ? Number(v) : Date.now();
+  });
+  const notifiedIds = useRef<Set<string>>(new Set());
 
   const { data: bookings, isLoading, error } = useQuery({
     queryKey: ["bookings"],
@@ -105,12 +114,52 @@ function AdminPage() {
     },
   });
 
+  useEffect(() => {
+    const channel = supabase
+      .channel("admin-bookings-notifications")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "bookings" },
+        (payload) => {
+          const b = payload.new as Booking;
+          if (notifiedIds.current.has(b.id)) return;
+          notifiedIds.current.add(b.id);
+          toast.success("New booking submission", {
+            description: `${b.name}${b.brand ? ` · ${b.brand}` : ""} — ${b.service ?? "—"}`,
+            action: {
+              label: "Open",
+              onClick: () => setSelectedId(b.id),
+            },
+          });
+          qc.invalidateQueries({ queryKey: ["bookings"] });
+        },
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [qc]);
+
+  const unreadCount = useMemo(
+    () => (bookings ?? []).filter((b) => new Date(b.created_at).getTime() > lastSeen).length,
+    [bookings, lastSeen],
+  );
+
+  const markAllSeen = () => {
+    const now = Date.now();
+    setLastSeen(now);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(LAST_SEEN_KEY, String(now));
+    }
+  };
+
   const signOut = async () => {
     await qc.cancelQueries();
     qc.clear();
     await supabase.auth.signOut();
     navigate({ to: "/auth", replace: true });
   };
+
 
   const uniq = (vals: (string | null)[]) =>
     Array.from(new Set(vals.filter((v): v is string => !!v && v.trim() !== ""))).sort();
@@ -162,6 +211,19 @@ function AdminPage() {
                 No admin role
               </span>
             )}
+            <button
+              onClick={markAllSeen}
+              className="relative rounded-full glass px-3 py-2 text-sm hover:bg-white/10"
+              aria-label={`Notifications${unreadCount ? ` (${unreadCount} new)` : ""}`}
+              title={unreadCount ? `${unreadCount} new since last check` : "No new bookings"}
+            >
+              <span aria-hidden>🔔</span>
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center shadow-[0_0_12px_rgba(239,68,68,0.8)] animate-pulse">
+                  {unreadCount > 99 ? "99+" : unreadCount}
+                </span>
+              )}
+            </button>
             <button
               onClick={signOut}
               className="rounded-full glass px-4 py-2 uppercase tracking-[0.2em] text-[10px]"
