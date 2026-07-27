@@ -602,11 +602,16 @@ function AdminPage() {
 
   useEffect(() => {
     let active = true;
-    const hydrateCaptcha = async (base: NotifSettings) => {
+    const hydrateGlobals = async (base: NotifSettings) => {
       try {
-        const cfg = await fetchCaptchaConfig();
+        const [cfg, rl] = await Promise.all([fetchCaptchaConfig(), fetchRateLimitConfig()]);
         if (!active) return;
-        setSettings({ ...base, captchaEnabled: cfg.enabled, hcaptchaSiteKey: cfg.siteKey });
+        setSettings({
+          ...base,
+          captchaEnabled: cfg.enabled,
+          hcaptchaSiteKey: cfg.siteKey,
+          rateLimits: rl,
+        });
       } catch { /* keep local */ }
     };
     supabase.auth.getUser().then(({ data }) => {
@@ -615,14 +620,14 @@ function AdminPage() {
       setUserId(uid);
       const base = loadSettings(uid);
       setSettings(base);
-      hydrateCaptcha(base);
+      hydrateGlobals(base);
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
       const uid = session?.user?.id ?? null;
       setUserId(uid);
       const base = loadSettings(uid);
       setSettings(base);
-      hydrateCaptcha(base);
+      hydrateGlobals(base);
     });
     return () => { active = false; sub.subscription.unsubscribe(); };
   }, []);
@@ -632,15 +637,19 @@ function AdminPage() {
     if (typeof window !== "undefined") {
       window.localStorage.setItem(settingsKeyFor(userId), JSON.stringify(next));
     }
-    // Captcha config is global — persist to backend so it stays consistent
-    // across devices and admin sessions.
+    // Captcha + rate-limit config are global — persist to backend so they
+    // stay consistent across devices and admin sessions.
     void saveCaptchaConfig({ enabled: next.captchaEnabled, siteKey: next.hcaptchaSiteKey })
       .then((res) => {
         if (!res.ok) {
           toast.error("Couldn't save captcha settings", { description: res.error });
         }
       });
+    void saveRateLimitConfig(next.rateLimits).then((res) => {
+      if (!res.ok) toast.error("Couldn't save rate limits", { description: res.error });
+    });
   };
+
 
 
   const { data: bookings, isLoading, error } = useQuery({
