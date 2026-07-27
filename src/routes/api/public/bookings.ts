@@ -348,9 +348,34 @@ export const Route = createFileRoute("/api/public/bookings")({
         }
 
 
-        // If HCAPTCHA_SECRET is configured, a valid token is required.
+        // Captcha is required when the admin has enabled it in Settings
+        // (app_settings.key = 'captcha'). Verified server-side using
+        // HCAPTCHA_SECRET; if the flag is on but the secret is missing we
+        // fail closed so submissions can't slip through unverified.
+        const captchaSetting =
+          rlUrl && rlKey
+            ? await loadCaptchaSetting(rlUrl, rlKey)
+            : { enabled: false, siteKey: "" };
         const hcaptchaSecret = process.env.HCAPTCHA_SECRET;
-        if (hcaptchaSecret) {
+        if (captchaSetting.enabled) {
+          if (!hcaptchaSecret) {
+            await logBlocked({
+              reason: "captcha_failed",
+              ip,
+              email: form.email,
+              windowLabel: "server_secret_missing",
+              userAgent: ua,
+            });
+            return new Response(
+              JSON.stringify({
+                error: "Captcha is enabled but not yet configured on the server. Please try again shortly.",
+                field: "captcha",
+                code: "captcha_failed",
+                reason: "server_secret_missing",
+              }),
+              { status: 503, headers: { "content-type": "application/json" } },
+            );
+          }
           if (!captchaToken) {
             await logBlocked({ reason: "captcha_missing", ip, email: form.email, userAgent: ua });
             return new Response(
@@ -386,6 +411,7 @@ export const Route = createFileRoute("/api/public/bookings")({
             );
           }
         }
+
 
 
         const url = process.env.SUPABASE_URL;
