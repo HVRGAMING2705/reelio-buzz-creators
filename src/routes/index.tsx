@@ -268,12 +268,19 @@ function Index() {
           <div className="relative mt-16 md:mt-24 mx-auto h-64 md:h-80 max-w-2xl block">
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="relative scale-75 md:scale-100 origin-center">
+                {/* Red halo pulse */}
+                <motion.div
+                  animate={{ scale: [1, 1.3, 1], opacity: [0.6, 0.2, 0.6] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                  className="absolute left-1/2 top-1/2 h-56 w-56 -translate-x-1/2 -translate-y-1/2 rounded-full blur-2xl"
+                  style={{ background: "radial-gradient(circle, oklch(0.62 0.24 27 / 0.7), transparent 70%)" }}
+                />
                 <motion.img
                   animate={{ rotate: [0, 6, -6, 0] }}
                   transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
                   src={logoAsset.url}
                   alt=""
-                  className="h-32 w-32 rounded-3xl object-cover ring-2 ring-white/40 shadow-2xl relative z-10"
+                  className="h-32 w-32 rounded-3xl object-cover ring-2 ring-white/40 shadow-[var(--shadow-red-glow)] relative z-10"
                 />
                 <div className="absolute inset-0 orbit pointer-events-none">
                   {orbitIcons.map((ic, i) => {
@@ -293,8 +300,8 @@ function Index() {
                   })}
                 </div>
                 <div
-                  className="absolute left-1/2 top-1/2 h-[280px] w-[280px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/20 pointer-events-none"
-                  style={{ boxShadow: "inset 0 0 40px oklch(1 0 0 / 0.1)" }}
+                  className="absolute left-1/2 top-1/2 h-[280px] w-[280px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-[color:var(--reelio-red)]/40 pointer-events-none"
+                  style={{ boxShadow: "inset 0 0 40px oklch(0.62 0.24 27 / 0.25)" }}
                 />
               </div>
             </div>
