@@ -5,6 +5,7 @@ import type { Tables } from "@/integrations/supabase/types";
 
 type Booking = Tables<"bookings">;
 type BookingEvent = Tables<"booking_events">;
+type Profile = Tables<"profiles">;
 
 const STATUSES = ["new", "confirmed", "canceled"] as const;
 type Status = (typeof STATUSES)[number];
