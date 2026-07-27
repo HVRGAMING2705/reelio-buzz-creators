@@ -123,6 +123,11 @@ function NotificationsBell({
     return () => clearTimeout(t);
   }, [open, unreadCount, selectedIds.size, onMarkAllSeen]);
 
+  // Clear selection when dropdown closes or filters change
+  useEffect(() => {
+    if (!open) setSelectedIds(new Set());
+  }, [open, notifStatus, notifUnreadOnly, notifSort]);
+
   const recent = useMemo(() => {
     let list = [...bookings];
     if (notifStatus !== "all") {
