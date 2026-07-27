@@ -34,8 +34,9 @@ type NotifFilters = {
   unreadOnly: boolean;
   todayOnly: boolean;
   service: "all" | string;
+  sort: "newest" | "oldest";
 };
-const DEFAULT_NOTIF_FILTERS: NotifFilters = { unreadOnly: false, todayOnly: false, service: "all" };
+const DEFAULT_NOTIF_FILTERS: NotifFilters = { unreadOnly: false, todayOnly: false, service: "all", sort: "newest" };
 
 function loadNotifFilters(userId: string | null): NotifFilters {
   if (typeof window === "undefined") return DEFAULT_NOTIF_FILTERS;
@@ -237,15 +238,15 @@ function NotificationsBell({
   const [notifUnreadOnly, setNotifUnreadOnly] = useState(() => loadNotifFilters(userId).unreadOnly);
   const [notifTodayOnly, setNotifTodayOnly] = useState(() => loadNotifFilters(userId).todayOnly);
   const [notifService, setNotifService] = useState<"all" | string>(() => loadNotifFilters(userId).service);
-  const [notifSort, setNotifSort] = useState<"newest" | "oldest">("newest");
+  const [notifSort, setNotifSort] = useState<"newest" | "oldest">(() => loadNotifFilters(userId).sort);
   const [notifSearch, setNotifSearch] = useState("");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [notifLimit, setNotifLimit] = useState(8);
 
-  // Persist the three filter choices per user so they survive reloads.
+  // Persist the filter choices per user so they survive reloads.
   useEffect(() => {
-    saveNotifFilters(userId, { unreadOnly: notifUnreadOnly, todayOnly: notifTodayOnly, service: notifService });
-  }, [userId, notifUnreadOnly, notifTodayOnly, notifService]);
+    saveNotifFilters(userId, { unreadOnly: notifUnreadOnly, todayOnly: notifTodayOnly, service: notifService, sort: notifSort });
+  }, [userId, notifUnreadOnly, notifTodayOnly, notifService, notifSort]);
 
   // Sync filters if userId becomes known after initial render (e.g. on first mount).
   useEffect(() => {
@@ -254,6 +255,7 @@ function NotificationsBell({
     setNotifUnreadOnly(stored.unreadOnly);
     setNotifTodayOnly(stored.todayOnly);
     setNotifService(stored.service);
+    setNotifSort(stored.sort);
   }, [userId]);
 
   const [readIds, setReadIds] = useState<Set<string>>(() => getReadBookingIds());
