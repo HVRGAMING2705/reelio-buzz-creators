@@ -27,6 +27,12 @@ function BookingDetailPage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
 
+  useEffect(() => {
+    if (!id) return;
+    const t = window.setTimeout(() => markReadByBookingId(id), 600);
+    return () => window.clearTimeout(t);
+  }, [id]);
+
   const { data: booking, isLoading, error } = useQuery({
     queryKey: ["booking", id],
     queryFn: async () => {
