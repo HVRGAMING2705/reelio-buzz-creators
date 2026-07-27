@@ -142,8 +142,21 @@
     border-color: var(--color-border);
   }
 
-  body {
+  html, body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    font-family: "Coolvetica", "Coolvetica Rg", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    letter-spacing: 0.01em;
+  }
+
+  h1, h2, h3, h4, h5 {
+    font-family: "Coolvetica", "Coolvetica Rg", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    letter-spacing: 0.005em;
+    line-height: 1;
   }
 }
+
+@utility text-balance {
+  text-wrap: balance;
+}
+
