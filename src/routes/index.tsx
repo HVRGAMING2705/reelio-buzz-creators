@@ -637,10 +637,10 @@ function Index() {
           {/* Byline strip */}
           <div className="mt-16 md:mt-24 grid grid-cols-2 sm:grid-cols-4 gap-4 md:gap-6 pt-8 border-t border-white/15">
             {[
-              { k: "50+", v: "Brands scaled" },
-              { k: "10M+", v: "Reels views" },
-              { k: "6", v: "Core services" },
-              { k: "24/7", v: "Content engine" },
+              { k: "12+", v: "Brands on retainer" },
+              { k: "23", v: "Reels shipped" },
+              { k: "120+", v: "Community" },
+              { k: "48h", v: "Turnaround" },
             ].map((s, i) => (
               <motion.div
                 key={s.v}
