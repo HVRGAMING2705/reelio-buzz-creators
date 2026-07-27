@@ -328,7 +328,15 @@ function NotificationsBell({
   }, [open, notifStatus, notifUnreadOnly, notifTodayOnly, notifService, notifSort, notifSearch]);
 
   const filteredNotifications = useMemo(() => {
-    let list = [...bookings];
+    // Deduplicate by booking id first so realtime inserts / refetches can't
+    // reintroduce the same notification as older pages are loaded.
+    const seen = new Set<string>();
+    let list: BookingWithProfile[] = [];
+    for (const b of bookings) {
+      if (!b?.id || seen.has(b.id)) continue;
+      seen.add(b.id);
+      list.push(b);
+    }
     if (notifStatus !== "all") {
       list = list.filter((b) => b.status === notifStatus);
     }
@@ -357,6 +365,20 @@ function NotificationsBell({
     });
     return list;
   }, [bookings, lastSeen, readIds, notifStatus, notifUnreadOnly, notifTodayOnly, notifService, notifSort, notifSearch]);
+
+  const recent = useMemo(() => {
+    // Extra safety: dedupe again after slicing so any upstream duplication
+    // (e.g. two rapid realtime events) never renders the same row twice.
+    const out: BookingWithProfile[] = [];
+    const seenIds = new Set<string>();
+    for (const b of filteredNotifications) {
+      if (seenIds.has(b.id)) continue;
+      seenIds.add(b.id);
+      out.push(b);
+      if (out.length >= notifLimit) break;
+    }
+    return out;
+  }, [filteredNotifications, notifLimit]);
 
   const recent = useMemo(
     () => filteredNotifications.slice(0, notifLimit),
