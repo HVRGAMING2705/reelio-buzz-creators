@@ -379,10 +379,11 @@ function Index() {
 
   return (
     <div className="relative min-h-screen bg-background text-foreground overflow-hidden">
+      <a href="#main" className="skip-link">Skip to content</a>
       <BookingModal open={bookingOpen} onClose={() => setBookingOpen(false)} />
 
       {/* ============ AMBIENT LIQUID BACKDROP ============ */}
-      <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+      <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
         <div className="glow-orb animate-float-orb"
              style={{ width: 520, height: 520, top: '-8%', left: '-6%',
                       background: 'radial-gradient(circle, oklch(0.58 0.22 27 / 0.55), transparent 60%)' }} />
@@ -401,9 +402,11 @@ function Index() {
 
       {/* scroll progress */}
       <motion.div
+        aria-hidden="true"
         style={{ scaleX: progress, transformOrigin: "0% 50%" }}
         className="fixed top-0 left-0 right-0 h-[2px] bg-[color:var(--reelio-red)] z-[70]"
       />
+
 
       {/* ============ NAV ============ */}
       <header
@@ -415,10 +418,10 @@ function Index() {
       >
 
         <div className="mx-auto max-w-[1600px] px-4 sm:px-6 md:px-8 lg:px-10 h-14 md:h-16 lg:h-20 grid grid-cols-[minmax(0,auto)_1fr_auto] md:flex items-center md:justify-between gap-4 md:gap-6 lg:gap-10">
-          <a href="#top" className="flex items-center shrink-0 -my-2 md:-my-4">
+          <a href="#top" aria-label="Reelio — back to top" className="flex items-center shrink-0 -my-2 md:-my-4">
             <img
               src={logoMark.url}
-              alt="Reelio"
+              alt=""
               width={320}
               height={96}
               decoding="async"
@@ -426,7 +429,7 @@ function Index() {
               className="h-9 md:h-14 lg:h-16 w-auto object-contain block"
             />
           </a>
-          <nav className="hidden md:flex items-center gap-8 lg:gap-12 text-[11px] lg:text-[12px] tracking-[0.28em] uppercase font-body font-medium">
+          <nav aria-label="Primary" className="hidden md:flex items-center gap-8 lg:gap-12 text-[11px] lg:text-[12px] tracking-[0.28em] uppercase font-body font-medium">
             <a href="#services" className="hover:text-[color:var(--reelio-red)] transition-colors">Services</a>
             <a href="#niches" className="hover:text-[color:var(--reelio-red)] transition-colors">Niches</a>
             <a href="#package" className="hover:text-[color:var(--reelio-red)] transition-colors">Package</a>
@@ -466,8 +469,9 @@ function Index() {
         </div>
       </header>
 
+      <main id="main">
       {/* ============ MASTHEAD / HERO ============ */}
-      <section id="top" className="relative pt-28 md:pt-36 lg:pt-44 pb-16 md:pb-24 lg:pb-32">
+      <section id="top" aria-label="Introduction" className="relative pt-28 md:pt-36 lg:pt-44 pb-16 md:pb-24 lg:pb-32">
         <div className="mx-auto max-w-[1600px] px-5 sm:px-8 md:px-10 lg:px-14">
           {/* issue bar */}
           <div className="flex items-end justify-between gap-4 pb-6 border-b border-white/15">
@@ -547,13 +551,13 @@ function Index() {
       </section>
 
       {/* ============ MARQUEE / TICKER ============ */}
-      <section className="relative py-4 md:py-5 border-y border-white/15 bg-[color:var(--reelio-red)] overflow-hidden liquid-shine">
+      <section aria-hidden="true" className="relative py-4 md:py-5 border-y border-white/15 bg-[color:var(--reelio-red)] overflow-hidden liquid-shine">
 
         <div className="flex whitespace-nowrap animate-marquee font-display text-xl md:text-3xl tracking-[-0.01em]">
           {[...marqueeItems, ...marqueeItems, ...marqueeItems].map((it, i) => (
             <span key={i} className="flex items-center gap-8 md:gap-12 pr-8 md:pr-12 text-white">
               {it}
-              <span className="text-white/50">✦</span>
+              <span className="text-white/60">✦</span>
             </span>
           ))}
         </div>
@@ -755,21 +759,22 @@ function Index() {
           </div>
         </div>
       </section>
+      </main>
 
       {/* ============ COLOPHON / FOOTER ============ */}
       <footer className="border-t border-white/15 py-10">
         <div className="mx-auto max-w-[1600px] px-5 sm:px-8 md:px-10 lg:px-14 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <img src={logoMark.url} alt="Reelio" loading="lazy" decoding="async" width={120} height={40} className="h-5 w-auto object-contain" />
-            <span className="font-body text-[10px] uppercase tracking-[0.3em] text-white/40">
+            <img src={logoMark.url} alt="" loading="lazy" decoding="async" width={120} height={40} className="h-5 w-auto object-contain" />
+            <span className="font-body text-[10px] uppercase tracking-[0.3em] text-white/70">
               © {year} Reelio Studio · Issue №{issue}
             </span>
           </div>
-          <div className="flex items-center gap-6 font-body text-[10px] uppercase tracking-[0.3em] text-white/40">
+          <nav aria-label="Footer" className="flex items-center gap-6 font-body text-[10px] uppercase tracking-[0.3em] text-white/70">
             <a href="#services" className="hover:text-white">Services</a>
             <a href="#package" className="hover:text-white">Package</a>
             <a href="#contact" className="hover:text-white">Contact</a>
-          </div>
+          </nav>
         </div>
       </footer>
     </div>
