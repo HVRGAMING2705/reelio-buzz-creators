@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { motion, useScroll, useSpring } from "motion/react";
+import { motion, useScroll, useSpring, AnimatePresence } from "motion/react";
+import { Menu, X } from "lucide-react";
 import logoMark from "@/assets/reelio-logo-mark.png.asset.json";
 import { useReveal } from "@/hooks/use-reveal";
 import { BookingModal } from "@/components/booking-modal";
