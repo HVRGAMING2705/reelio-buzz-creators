@@ -436,7 +436,11 @@ function Index() {
       >
 
         <div className="mx-auto max-w-[1600px] px-4 sm:px-6 md:px-8 lg:px-10 h-20 md:h-28 lg:h-32 flex items-center justify-between gap-6 md:gap-8 lg:gap-12">
-          <a href="#top" aria-label="Reelio — back to top" className="flex items-center shrink-0 -my-1 md:-my-3 lg:-my-4">
+          <a
+            href="#top"
+            aria-label="Reelio — back to top"
+            className="flex items-center justify-center shrink-0 w-14 h-14 md:w-20 md:h-20 lg:w-24 lg:h-24 -my-1 md:-my-3 lg:-my-4"
+          >
             <img
               src={logoMark512.url}
               srcSet={logoSrcSet}
@@ -446,7 +450,7 @@ function Index() {
               height={96}
               decoding="async"
               fetchPriority="high"
-              className="h-14 md:h-20 lg:h-24 w-auto max-w-[200px] sm:max-w-[260px] md:max-w-none object-contain block"
+              className="w-full h-full object-contain block"
             />
           </a>
           <nav aria-label="Primary" className="hidden md:flex items-center gap-8 lg:gap-14 text-[11px] lg:text-[12px] tracking-[0.28em] uppercase font-body font-medium">
@@ -859,7 +863,7 @@ function Index() {
       <footer className="border-t border-white/15 py-10">
         <div className="mx-auto max-w-[1600px] px-5 sm:px-8 md:px-10 lg:px-14 flex flex-col sm:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-4">
-            <img src={logoMark256.url} srcSet={logoSrcSet} sizes={footerLogoSizes} alt="" loading="lazy" decoding="async" width={48} height={48} className="h-6 w-auto object-contain" />
+            <img src={logoMark256.url} srcSet={logoSrcSet} sizes={footerLogoSizes} alt="" loading="lazy" decoding="async" width={48} height={48} className="w-6 h-6 object-contain block" />
             <span className="font-body text-[10px] uppercase tracking-[0.3em] text-white/70">
               © {year} Reelio Social Consortium · Issue №{issue}
             </span>
