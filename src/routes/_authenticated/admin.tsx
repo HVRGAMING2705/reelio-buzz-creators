@@ -24,6 +24,12 @@ function AdminPage() {
   const qc = useQueryClient();
   const [filter, setFilter] = useState<"all" | Status>("all");
   const [search, setSearch] = useState("");
+  const [nameQ, setNameQ] = useState("");
+  const [serviceQ, setServiceQ] = useState("all");
+  const [nicheQ, setNicheQ] = useState("all");
+  const [budgetQ, setBudgetQ] = useState("all");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const { data: bookings, isLoading, error } = useQuery({
