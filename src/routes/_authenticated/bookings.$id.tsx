@@ -78,6 +78,22 @@ function BookingDetailPage() {
     },
   });
 
+  const fetchBlocks = useServerFn(getBlocksForEmail);
+  const { data: blocks } = useQuery({
+    queryKey: ["booking-blocks", booking?.email],
+    queryFn: async () => {
+      if (!booking?.email) return [] as BlockRow[];
+      try {
+        const rows = await fetchBlocks({ data: { email: booking.email } });
+        return rows as BlockRow[];
+      } catch {
+        return [] as BlockRow[];
+      }
+    },
+    enabled: !!booking?.email,
+  });
+
+
   const { data: profile } = useQuery({
     queryKey: ["booking-creator", booking?.user_id],
     queryFn: async () => {
