@@ -2,7 +2,6 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import {
   getHistory,
-  markAllRead,
   markFilteredRead,
   markRead,
   markUnread,
