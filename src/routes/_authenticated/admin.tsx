@@ -60,6 +60,12 @@ function AdminPage() {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [lastSeen, setLastSeen] = useState<number>(() => {
+    if (typeof window === "undefined") return Date.now();
+    const v = window.localStorage.getItem(LAST_SEEN_KEY);
+    return v ? Number(v) : Date.now();
+  });
+  const notifiedIds = useRef<Set<string>>(new Set());
 
   const { data: bookings, isLoading, error } = useQuery({
     queryKey: ["bookings"],
