@@ -232,13 +232,16 @@ export function BookingModal({ open, onClose }: Props) {
                     />
                   </Field>
 
+                  {errorMsg && <p className="text-sm text-red-300">{errorMsg}</p>}
+
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     type="submit"
-                    className="mt-2 inline-flex items-center justify-center gap-2 rounded-full bg-white text-[color:var(--reelio-black)] px-7 py-4 uppercase tracking-[0.2em] text-xs liquid-shine shadow-2xl"
+                    disabled={submitting}
+                    className="mt-2 inline-flex items-center justify-center gap-2 rounded-full bg-white text-[color:var(--reelio-black)] px-7 py-4 uppercase tracking-[0.2em] text-xs liquid-shine shadow-2xl disabled:opacity-60"
                   >
-                    Send booking request →
+                    {submitting ? "Sending…" : "Send booking request →"}
                   </motion.button>
                 </form>
               </>
