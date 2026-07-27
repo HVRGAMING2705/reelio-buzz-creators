@@ -4,7 +4,12 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
-import { logNotification } from "@/lib/notification-history";
+import {
+  logNotification,
+  markReadByBookingId,
+  getReadBookingIds,
+  subscribeHistory,
+} from "@/lib/notification-history";
 import { SpamTrendChart } from "@/components/spam-trend-chart";
 import { saveCaptchaConfig, fetchCaptchaConfig } from "@/lib/captcha-config";
 import {
@@ -204,6 +209,11 @@ function NotificationsBell({
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [notifLimit, setNotifLimit] = useState(8);
 
+  const [readIds, setReadIds] = useState<Set<string>>(() => getReadBookingIds());
+  useEffect(() => {
+    return subscribeHistory(() => setReadIds(getReadBookingIds()));
+  }, []);
+
   useEffect(() => {
     if (!open) return;
     const onDoc = (e: MouseEvent) => {
@@ -212,13 +222,6 @@ function NotificationsBell({
     document.addEventListener("mousedown", onDoc);
     return () => document.removeEventListener("mousedown", onDoc);
   }, [open]);
-
-  // Auto-mark as read shortly after opening the dropdown
-  useEffect(() => {
-    if (!open || unreadCount === 0 || selectedIds.size > 0) return;
-    const t = setTimeout(() => onMarkAllSeen(), 600);
-    return () => clearTimeout(t);
-  }, [open, unreadCount, selectedIds.size, onMarkAllSeen]);
 
   // Clear selection and reset pagination when dropdown closes or filters change
   useEffect(() => {
@@ -232,7 +235,7 @@ function NotificationsBell({
       list = list.filter((b) => b.status === notifStatus);
     }
     if (notifUnreadOnly) {
-      list = list.filter((b) => new Date(b.created_at).getTime() > lastSeen);
+      list = list.filter((b) => new Date(b.created_at).getTime() > lastSeen && !readIds.has(b.id));
     }
     if (notifTodayOnly) {
       const today = new Date();
@@ -247,7 +250,7 @@ function NotificationsBell({
       return notifSort === "newest" ? diff : -diff;
     });
     return list;
-  }, [bookings, lastSeen, notifStatus, notifUnreadOnly, notifTodayOnly, notifService, notifSort]);
+  }, [bookings, lastSeen, readIds, notifStatus, notifUnreadOnly, notifTodayOnly, notifService, notifSort]);
 
   const recent = useMemo(
     () => filteredNotifications.slice(0, notifLimit),
@@ -455,7 +458,7 @@ function NotificationsBell({
           ) : (
             <ul className="divide-y divide-white/5">
               {recent.map((b) => {
-                const unread = new Date(b.created_at).getTime() > lastSeen;
+                const unread = new Date(b.created_at).getTime() > lastSeen && !readIds.has(b.id);
                 const checked = selectedIds.has(b.id);
                 return (
                   <li key={b.id} className="group flex items-center gap-1 px-4 py-3 hover:bg-white/5">
@@ -967,9 +970,15 @@ function AdminPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [qc, navigate, profileMap]);
 
+  const [readBookingIds, setReadBookingIds] = useState<Set<string>>(() => getReadBookingIds());
+  useEffect(() => subscribeHistory(() => setReadBookingIds(getReadBookingIds())), []);
+
   const unreadCount = useMemo(
-    () => (bookings ?? []).filter((b) => new Date(b.created_at).getTime() > lastSeen).length,
-    [bookings, lastSeen],
+    () =>
+      (bookings ?? []).filter(
+        (b) => new Date(b.created_at).getTime() > lastSeen && !readBookingIds.has(b.id),
+      ).length,
+    [bookings, lastSeen, readBookingIds],
   );
 
   const markAllSeen = (ts?: number) => {
@@ -1050,7 +1059,7 @@ function AdminPage() {
               unreadCount={unreadCount}
               onMarkAllSeen={markAllSeen}
               onOpen={(id) => {
-                markAllSeen();
+                markReadByBookingId(id);
                 navigate({ to: "/bookings/$id", params: { id } });
               }}
               onUpdateStatus={(id, status) => updateStatus.mutate({ id, status })}
