@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   getHistory,
   markAllRead,
+  markFilteredRead,
   markRead,
   markUnread,
   clearHistory,
