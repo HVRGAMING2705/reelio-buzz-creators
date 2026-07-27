@@ -417,8 +417,8 @@ function Index() {
         }`}
       >
 
-        <div className="mx-auto max-w-[1600px] px-4 sm:px-6 md:px-8 lg:px-10 h-14 md:h-16 lg:h-20 grid grid-cols-[minmax(0,auto)_1fr_auto] md:flex items-center md:justify-between gap-4 md:gap-6 lg:gap-10">
-          <a href="#top" aria-label="Reelio — back to top" className="flex items-center shrink-0 -my-2 md:-my-4">
+        <div className="mx-auto max-w-[1600px] px-4 sm:px-6 md:px-8 lg:px-10 h-16 md:h-20 lg:h-24 grid grid-cols-[minmax(0,auto)_1fr_auto] md:flex items-center md:justify-between gap-4 md:gap-6 lg:gap-10">
+          <a href="#top" aria-label="Reelio — back to top" className="flex items-center shrink-0 -my-3 md:-my-6 lg:-my-7">
             <img
               src={logoMark.url}
               alt=""
@@ -426,7 +426,7 @@ function Index() {
               height={96}
               decoding="async"
               fetchPriority="high"
-              className="h-9 md:h-14 lg:h-16 w-auto object-contain block"
+              className="h-12 md:h-16 lg:h-20 w-auto object-contain block"
             />
           </a>
           <nav aria-label="Primary" className="hidden md:flex items-center gap-8 lg:gap-12 text-[11px] lg:text-[12px] tracking-[0.28em] uppercase font-body font-medium">
