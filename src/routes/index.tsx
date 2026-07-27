@@ -304,15 +304,15 @@ function Index() {
               <li key={s.n} className="case-row group">
                 <a
                   href="#contact"
-                  className="grid grid-cols-12 items-center gap-4 md:gap-8 py-6 md:py-10 px-2 md:px-4 transition-colors"
+                  className="grid grid-cols-12 items-center gap-4 md:gap-8 py-6 md:py-10 lg:py-12 px-2 md:px-4 transition-colors"
                 >
-                  <span className="col-span-2 md:col-span-1 font-display text-2xl md:text-4xl text-white/40 group-hover:text-white transition-colors">
+                  <span className="col-span-2 md:col-span-1 font-display text-2xl md:text-4xl lg:text-5xl text-white/40 group-hover:text-white transition-colors">
                     {s.n}
                   </span>
-                  <span className="col-span-10 md:col-span-5 font-display text-3xl md:text-6xl leading-none group-hover:text-white transition-colors">
+                  <span className="col-span-10 md:col-span-5 font-display text-3xl md:text-6xl lg:text-7xl leading-none group-hover:text-white transition-colors">
                     {s.title}
                   </span>
-                  <span className="hidden md:block md:col-span-3 font-body text-[11px] uppercase tracking-[0.25em] text-white/50 group-hover:text-white/90 transition-colors">
+                  <span className="hidden sm:block col-span-6 md:col-span-3 font-body text-[11px] lg:text-xs uppercase tracking-[0.25em] text-white/50 group-hover:text-white/90 transition-colors">
                     {s.kicker}
                   </span>
                   <span className="col-span-12 md:col-span-3 font-body text-sm text-white/60 group-hover:text-white/90 transition-colors">
