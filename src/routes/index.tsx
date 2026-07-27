@@ -314,10 +314,10 @@ function Index() {
                 viewport={{ once: true, margin: "-50px" }}
                 transition={{ delay: i * 0.1, type: "spring", stiffness: 100 }}
                 whileHover={{ y: -6 }}
-                className="glass spotlight rounded-2xl p-5 md:p-6"
+                className="glass spotlight rounded-2xl p-5 md:p-6 hover:border-[color:var(--reelio-red)]/60 transition-colors"
               >
-                <div className="text-3xl md:text-4xl">{s.k}</div>
-                <div className="mt-1 text-[10px] md:text-xs uppercase tracking-[0.2em] opacity-80">{s.v}</div>
+                <div className="text-3xl md:text-4xl text-[color:var(--reelio-red)] font-bold">{s.k}</div>
+                <div className="mt-1 text-[10px] md:text-xs uppercase tracking-[0.2em] opacity-70 font-bold">{s.v}</div>
               </motion.div>
             ))}
           </div>
