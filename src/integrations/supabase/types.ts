@@ -38,6 +38,45 @@ export type Database = {
         }
         Relationships: []
       }
+      blocked_submissions: {
+        Row: {
+          created_at: string
+          email_domain: string | null
+          email_hash: string | null
+          id: string
+          ip_hash: string | null
+          max_allowed: number | null
+          reason: string
+          retry_after_sec: number | null
+          user_agent: string | null
+          window_label: string | null
+        }
+        Insert: {
+          created_at?: string
+          email_domain?: string | null
+          email_hash?: string | null
+          id?: string
+          ip_hash?: string | null
+          max_allowed?: number | null
+          reason: string
+          retry_after_sec?: number | null
+          user_agent?: string | null
+          window_label?: string | null
+        }
+        Update: {
+          created_at?: string
+          email_domain?: string | null
+          email_hash?: string | null
+          id?: string
+          ip_hash?: string | null
+          max_allowed?: number | null
+          reason?: string
+          retry_after_sec?: number | null
+          user_agent?: string | null
+          window_label?: string | null
+        }
+        Relationships: []
+      }
       booking_events: {
         Row: {
           actor_id: string | null
