@@ -175,18 +175,19 @@ function ContactForm() {
     ev.preventDefault();
     if (!validate()) {
       setStatus({ kind: "error", message: "Please fix the highlighted fields." });
+      trackEvent("form_submit_error", { form: "contact", reason: "validation" });
       return;
     }
     setStatus({ kind: "submitting" });
     try {
       const win = window.open(GOOGLE_FORM_URL, "_blank", "noopener,noreferrer");
       if (!win) throw new Error("Popup blocked. Please allow popups or use the direct link below.");
+      trackFormSubmit("contact", { destination: "google_form" });
       setStatus({ kind: "success" });
     } catch (err) {
-      setStatus({
-        kind: "error",
-        message: err instanceof Error ? err.message : "Something went wrong. Try the direct link below.",
-      });
+      const message = err instanceof Error ? err.message : "Something went wrong. Try the direct link below.";
+      setStatus({ kind: "error", message });
+      trackEvent("form_submit_error", { form: "contact", reason: "popup_blocked" });
     }
   };
 
