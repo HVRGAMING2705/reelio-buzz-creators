@@ -44,7 +44,7 @@ export const Route = createFileRoute("/")({
         children: JSON.stringify({
           "@context": "https://schema.org",
           "@type": "Organization",
-          name: "Reelio SMMA",
+          name: "Reelio Social Consortium",
           description:
             "Cinematic social media agency delivering content, shoots, editing, ads and creator outreach.",
           url: "/",
@@ -59,7 +59,7 @@ export const Route = createFileRoute("/")({
           "@context": "https://schema.org",
           "@type": "Service",
           serviceType: "Social Media Marketing Agency",
-          provider: { "@type": "Organization", name: "Reelio SMMA" },
+          provider: { "@type": "Organization", name: "Reelio Social Consortium" },
           areaServed: "IN",
           offers: {
             "@type": "AggregateOffer",
