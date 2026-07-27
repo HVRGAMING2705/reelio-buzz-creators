@@ -238,6 +238,7 @@ function NotificationsBell({
   const [notifTodayOnly, setNotifTodayOnly] = useState(() => loadNotifFilters(userId).todayOnly);
   const [notifService, setNotifService] = useState<"all" | string>(() => loadNotifFilters(userId).service);
   const [notifSort, setNotifSort] = useState<"newest" | "oldest">("newest");
+  const [notifSearch, setNotifSearch] = useState("");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [notifLimit, setNotifLimit] = useState(8);
 
@@ -273,7 +274,7 @@ function NotificationsBell({
   useEffect(() => {
     if (!open) setSelectedIds(new Set());
     setNotifLimit(8);
-  }, [open, notifStatus, notifUnreadOnly, notifTodayOnly, notifService, notifSort]);
+  }, [open, notifStatus, notifUnreadOnly, notifTodayOnly, notifService, notifSort, notifSearch]);
 
   const filteredNotifications = useMemo(() => {
     let list = [...bookings];
