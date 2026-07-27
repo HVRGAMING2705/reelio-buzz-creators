@@ -529,7 +529,7 @@ function NotificationsBell({
                     }}
                     className="text-[10px] uppercase tracking-[0.15em] font-semibold text-red-400 hover:text-red-300"
                   >
-                    Mark selected read
+                    Mark selected as read
                   </button>
                 </div>
               )}
