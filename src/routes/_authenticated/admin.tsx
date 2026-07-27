@@ -735,6 +735,42 @@ function SettingsModal({
           </p>
         )}
 
+        <div className="mt-6 pt-4 border-t border-white/10">
+          <p className="text-[10px] uppercase tracking-[0.3em] opacity-50 mb-1">Spam protection</p>
+          <label className="flex items-start justify-between gap-4 py-3 border-b border-white/10 cursor-pointer">
+            <div className="min-w-0">
+              <p className="text-sm">Enable hCaptcha on booking form</p>
+              <p className="text-xs opacity-60 mt-1">Requires a valid hCaptcha site key below.</p>
+            </div>
+            <input
+              type="checkbox"
+              className="h-5 w-5 accent-red-500 mt-1"
+              checked={draft.captchaEnabled}
+              onChange={(e) => setDraft({ ...draft, captchaEnabled: e.target.checked })}
+            />
+          </label>
+          <div className="mt-3">
+            <label className="text-[10px] uppercase tracking-[0.25em] opacity-60">hCaptcha site key</label>
+            <input
+              type="text"
+              value={draft.hcaptchaSiteKey}
+              onChange={(e) => setDraft({ ...draft, hcaptchaSiteKey: e.target.value.trim() })}
+              placeholder="10000000-ffff-ffff-ffff-000000000001"
+              spellCheck={false}
+              autoComplete="off"
+              className="mt-1 w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-sm font-mono"
+            />
+            <p className="text-xs opacity-60 mt-2">
+              Get your site key at hcaptcha.com. The secret key is stored server-side separately.
+            </p>
+            {draft.captchaEnabled && !draft.hcaptchaSiteKey && (
+              <p className="text-xs text-red-300 mt-2">Add a site key to activate captcha.</p>
+            )}
+          </div>
+        </div>
+
+
+
         <div className="flex justify-end gap-2 mt-6">
           <button
             onClick={onClose}
