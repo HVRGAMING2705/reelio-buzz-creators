@@ -334,7 +334,9 @@ function ContactForm() {
   );
 }
 
+function Index() {
   useReveal();
+
   const [scrolled, setScrolled] = useState(false);
   const [bookingOpen, setBookingOpen] = useState(false);
   const [user, setUser] = useState<{ email?: string; avatar_url?: string | null } | null>(null);
