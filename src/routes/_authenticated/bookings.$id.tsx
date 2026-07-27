@@ -631,6 +631,8 @@ function TimelineSection({
         Captcha successes and skips (when disabled) are logged alongside failures for a full end-to-end audit.
         Email confirmations will appear here once a sender domain is configured.
       </p>
+
+      {detail && <EventDetailsModal detail={detail} onClose={() => setDetail(null)} />}
     </section>
 
   );
