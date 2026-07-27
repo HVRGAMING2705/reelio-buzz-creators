@@ -34,6 +34,7 @@ type NotifSettings = {
   notifyStatusChange: boolean;
   notifyNoteUpdate: boolean;
   frequency: NotifFrequency;
+  rateLimits: RateLimitConfig;
 };
 
 const DEFAULT_SETTINGS: NotifSettings = {
