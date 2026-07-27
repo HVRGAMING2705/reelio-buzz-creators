@@ -35,3 +35,21 @@ export const getBlocksForEmail = createServerFn({ method: "GET" })
     if (error) throw error;
     return rows ?? [];
   });
+
+export const hashEmailForSearch = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) =>
+    z.object({ email: z.string().trim().toLowerCase().email().max(160) }).parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const { data: roles } = await context.supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", context.userId)
+      .eq("role", "admin")
+      .limit(1);
+    if (!roles || roles.length === 0) {
+      throw new Response("Forbidden", { status: 403 });
+    }
+    return { email_hash: shortHash(data.email) };
+  });
