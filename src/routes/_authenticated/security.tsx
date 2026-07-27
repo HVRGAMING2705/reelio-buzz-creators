@@ -1,7 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
+import { hashEmailForSearch } from "@/lib/booking-security.functions";
 import type { Tables } from "@/integrations/supabase/types";
 
 export const Route = createFileRoute("/_authenticated/security")({
@@ -72,9 +74,43 @@ function uaSummary(ua: string | null): string {
 function SecurityPage() {
   const [range, setRange] = useState<Range>("7d");
   const [onlyFailed, setOnlyFailed] = useState(true);
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+  const [reasonFilter, setReasonFilter] = useState<string>("all");
+  const [ipQuery, setIpQuery] = useState("");
+  const [emailQuery, setEmailQuery] = useState("");
+  const [emailHash, setEmailHash] = useState<string | null>(null);
+  const [emailErr, setEmailErr] = useState<string | null>(null);
+
+  const hashEmail = useServerFn(hashEmailForSearch);
+
+  // Debounced email → hash lookup
+  useEffect(() => {
+    const q = emailQuery.trim().toLowerCase();
+    if (!q) {
+      setEmailHash(null);
+      setEmailErr(null);
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(q)) {
+      setEmailHash(null);
+      setEmailErr("Enter a full email address");
+      return;
+    }
+    setEmailErr(null);
+    const t = window.setTimeout(async () => {
+      try {
+        const res = await hashEmail({ data: { email: q } });
+        setEmailHash(res.email_hash);
+      } catch {
+        setEmailErr("Lookup failed");
+      }
+    }, 300);
+    return () => window.clearTimeout(t);
+  }, [emailQuery, hashEmail]);
 
   const { data, isLoading, isFetching, refetch } = useQuery({
-    queryKey: ["security_captcha", range, onlyFailed],
+    queryKey: ["security_captcha", range, onlyFailed, fromDate, toDate],
     queryFn: async (): Promise<Row[]> => {
       let q = supabase
         .from("blocked_submissions")
@@ -84,8 +120,12 @@ function SecurityPage() {
       q = onlyFailed
         ? q.eq("reason", "captcha_failed")
         : q.in("reason", ["captcha_failed", "captcha_missing"]);
-      const s = sinceMs(range);
-      if (s != null) q = q.gte("created_at", new Date(Date.now() - s).toISOString());
+      if (fromDate) q = q.gte("created_at", new Date(fromDate).toISOString());
+      if (toDate) q = q.lte("created_at", new Date(new Date(toDate).getTime() + 86_400_000 - 1).toISOString());
+      if (!fromDate && !toDate) {
+        const s = sinceMs(range);
+        if (s != null) q = q.gte("created_at", new Date(Date.now() - s).toISOString());
+      }
       const { data, error } = await q;
       if (error) throw error;
       return data ?? [];
@@ -93,7 +133,23 @@ function SecurityPage() {
     refetchInterval: 30_000,
   });
 
-  const rows = data ?? [];
+  const allRows = data ?? [];
+
+  const reasonOptions = useMemo(() => {
+    const set = new Set<string>();
+    for (const r of allRows) set.add(humaniseReason(r.window_label, r.reason));
+    return [...set].sort();
+  }, [allRows]);
+
+  const rows = useMemo(() => {
+    const ipQ = ipQuery.trim().toLowerCase();
+    return allRows.filter((r) => {
+      if (reasonFilter !== "all" && humaniseReason(r.window_label, r.reason) !== reasonFilter) return false;
+      if (ipQ && !(r.ip_hash ?? "").toLowerCase().includes(ipQ)) return false;
+      if (emailHash && r.email_hash !== emailHash) return false;
+      return true;
+    });
+  }, [allRows, reasonFilter, ipQuery, emailHash]);
 
   const stats = useMemo(() => {
     const byIp = new Map<string, number>();
@@ -112,6 +168,9 @@ function SecurityPage() {
       topReasons: [...reasons.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5),
     };
   }, [rows]);
+
+  const dateRangeActive = !!(fromDate || toDate);
+  const anyFilterActive = dateRangeActive || reasonFilter !== "all" || ipQuery.trim() || emailQuery.trim();
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -172,8 +231,12 @@ function SecurityPage() {
         <div className="mb-3 flex flex-wrap items-center gap-2">
           <FilterGroup
             label="Range"
-            value={range}
-            onChange={(v) => setRange(v as Range)}
+            value={dateRangeActive ? "" : range}
+            onChange={(v) => {
+              setRange(v as Range);
+              setFromDate("");
+              setToDate("");
+            }}
             options={[
               { value: "24h", label: "24h" },
               { value: "7d", label: "7 days" },
@@ -181,17 +244,85 @@ function SecurityPage() {
               { value: "all", label: "All" },
             ]}
           />
-          <label className="ml-1 flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs">
+          <div className="flex items-center gap-1 rounded-full border border-white/10 bg-white/5 px-2 py-1 text-[11px]">
+            <span className="px-1 text-[10px] uppercase tracking-[0.2em] text-white/50">From</span>
+            <input
+              type="date"
+              value={fromDate}
+              onChange={(e) => setFromDate(e.target.value)}
+              className="bg-transparent text-white [color-scheme:dark] outline-none"
+            />
+            <span className="px-1 text-[10px] uppercase tracking-[0.2em] text-white/50">To</span>
+            <input
+              type="date"
+              value={toDate}
+              onChange={(e) => setToDate(e.target.value)}
+              className="bg-transparent text-white [color-scheme:dark] outline-none"
+            />
+          </div>
+          <label className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs">
             <input
               type="checkbox"
               checked={onlyFailed}
               onChange={(e) => setOnlyFailed(e.target.checked)}
               className="accent-red-500"
             />
-            <span className="text-white/70">Only verification failures (hide missing tokens)</span>
+            <span className="text-white/70">Only failures</span>
           </label>
-          <span className="ml-auto text-xs text-white/50">{rows.length} row{rows.length === 1 ? "" : "s"}</span>
+          <select
+            value={reasonFilter}
+            onChange={(e) => setReasonFilter(e.target.value)}
+            className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white [color-scheme:dark] outline-none"
+          >
+            <option value="all">All reasons</option>
+            {reasonOptions.map((r) => (
+              <option key={r} value={r}>{r}</option>
+            ))}
+          </select>
+          <input
+            type="text"
+            value={ipQuery}
+            onChange={(e) => setIpQuery(e.target.value)}
+            placeholder="Search IP hash…"
+            className="w-48 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-mono text-white placeholder:text-white/40 outline-none focus:border-white/30"
+          />
+          <div className="flex flex-col">
+            <input
+              type="text"
+              value={emailQuery}
+              onChange={(e) => setEmailQuery(e.target.value)}
+              placeholder="Search attempted email…"
+              className={`w-60 rounded-full border bg-white/5 px-3 py-1 text-xs text-white placeholder:text-white/40 outline-none focus:border-white/30 ${
+                emailErr ? "border-red-400/60" : "border-white/10"
+              }`}
+            />
+            {emailErr && <span className="mt-0.5 px-3 text-[10px] text-red-300">{emailErr}</span>}
+            {emailHash && (
+              <span className="mt-0.5 px-3 text-[10px] text-white/40">
+                hash <span className="font-mono">{emailHash}</span>
+              </span>
+            )}
+          </div>
+          {anyFilterActive && (
+            <button
+              onClick={() => {
+                setFromDate("");
+                setToDate("");
+                setReasonFilter("all");
+                setIpQuery("");
+                setEmailQuery("");
+              }}
+              className="rounded-full border border-red-400/40 px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-red-200 hover:bg-red-500/10"
+            >
+              Clear
+            </button>
+          )}
+          <span className="ml-auto text-xs text-white/50">
+            {rows.length} of {allRows.length} row{allRows.length === 1 ? "" : "s"}
+          </span>
         </div>
+
+
 
         <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur">
           <div className="overflow-x-auto">
