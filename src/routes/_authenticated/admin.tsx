@@ -1115,6 +1115,7 @@ function AdminPage() {
               bookings={bookingsWithProfiles}
               lastSeen={lastSeen}
               unreadCount={unreadCount}
+              userId={userId}
               onMarkAllRead={(ids) => {
                 markAllBookingsRead(ids);
                 markAllSeen();
