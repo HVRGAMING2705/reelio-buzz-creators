@@ -1492,10 +1492,22 @@ function SettingsModal({
               type="button"
               onClick={() => {
                 if (!draft.realtimeEnabled) {
+                  logNotification({
+                    kind: "test", category: "system",
+                    title: "Test notification · Reelio Admin",
+                    subtitle: "Realtime alerts disabled",
+                    status: "suppressed", reason: "disabled",
+                  });
                   toast.error("Realtime alerts are disabled — no toast will appear.");
                   return;
                 }
                 if (isQuietNow(draft)) {
+                  logNotification({
+                    kind: "test", category: "system",
+                    title: "Test notification · Reelio Admin",
+                    subtitle: "Quiet hours active",
+                    status: "suppressed", reason: "quiet",
+                  });
                   toast.error(
                     `Quiet hours are active${
                       nextTransition ? ` until ${nextTransition}` : ""
@@ -1503,6 +1515,12 @@ function SettingsModal({
                   );
                   return;
                 }
+                logNotification({
+                  kind: "test", category: "system",
+                  title: "Test notification · Reelio Admin",
+                  subtitle: "Delivered preview toast",
+                  status: "delivered",
+                });
                 toast.custom(
                   (t) => (
                     <div className="w-full rounded-xl border border-red-500/40 bg-black/90 backdrop-blur-xl shadow-2xl overflow-hidden">
