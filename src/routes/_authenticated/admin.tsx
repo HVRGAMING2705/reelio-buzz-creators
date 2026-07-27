@@ -637,9 +637,117 @@ function AdminPage() {
           )}
         </aside>
       </main>
+      <SettingsModal
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        settings={settings}
+        onSave={saveSettings}
+      />
     </div>
   );
 }
+
+function SettingsModal({
+  open, onClose, settings, onSave,
+}: {
+  open: boolean;
+  onClose: () => void;
+  settings: NotifSettings;
+  onSave: (s: NotifSettings) => void;
+}) {
+  const [draft, setDraft] = useState<NotifSettings>(settings);
+  useEffect(() => { if (open) setDraft(settings); }, [open, settings]);
+  if (!open) return null;
+  const quietActive = isQuietNow(draft);
+  return (
+    <div
+      className="fixed inset-0 z-40 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-md rounded-2xl border border-white/10 bg-black/90 backdrop-blur-xl p-6 shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-start justify-between mb-6">
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.4em] opacity-60">Admin</p>
+            <h2 className="text-xl">Notification settings</h2>
+          </div>
+          <button onClick={onClose} className="opacity-60 hover:opacity-100" aria-label="Close">✕</button>
+        </div>
+
+        <label className="flex items-start justify-between gap-4 py-3 border-b border-white/10 cursor-pointer">
+          <div className="min-w-0">
+            <p className="text-sm">Realtime in-app notifications</p>
+            <p className="text-xs opacity-60 mt-1">Toast alerts when a new booking is submitted.</p>
+          </div>
+          <input
+            type="checkbox"
+            className="h-5 w-5 accent-red-500 mt-1"
+            checked={draft.realtimeEnabled}
+            onChange={(e) => setDraft({ ...draft, realtimeEnabled: e.target.checked })}
+          />
+        </label>
+
+        <label className="flex items-start justify-between gap-4 py-3 border-b border-white/10 cursor-pointer">
+          <div className="min-w-0">
+            <p className="text-sm">Quiet hours</p>
+            <p className="text-xs opacity-60 mt-1">Suppress toast alerts during a time window. The unread badge still updates.</p>
+          </div>
+          <input
+            type="checkbox"
+            className="h-5 w-5 accent-red-500 mt-1"
+            checked={draft.quietEnabled}
+            onChange={(e) => setDraft({ ...draft, quietEnabled: e.target.checked })}
+          />
+        </label>
+
+        <div className={`grid grid-cols-2 gap-3 mt-4 ${draft.quietEnabled ? "" : "opacity-50 pointer-events-none"}`}>
+          <div>
+            <label className="text-[10px] uppercase tracking-[0.25em] opacity-60">From</label>
+            <input
+              type="time"
+              value={draft.quietStart}
+              onChange={(e) => setDraft({ ...draft, quietStart: e.target.value })}
+              className="mt-1 w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-sm"
+            />
+          </div>
+          <div>
+            <label className="text-[10px] uppercase tracking-[0.25em] opacity-60">To</label>
+            <input
+              type="time"
+              value={draft.quietEnd}
+              onChange={(e) => setDraft({ ...draft, quietEnd: e.target.value })}
+              className="mt-1 w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-sm"
+            />
+          </div>
+        </div>
+        {draft.quietEnabled && (
+          <p className="text-xs opacity-60 mt-2">
+            {quietActive ? "Quiet hours are active right now." : "Quiet hours are inactive right now."}
+            {" "}Spans past midnight are supported.
+          </p>
+        )}
+
+        <div className="flex justify-end gap-2 mt-6">
+          <button
+            onClick={onClose}
+            className="rounded-full glass px-4 py-2 text-xs uppercase tracking-[0.2em]"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={() => { onSave(draft); onClose(); toast.success("Settings saved"); }}
+            className="rounded-full bg-red-500 hover:bg-red-600 px-4 py-2 text-xs uppercase tracking-[0.2em]"
+          >
+            Save
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 
 function StatusPill({ status }: { status: Status }) {
   const colors: Record<Status, string> = {
