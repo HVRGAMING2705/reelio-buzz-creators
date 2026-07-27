@@ -2184,17 +2184,21 @@ function SettingsModal({
             <button
               type="button"
               onClick={() => {
-                if (!draft.realtimeEnabled) {
+                const quietNow = isQuietNow(draft);
+                const inAppOn = draft.channelInApp && !quietNow;
+                const pushOn = draft.channelPush && !quietNow && pushPerm === "granted";
+                const emailOn = draft.channelEmail;
+                if (!draft.channelInApp && !draft.channelEmail && !draft.channelPush) {
                   logNotification({
                     kind: "test", category: "system",
                     title: "Test notification · Reelio Admin",
-                    subtitle: "Realtime alerts disabled",
+                    subtitle: "All channels disabled",
                     status: "suppressed", reason: "disabled",
                   });
-                  toast.error("Realtime alerts are disabled — no toast will appear.");
+                  toast.error("All delivery channels are off — nothing to deliver.");
                   return;
                 }
-                if (isQuietNow(draft)) {
+                if (!inAppOn && !pushOn && !emailOn) {
                   logNotification({
                     kind: "test", category: "system",
                     title: "Test notification · Reelio Admin",
@@ -2204,16 +2208,31 @@ function SettingsModal({
                   toast.error(
                     `Quiet hours are active${
                       nextTransition ? ` until ${nextTransition}` : ""
-                    } — toast suppressed.`,
+                    } — nothing to deliver.`,
                   );
                   return;
                 }
+                const tags: string[] = [];
+                if (inAppOn) tags.push("in-app");
+                if (emailOn) tags.push("email");
+                if (pushOn) tags.push("push");
                 logNotification({
                   kind: "test", category: "system",
                   title: "Test notification · Reelio Admin",
-                  subtitle: "Delivered preview toast",
+                  subtitle: `Delivered via ${tags.join(" + ")}`,
                   status: "delivered",
                 });
+                if (pushOn) {
+                  firePushNotification(
+                    "Test notification · Reelio Admin",
+                    "Push delivery is working.",
+                    "reelio-test",
+                  );
+                }
+                if (!inAppOn) {
+                  toast.success(`Test recorded — ${tags.join(" + ")}`);
+                  return;
+                }
                 toast.custom(
                   (t) => (
                     <div className="w-full rounded-xl border border-red-500/40 bg-black/90 backdrop-blur-xl shadow-2xl overflow-hidden">
