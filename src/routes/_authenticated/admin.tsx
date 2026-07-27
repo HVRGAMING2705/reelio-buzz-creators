@@ -465,8 +465,8 @@ function AdminPage() {
     [bookings, lastSeen],
   );
 
-  const markAllSeen = () => {
-    const now = Date.now();
+  const markAllSeen = (ts?: number) => {
+    const now = ts ?? Date.now();
     setLastSeen(now);
     if (typeof window !== "undefined") {
       window.localStorage.setItem(LAST_SEEN_KEY, String(now));
