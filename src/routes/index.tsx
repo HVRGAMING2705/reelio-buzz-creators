@@ -152,11 +152,11 @@ function Index() {
             : "bg-transparent"
         }`}
       >
-        <div className="mx-auto max-w-[1400px] px-4 md:px-8 h-14 md:h-16 grid grid-cols-[minmax(0,auto)_1fr_auto] md:flex items-center md:justify-between gap-4 md:gap-6">
+        <div className="mx-auto max-w-[1600px] px-4 sm:px-6 md:px-8 lg:px-10 h-14 md:h-16 lg:h-20 grid grid-cols-[minmax(0,auto)_1fr_auto] md:flex items-center md:justify-between gap-4 md:gap-6 lg:gap-10">
           <a href="#top" className="flex items-center shrink-0 -my-2 md:-my-4">
-            <img src={logoMark.url} alt="Reelio" className="h-9 md:h-14 w-auto object-contain block" />
+            <img src={logoMark.url} alt="Reelio" className="h-9 md:h-14 lg:h-16 w-auto object-contain block" />
           </a>
-          <nav className="hidden md:flex items-center gap-10 text-[11px] tracking-[0.28em] uppercase font-body font-medium">
+          <nav className="hidden md:flex items-center gap-8 lg:gap-12 text-[11px] lg:text-[12px] tracking-[0.28em] uppercase font-body font-medium">
             <a href="#services" className="hover:text-[color:var(--reelio-red)] transition-colors">Services</a>
             <a href="#niches" className="hover:text-[color:var(--reelio-red)] transition-colors">Niches</a>
             <a href="#package" className="hover:text-[color:var(--reelio-red)] transition-colors">Package</a>
