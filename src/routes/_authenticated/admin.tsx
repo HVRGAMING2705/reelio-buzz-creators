@@ -585,15 +585,32 @@ function AdminPage() {
     return v ? Number(v) : Date.now();
   });
   const notifiedIds = useRef<Set<string>>(new Set());
-  const [settings, setSettings] = useState<NotifSettings>(() => loadSettings());
+  const [userId, setUserId] = useState<string | null>(null);
+  const [settings, setSettings] = useState<NotifSettings>(() => loadSettings(null));
   const [settingsOpen, setSettingsOpen] = useState(false);
   const settingsRef = useRef(settings);
   useEffect(() => { settingsRef.current = settings; }, [settings]);
 
+  useEffect(() => {
+    let active = true;
+    supabase.auth.getUser().then(({ data }) => {
+      if (!active) return;
+      const uid = data.user?.id ?? null;
+      setUserId(uid);
+      setSettings(loadSettings(uid));
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      const uid = session?.user?.id ?? null;
+      setUserId(uid);
+      setSettings(loadSettings(uid));
+    });
+    return () => { active = false; sub.subscription.unsubscribe(); };
+  }, []);
+
   const saveSettings = (next: NotifSettings) => {
     setSettings(next);
     if (typeof window !== "undefined") {
-      window.localStorage.setItem(SETTINGS_KEY, JSON.stringify(next));
+      window.localStorage.setItem(settingsKeyFor(userId), JSON.stringify(next));
     }
   };
 
