@@ -125,17 +125,23 @@ const FREQUENCY_MS: Record<NotifFrequency, number> = {
 };
 
 function migrateSettings(s: NotifSettings): NotifSettings {
-  // Ensure existing users see their legacy single window as an editable
-  // schedule row when the modal opens.
-  if (!Array.isArray(s.quietSchedules) || s.quietSchedules.length === 0) {
-    return {
-      ...s,
+  let next = s;
+  if (!Array.isArray(next.quietSchedules) || next.quietSchedules.length === 0) {
+    next = {
+      ...next,
       quietSchedules: [
-        { id: makeScheduleId(), start: s.quietStart, end: s.quietEnd, days: [...ALL_DAYS] },
+        { id: makeScheduleId(), start: next.quietStart, end: next.quietEnd, days: [...ALL_DAYS] },
       ],
     };
   }
-  return s;
+  // Keep the legacy `realtimeEnabled` flag and the new `channelInApp` toggle
+  // in sync so older stored settings still control the in-app toast channel.
+  if ((s as Partial<NotifSettings>).channelInApp === undefined) {
+    next = { ...next, channelInApp: next.realtimeEnabled };
+  } else {
+    next = { ...next, realtimeEnabled: next.channelInApp };
+  }
+  return next;
 }
 
 function loadSettings(userId: string | null): NotifSettings {
@@ -147,6 +153,29 @@ function loadSettings(userId: string | null): NotifSettings {
     if (!raw) return migrateSettings(DEFAULT_SETTINGS);
     return migrateSettings({ ...DEFAULT_SETTINGS, ...JSON.parse(raw) });
   } catch { return migrateSettings(DEFAULT_SETTINGS); }
+}
+
+function pushPermission(): NotificationPermission | "unsupported" {
+  if (typeof window === "undefined" || !("Notification" in window)) return "unsupported";
+  return Notification.permission;
+}
+
+async function ensurePushPermission(): Promise<NotificationPermission | "unsupported"> {
+  const current = pushPermission();
+  if (current !== "default") return current;
+  try {
+    return await Notification.requestPermission();
+  } catch {
+    return "denied";
+  }
+}
+
+function firePushNotification(title: string, body?: string, tag?: string) {
+  if (typeof window === "undefined" || !("Notification" in window)) return;
+  if (Notification.permission !== "granted") return;
+  try {
+    new Notification(title, { body, tag, icon: "/favicon.ico" });
+  } catch { /* ignore */ }
 }
 
 function toMinutes(t: string) {
