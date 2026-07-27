@@ -675,10 +675,12 @@ function SettingsModal({
         <div className="flex items-start justify-between mb-6">
           <div>
             <p className="text-[10px] uppercase tracking-[0.4em] opacity-60">Admin</p>
-            <h2 className="text-xl">Notification settings</h2>
+            <h2 className="text-xl">Settings</h2>
           </div>
           <button onClick={onClose} className="opacity-60 hover:opacity-100" aria-label="Close">✕</button>
         </div>
+
+        <p className="text-[10px] uppercase tracking-[0.3em] opacity-50 mt-2 mb-1">Notifications</p>
 
         <label className="flex items-start justify-between gap-4 py-3 border-b border-white/10 cursor-pointer">
           <div className="min-w-0">
