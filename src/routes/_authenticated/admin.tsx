@@ -311,9 +311,12 @@ function AdminPage() {
             duration: 10000,
             action: {
               label: "View details",
-              onClick: () =>
-                navigate({ to: "/bookings/$id", params: { id: b.id } }),
+              onClick: () => {
+                markAllSeenRef.current?.();
+                navigate({ to: "/bookings/$id", params: { id: b.id } });
+              },
             },
+
           });
         },
       )
