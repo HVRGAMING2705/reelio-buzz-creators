@@ -65,6 +65,17 @@ function isQuietNow(s: NotifSettings, d = new Date()) {
   return start < end ? now >= start && now < end : now >= start || now < end;
 }
 
+function formatNextTransition(s: NotifSettings, d: Date, quietActive: boolean): string | null {
+  if (!s.quietEnabled) return null;
+  const target = quietActive ? s.quietEnd : s.quietStart;
+  const [h, m] = target.split(":").map(Number);
+  if (Number.isNaN(h) || Number.isNaN(m)) return null;
+  const next = new Date(d);
+  next.setSeconds(0, 0);
+  next.setHours(h, m, 0, 0);
+  if (next <= d) next.setDate(next.getDate() + 1);
+  return next.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
 type Booking = Tables<"bookings">;
 type Profile = Tables<"profiles">;
 
