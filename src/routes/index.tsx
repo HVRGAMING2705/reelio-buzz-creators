@@ -101,6 +101,7 @@ function SplitWords({ text, className = "", delay = 0 }: { text: string; classNa
 function Index() {
   useReveal();
   const [scrolled, setScrolled] = useState(false);
+  const [bookingOpen, setBookingOpen] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
 
   const { scrollY } = useScroll();
