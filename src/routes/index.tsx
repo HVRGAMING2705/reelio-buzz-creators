@@ -733,12 +733,12 @@ function Index() {
             {/* left column — the "cover" */}
             <div className="md:col-span-5 md:sticky md:top-28 self-start">
               <span className="slug">§ The Package</span>
-              <h2 className="mt-6 font-display text-6xl md:text-8xl lg:text-9xl leading-[0.88]">
+              <h2 className="mt-6 font-display text-5xl sm:text-6xl md:text-8xl lg:text-9xl leading-[0.88] break-words">
                 Reelio<br />
                 <span className="text-[color:var(--reelio-red)]">Monthly.</span>
               </h2>
               <div className="mt-10 flex items-baseline gap-3">
-                <span className="font-display text-6xl md:text-8xl lg:text-9xl leading-none">₹50K</span>
+                <span className="font-display text-5xl sm:text-6xl md:text-8xl lg:text-9xl leading-none">₹50K</span>
                 <span className="font-body text-sm uppercase tracking-[0.25em] text-white/50">
                   / month
                 </span>
@@ -803,7 +803,7 @@ function Index() {
           <div className="grid md:grid-cols-12 gap-8 lg:gap-12">
             <div className="md:col-span-7">
               <span className="slug">§ End Sheet</span>
-              <h2 className="mt-6 font-display text-6xl md:text-[10vw] xl:text-[8.5vw] 2xl:text-[150px] leading-[0.88]">
+              <h2 className="mt-6 font-display text-5xl sm:text-6xl md:text-[10vw] xl:text-[8.5vw] 2xl:text-[150px] leading-[0.88] break-words">
                 Roll the<br />
                 <span className="text-[color:var(--reelio-red)]">next reel.</span>
               </h2>
