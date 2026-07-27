@@ -430,13 +430,14 @@ function NotificationsBell({
                     ? "bg-red-500/20 border-red-500/50 text-white"
                     : "bg-white/5 border-white/10 text-white/80 hover:bg-white/10"
                 }`}
-                title="Show only unread notifications"
+                title="Show only unread notifications (press U)"
               >
                 <input
                   type="checkbox"
                   className="h-3.5 w-3.5 accent-red-500"
                   checked={notifUnreadOnly}
                   onChange={(e) => setNotifUnreadOnly(e.target.checked)}
+                  aria-label="Unread only notifications"
                 />
                 Unread only
               </label>
