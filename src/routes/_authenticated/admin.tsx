@@ -275,6 +275,27 @@ function NotificationsBell({
     return () => document.removeEventListener("mousedown", onDoc);
   }, [open]);
 
+  // Keyboard shortcut: press "U" to toggle Unread only while the dropdown is open.
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.repeat) return;
+      const target = e.target as HTMLElement;
+      const isTyping =
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.tagName === "SELECT" ||
+        target.isContentEditable;
+      if (isTyping) return;
+      if (e.key === "u" || e.key === "U") {
+        e.preventDefault();
+        setNotifUnreadOnly((v) => !v);
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open]);
+
   // Clear selection and reset pagination when dropdown closes or filters change
   useEffect(() => {
     if (!open) setSelectedIds(new Set());
