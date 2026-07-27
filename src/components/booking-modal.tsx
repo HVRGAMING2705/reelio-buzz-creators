@@ -229,21 +229,47 @@ export function BookingModal({ open, onClose }: Props) {
 
     setSubmitting(true);
     const v = parsed.data;
-    const insertPayload = {
-      name: v.name,
-      brand: v.brand || null,
-      email: v.email,
-      phone: v.phone,
-      service: v.service,
-      budget: v.budget,
-      niche: v.niche || null,
-      message: v.message || null,
-      ...(user ? { user_id: user.id } : {}),
-    };
-    const { error } = await supabase.from("bookings").insert(insertPayload);
-    setSubmitting(false);
-    if (error) {
-      setErrorMsg("Couldn't send — please try again.");
+    try {
+      const res = await fetch("/api/public/bookings", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          form: {
+            name: v.name,
+            brand: v.brand || "",
+            email: v.email,
+            phone: v.phone,
+            service: v.service,
+            budget: v.budget,
+            niche: v.niche || "",
+            message: v.message || "",
+            userId: user?.id,
+          },
+          captchaToken: captchaActive ? captchaToken : null,
+        }),
+      });
+      setSubmitting(false);
+      if (!res.ok) {
+        let msg = "Couldn't send — please try again.";
+        if (res.status === 400 || res.status === 403) {
+          try {
+            const j = (await res.json()) as { error?: string };
+            if (j?.error) msg = j.error;
+          } catch { /* ignore */ }
+        }
+        setErrorMsg(msg);
+        if (captchaActive && typeof window !== "undefined") {
+          const hc = (window as any).hcaptcha;
+          if (hc && captchaWidgetIdRef.current) {
+            try { hc.reset(captchaWidgetIdRef.current); } catch { /* ignore */ }
+          }
+          setCaptchaToken(null);
+        }
+        return;
+      }
+    } catch {
+      setSubmitting(false);
+      setErrorMsg("Network error — please try again.");
       return;
     }
     try {
