@@ -1,5 +1,28 @@
 const KEY = "reelio.admin.notifHistory";
+const READ_BOOKINGS_KEY = "reelio.admin.notifReadBookings";
+const READ_BOOKINGS_CAP = 500;
 const CAP = 200;
+
+function getReadBookings(): string[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(READ_BOOKINGS_KEY) ?? "[]");
+    return Array.isArray(parsed) ? parsed.filter((v): v is string => typeof v === "string") : [];
+  } catch {
+    return [];
+  }
+}
+
+function addReadBooking(bookingId: string) {
+  if (typeof window === "undefined") return;
+  const current = getReadBookings().filter((id) => id !== bookingId);
+  const next = [bookingId, ...current].slice(0, READ_BOOKINGS_CAP);
+  window.localStorage.setItem(READ_BOOKINGS_KEY, JSON.stringify(next));
+}
+
+export function isBookingRead(bookingId: string): boolean {
+  return getReadBookings().includes(bookingId);
+}
 
 export type NotifHistoryReason = "quiet" | "disabled" | "category" | "type";
 
@@ -40,14 +63,16 @@ function write(entries: NotifHistoryEntry[]) {
 export function logNotification(
   entry: Omit<NotifHistoryEntry, "id" | "ts" | "read"> & { read?: boolean },
 ) {
+  const preRead =
+    entry.read ?? (entry.bookingId ? isBookingRead(entry.bookingId) : false);
   const full: NotifHistoryEntry = {
     id:
       typeof crypto !== "undefined" && "randomUUID" in crypto
         ? crypto.randomUUID()
         : `${Date.now()}-${Math.random().toString(36).slice(2)}`,
     ts: Date.now(),
-    read: entry.read ?? false,
     ...entry,
+    read: preRead,
   };
   const next = [full, ...getHistory()];
   write(next);
@@ -63,8 +88,12 @@ export function markAllRead() {
 }
 
 export function markReadByBookingId(bookingId: string) {
+  addReadBooking(bookingId);
   const list = getHistory();
-  if (!list.some((e) => e.bookingId === bookingId && !e.read)) return;
+  if (!list.some((e) => e.bookingId === bookingId && !e.read)) {
+    window.dispatchEvent(new CustomEvent("reelio:notif-history-updated"));
+    return;
+  }
   write(list.map((e) => (e.bookingId === bookingId ? { ...e, read: true } : e)));
 }
 
