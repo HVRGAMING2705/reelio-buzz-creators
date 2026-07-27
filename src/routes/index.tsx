@@ -5,6 +5,7 @@ import logoMark from "@/assets/reelio-logo-mark.png.asset.json";
 import { useReveal } from "@/hooks/use-reveal";
 import { BookingModal } from "@/components/booking-modal";
 import { supabase } from "@/integrations/supabase/client";
+import { trackClick, trackFormSubmit, trackEvent } from "@/lib/analytics";
 
 export const Route = createFileRoute("/")({
   head: () => ({
