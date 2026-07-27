@@ -13,6 +13,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
+import { Route as AuthenticatedBlockedRouteImport } from './routes/_authenticated/blocked'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as ApiPublicBookingsRouteImport } from './routes/api/public/bookings'
 import { Route as AuthenticatedBookingsIdRouteImport } from './routes/_authenticated/bookings.$id'
@@ -37,6 +38,11 @@ const AuthenticatedNotificationsRoute =
     path: '/notifications',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedBlockedRoute = AuthenticatedBlockedRouteImport.update({
+  id: '/blocked',
+  path: '/blocked',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -57,6 +63,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/blocked': typeof AuthenticatedBlockedRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/bookings/$id': typeof AuthenticatedBookingsIdRoute
   '/api/public/bookings': typeof ApiPublicBookingsRoute
@@ -65,6 +72,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/blocked': typeof AuthenticatedBlockedRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/bookings/$id': typeof AuthenticatedBookingsIdRoute
   '/api/public/bookings': typeof ApiPublicBookingsRoute
@@ -75,6 +83,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/_authenticated/blocked': typeof AuthenticatedBlockedRoute
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/bookings/$id': typeof AuthenticatedBookingsIdRoute
   '/api/public/bookings': typeof ApiPublicBookingsRoute
@@ -85,6 +94,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/admin'
+    | '/blocked'
     | '/notifications'
     | '/bookings/$id'
     | '/api/public/bookings'
@@ -93,6 +103,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/admin'
+    | '/blocked'
     | '/notifications'
     | '/bookings/$id'
     | '/api/public/bookings'
@@ -102,6 +113,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/_authenticated/admin'
+    | '/_authenticated/blocked'
     | '/_authenticated/notifications'
     | '/_authenticated/bookings/$id'
     | '/api/public/bookings'
@@ -144,6 +156,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedNotificationsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/blocked': {
+      id: '/_authenticated/blocked'
+      path: '/blocked'
+      fullPath: '/blocked'
+      preLoaderRoute: typeof AuthenticatedBlockedRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin': {
       id: '/_authenticated/admin'
       path: '/admin'
@@ -170,12 +189,14 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedBlockedRoute: typeof AuthenticatedBlockedRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedBookingsIdRoute: typeof AuthenticatedBookingsIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedBlockedRoute: AuthenticatedBlockedRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedBookingsIdRoute: AuthenticatedBookingsIdRoute,
 }

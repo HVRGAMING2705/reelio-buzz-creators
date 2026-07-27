@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
+import { createHash } from "crypto";
 import { z } from "zod";
 import type { Database } from "@/integrations/supabase/types";
+
 
 const services = [
   "Full Reelio Package",
@@ -167,6 +169,43 @@ const tooMany = (retryAfterSec: number, message: string) =>
     },
   });
 
+// ---- Hashing helpers for blocked-submission logs ----
+const hashSalt = () => process.env.SUPABASE_SERVICE_ROLE_KEY?.slice(0, 32) ?? "reelio-block-log";
+const shortHash = (v: string) =>
+  createHash("sha256").update(`${hashSalt()}:${v}`).digest("hex").slice(0, 16);
+const emailDomainOf = (e: string) => {
+  const i = e.lastIndexOf("@");
+  return i >= 0 ? e.slice(i + 1).toLowerCase() : null;
+};
+
+type BlockLog = {
+  reason: "ip_rate_limit" | "email_rate_limit" | "captcha_missing" | "captcha_failed";
+  ip?: string;
+  email?: string;
+  windowLabel?: string;
+  maxAllowed?: number;
+  retryAfterSec?: number;
+  userAgent?: string | null;
+};
+async function logBlocked(entry: BlockLog) {
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await supabaseAdmin.from("blocked_submissions").insert({
+      reason: entry.reason,
+      ip_hash: entry.ip ? shortHash(entry.ip) : null,
+      email_hash: entry.email ? shortHash(entry.email) : null,
+      email_domain: entry.email ? emailDomainOf(entry.email) : null,
+      window_label: entry.windowLabel ?? null,
+      max_allowed: entry.maxAllowed ?? null,
+      retry_after_sec: entry.retryAfterSec ?? null,
+      user_agent: entry.userAgent ?? null,
+    });
+  } catch {
+    // Best-effort; never fail the request because of logging.
+  }
+}
+
+
 // Tiny in-process cache so we don't hit the DB on every submission.
 let cachedLimits: { buckets: { ip: Bucket[]; email: Bucket[] }; at: number } | null = null;
 const LIMITS_TTL_MS = 30_000;
@@ -229,8 +268,18 @@ export const Route = createFileRoute("/api/public/bookings")({
         const limits = rlUrl && rlKey
           ? await loadLimits(rlUrl, rlKey)
           : bucketsFromRow(null);
+        const ua = request.headers.get("user-agent");
         const ipCheck = rateCheck(`ip:${ip}`, limits.ip);
         if (!ipCheck.ok) {
+          await logBlocked({
+            reason: "ip_rate_limit",
+            ip,
+            email: form.email,
+            windowLabel: ipCheck.label,
+            maxAllowed: ipCheck.max,
+            retryAfterSec: ipCheck.retryAfterSec,
+            userAgent: ua,
+          });
           return tooMany(
             ipCheck.retryAfterSec,
             `Too many submissions from your network. Please try again in ~${Math.ceil(ipCheck.retryAfterSec / 60)} min.`,
@@ -238,6 +287,15 @@ export const Route = createFileRoute("/api/public/bookings")({
         }
         const emailCheck = rateCheck(`email:${form.email}`, limits.email);
         if (!emailCheck.ok) {
+          await logBlocked({
+            reason: "email_rate_limit",
+            ip,
+            email: form.email,
+            windowLabel: emailCheck.label,
+            maxAllowed: emailCheck.max,
+            retryAfterSec: emailCheck.retryAfterSec,
+            userAgent: ua,
+          });
           return tooMany(
             emailCheck.retryAfterSec,
             `This email has submitted too many bookings recently. Please try again in ~${Math.ceil(emailCheck.retryAfterSec / 60)} min.`,
@@ -249,6 +307,7 @@ export const Route = createFileRoute("/api/public/bookings")({
         const hcaptchaSecret = process.env.HCAPTCHA_SECRET;
         if (hcaptchaSecret) {
           if (!captchaToken) {
+            await logBlocked({ reason: "captcha_missing", ip, email: form.email, userAgent: ua });
             return new Response(
               JSON.stringify({ error: "Please complete the captcha to continue.", field: "captcha", code: "captcha_missing" }),
               { status: 400, headers: { "content-type": "application/json" } },
@@ -268,12 +327,21 @@ export const Route = createFileRoute("/api/public/bookings")({
             } else if (reason.includes("network")) {
               msg = "Couldn't reach captcha service — check your connection and retry.";
             }
+            await logBlocked({
+              reason: "captcha_failed",
+              ip,
+              email: form.email,
+              windowLabel: reason || undefined,
+              userAgent: ua,
+            });
+
             return new Response(
               JSON.stringify({ error: msg, field: "captcha", code: "captcha_failed", reason }),
               { status: 403, headers: { "content-type": "application/json" } },
             );
           }
         }
+
 
         const url = process.env.SUPABASE_URL;
         const key = process.env.SUPABASE_PUBLISHABLE_KEY;

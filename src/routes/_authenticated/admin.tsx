@@ -1061,6 +1061,14 @@ function AdminPage() {
             >
               History
             </Link>
+            <Link
+              to="/blocked"
+              className="rounded-full glass px-3 py-2 text-[10px] uppercase tracking-[0.2em] hover:bg-white/10"
+              title="Blocked booking submissions"
+            >
+              Blocked
+            </Link>
+
             <button
               onClick={() => setSettingsOpen(true)}
               className="rounded-full glass px-3 py-2 text-sm hover:bg-white/10"
