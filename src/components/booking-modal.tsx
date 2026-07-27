@@ -498,7 +498,22 @@ export function BookingModal({ open, onClose }: Props) {
                       <span className="block text-[10px] uppercase tracking-[0.25em] opacity-80 mb-2">
                         Verify you're human
                       </span>
-                      <div ref={captchaContainerRef} className="min-h-[78px]" />
+                      <div
+                        ref={captchaContainerRef}
+                        className={`min-h-[78px] rounded-lg ${captchaError ? "ring-1 ring-red-400/70 p-1" : ""}`}
+                        aria-invalid={!!captchaError}
+                        aria-describedby={captchaError ? "captcha-error" : undefined}
+                      />
+                      {captchaError && (
+                        <p
+                          id="captcha-error"
+                          role="alert"
+                          className="mt-2 text-xs text-red-300 flex items-start gap-1.5"
+                        >
+                          <span aria-hidden>⚠</span>
+                          <span>{captchaError}</span>
+                        </p>
+                      )}
                     </div>
                   )}
 
