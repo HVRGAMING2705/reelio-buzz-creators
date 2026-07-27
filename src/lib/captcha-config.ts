@@ -1,7 +1,12 @@
-// Global (non per-user) captcha config shared between admin settings and the
-// public booking form. Admin writes it; the booking modal reads it.
+// Global captcha config shared between admin settings and the public booking
+// form. Persisted in the `app_settings` table (key = 'captcha') so it stays
+// consistent across devices and admin sessions. localStorage is used only as
+// an instant-boot cache; the backend is the source of truth.
+
+import { supabase } from "@/integrations/supabase/client";
 
 export const CAPTCHA_CONFIG_KEY = "reelio.captcha.public";
+const SETTINGS_ROW_KEY = "captcha";
 
 export type CaptchaConfig = {
   enabled: boolean;
@@ -13,26 +18,65 @@ export const DEFAULT_CAPTCHA_CONFIG: CaptchaConfig = {
   siteKey: "",
 };
 
+function normalize(v: unknown): CaptchaConfig {
+  const o = (v ?? {}) as Partial<CaptchaConfig>;
+  return {
+    enabled: !!o.enabled,
+    siteKey: typeof o.siteKey === "string" ? o.siteKey : "",
+  };
+}
+
+/** Synchronous cache read (instant boot). May be stale — always follow with fetchCaptchaConfig(). */
 export function loadCaptchaConfig(): CaptchaConfig {
   if (typeof window === "undefined") return DEFAULT_CAPTCHA_CONFIG;
   try {
     const raw = window.localStorage.getItem(CAPTCHA_CONFIG_KEY);
     if (!raw) return DEFAULT_CAPTCHA_CONFIG;
-    return { ...DEFAULT_CAPTCHA_CONFIG, ...JSON.parse(raw) };
+    return normalize(JSON.parse(raw));
   } catch {
     return DEFAULT_CAPTCHA_CONFIG;
   }
 }
 
-export function saveCaptchaConfig(cfg: CaptchaConfig) {
+function writeCache(cfg: CaptchaConfig) {
   if (typeof window === "undefined") return;
   try {
     window.localStorage.setItem(CAPTCHA_CONFIG_KEY, JSON.stringify(cfg));
-    // Notify same-tab listeners (storage events don't fire in the tab that wrote).
     window.dispatchEvent(new CustomEvent("reelio:captcha-config", { detail: cfg }));
   } catch {
     /* ignore */
   }
+}
+
+/** Fetch the authoritative config from the backend and refresh the local cache. */
+export async function fetchCaptchaConfig(): Promise<CaptchaConfig> {
+  const { data, error } = await supabase
+    .from("app_settings")
+    .select("value")
+    .eq("key", SETTINGS_ROW_KEY)
+    .maybeSingle();
+  if (error) return loadCaptchaConfig();
+  const cfg = normalize(data?.value);
+  writeCache(cfg);
+  return cfg;
+}
+
+/** Upsert config to the backend (admin only via RLS). Refreshes the local cache on success. */
+export async function saveCaptchaConfig(cfg: CaptchaConfig): Promise<{ ok: boolean; error?: string }> {
+  const normalized = normalize(cfg);
+  const { data: userRes } = await supabase.auth.getUser();
+  const { error } = await supabase.from("app_settings").upsert(
+    {
+      key: SETTINGS_ROW_KEY,
+      value: normalized,
+      updated_by: userRes.user?.id ?? null,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "key" },
+  );
+  if (error) return { ok: false, error: error.message };
+  writeCache(normalized);
+  return { ok: true };
 }
 
 const HCAPTCHA_SRC = "https://js.hcaptcha.com/1/api.js?render=explicit";

@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { logNotification } from "@/lib/notification-history";
-import { saveCaptchaConfig } from "@/lib/captcha-config";
+import { saveCaptchaConfig, fetchCaptchaConfig } from "@/lib/captcha-config";
 
 const LAST_SEEN_KEY = "reelio.admin.lastSeenBookingAt";
 const SETTINGS_KEY_BASE = "reelio.admin.notifSettings";
@@ -594,16 +594,27 @@ function AdminPage() {
 
   useEffect(() => {
     let active = true;
+    const hydrateCaptcha = async (base: NotifSettings) => {
+      try {
+        const cfg = await fetchCaptchaConfig();
+        if (!active) return;
+        setSettings({ ...base, captchaEnabled: cfg.enabled, hcaptchaSiteKey: cfg.siteKey });
+      } catch { /* keep local */ }
+    };
     supabase.auth.getUser().then(({ data }) => {
       if (!active) return;
       const uid = data.user?.id ?? null;
       setUserId(uid);
-      setSettings(loadSettings(uid));
+      const base = loadSettings(uid);
+      setSettings(base);
+      hydrateCaptcha(base);
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
       const uid = session?.user?.id ?? null;
       setUserId(uid);
-      setSettings(loadSettings(uid));
+      const base = loadSettings(uid);
+      setSettings(base);
+      hydrateCaptcha(base);
     });
     return () => { active = false; sub.subscription.unsubscribe(); };
   }, []);
@@ -613,9 +624,14 @@ function AdminPage() {
     if (typeof window !== "undefined") {
       window.localStorage.setItem(settingsKeyFor(userId), JSON.stringify(next));
     }
-    // Mirror captcha config to a global (non per-user) key so the public
-    // booking form can react to the toggle regardless of which admin saved.
-    saveCaptchaConfig({ enabled: next.captchaEnabled, siteKey: next.hcaptchaSiteKey });
+    // Captcha config is global — persist to backend so it stays consistent
+    // across devices and admin sessions.
+    void saveCaptchaConfig({ enabled: next.captchaEnabled, siteKey: next.hcaptchaSiteKey })
+      .then((res) => {
+        if (!res.ok) {
+          toast.error("Couldn't save captcha settings", { description: res.error });
+        }
+      });
   };
 
 

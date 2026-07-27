@@ -7,6 +7,7 @@ import {
   CAPTCHA_CONFIG_KEY,
   DEFAULT_CAPTCHA_CONFIG,
   loadCaptchaConfig,
+  fetchCaptchaConfig,
   loadHCaptchaScript,
   type CaptchaConfig,
 } from "@/lib/captcha-config";
@@ -104,8 +105,11 @@ export function BookingModal({ open, onClose }: Props) {
 
   const captchaActive = captchaCfg.enabled && !!captchaCfg.siteKey;
 
-  // Keep captcha config in sync with admin settings (this tab + other tabs).
+  // Keep captcha config in sync with backend + admin settings (this tab + other tabs).
   useEffect(() => {
+    let cancelled = false;
+    // Hydrate from backend (source of truth) on mount and whenever the modal opens.
+    fetchCaptchaConfig().then((cfg) => { if (!cancelled) setCaptchaCfg(cfg); }).catch(() => { /* keep cache */ });
     const refresh = () => setCaptchaCfg(loadCaptchaConfig());
     const onStorage = (e: StorageEvent) => {
       if (e.key === CAPTCHA_CONFIG_KEY) refresh();
@@ -113,10 +117,11 @@ export function BookingModal({ open, onClose }: Props) {
     window.addEventListener("storage", onStorage);
     window.addEventListener("reelio:captcha-config", refresh as EventListener);
     return () => {
+      cancelled = true;
       window.removeEventListener("storage", onStorage);
       window.removeEventListener("reelio:captcha-config", refresh as EventListener);
     };
-  }, []);
+  }, [open]);
 
   // Render / re-render hCaptcha widget while modal is open and captcha is enabled.
   useEffect(() => {
