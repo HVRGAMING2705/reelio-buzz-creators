@@ -1349,6 +1349,102 @@ function AdminPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [qc, navigate, profileMap]);
 
+  // Captcha-failure burst detector: notify when the same email_hash or ip_hash
+  // fails captcha ≥ threshold times within the configured rolling window.
+  useEffect(() => {
+    type Hit = { at: number; id: string };
+    const hitsByKey = new Map<string, Hit[]>();
+    const alertedAt = new Map<string, number>(); // debounce per key
+
+    const channel = supabase
+      .channel("admin-captcha-bursts")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "captcha_events" },
+        (payload) => {
+          const s = settingsRef.current;
+          if (!s.captchaBurstEnabled) return;
+          if (!s.categoryBookings) return;
+          const row = payload.new as {
+            id: string;
+            outcome: string;
+            email_hash: string | null;
+            ip_hash: string | null;
+            email_domain: string | null;
+            booking_id: string | null;
+            created_at: string;
+          };
+          if (row.outcome === "success" || row.outcome === "skipped") return;
+
+          const now = Date.now();
+          const windowMs = Math.max(1, s.captchaBurstWindowMin) * 60_000;
+          const threshold = Math.max(2, s.captchaBurstThreshold);
+          const cutoff = now - windowMs;
+
+          const keys: Array<{ key: string; label: string }> = [];
+          if (row.email_hash) keys.push({
+            key: `e:${row.email_hash}`,
+            label: row.email_domain ? `email @${row.email_domain}` : "email",
+          });
+          if (row.ip_hash) keys.push({
+            key: `i:${row.ip_hash}`,
+            label: `ip ${row.ip_hash.slice(0, 8)}…`,
+          });
+
+          for (const { key, label } of keys) {
+            const arr = (hitsByKey.get(key) ?? []).filter((h) => h.at >= cutoff);
+            arr.push({ at: now, id: row.id });
+            hitsByKey.set(key, arr);
+
+            if (arr.length < threshold) continue;
+            // Debounce: don't re-alert for the same key within the window.
+            const last = alertedAt.get(key) ?? 0;
+            if (now - last < windowMs) continue;
+            alertedAt.set(key, now);
+
+            const title = `Captcha burst · ${arr.length} failures`;
+            const subtitle = `${label} · last ${s.captchaBurstWindowMin}m`;
+
+            logNotification({
+              kind: "security",
+              category: "bookings",
+              title,
+              subtitle,
+              bookingId: row.booking_id ?? undefined,
+              status: "delivered",
+            });
+
+            if (s.channelInApp) {
+              toast.warning(title, {
+                description: subtitle,
+                action: row.booking_id
+                  ? {
+                      label: "Open booking",
+                      onClick: () =>
+                        navigate({
+                          to: "/bookings/$id",
+                          params: { id: row.booking_id! },
+                        }),
+                    }
+                  : {
+                      label: "Open security log",
+                      onClick: () => navigate({ to: "/security" }),
+                    },
+                duration: 10000,
+              });
+            }
+            if (s.channelPush && typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
+              try { new Notification(title, { body: subtitle, tag: `captcha-burst-${key}` }); } catch { /* noop */ }
+            }
+          }
+        },
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [navigate]);
+
   const [readBookingIds, setReadBookingIds] = useState<Set<string>>(() => getReadBookingIds());
   useEffect(() => subscribeHistory(() => setReadBookingIds(getReadBookingIds())), []);
 
