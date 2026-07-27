@@ -375,7 +375,18 @@ function eventLabel(ev: BookingEvent) {
     case "email_sent": return "Confirmation email sent";
     case "email_confirmed": return "Client confirmed via email";
     default: return ev.event_type;
+}
+
+function captchaLabel(outcome: string) {
+  switch (outcome) {
+    case "success": return "Captcha verified";
+    case "failed": return "Captcha failed";
+    case "missing": return "Captcha token missing";
+    case "skipped": return "Captcha skipped (disabled)";
+    case "server_secret_missing": return "Captcha misconfigured";
+    default: return `Captcha · ${outcome}`;
   }
+}
 }
 
 function blockLabel(reason: string) {
