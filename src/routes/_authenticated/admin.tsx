@@ -219,7 +219,7 @@ function Avatar({
 }
 
 function NotificationsBell({
-  bookings, lastSeen, unreadCount, userId, onMarkAllRead, onMarkAllUnread, onMarkUnread, onOpen, onUpdateStatus,
+  bookings, lastSeen, unreadCount, userId, onMarkAllRead, onMarkAllUnread, onMarkRead, onMarkUnread, onOpen, onUpdateStatus,
 }: {
   bookings: BookingWithProfile[];
   lastSeen: number;
@@ -227,6 +227,7 @@ function NotificationsBell({
   userId: string | null;
   onMarkAllRead: (ids: string[]) => void;
   onMarkAllUnread: (ids: string[]) => void;
+  onMarkRead: (id: string) => void;
   onMarkUnread: (id: string) => void;
   onOpen: (id: string) => void;
   onUpdateStatus: (id: string, status: Status) => void;
@@ -623,7 +624,15 @@ function NotificationsBell({
                             ↺ Reopen
                           </button>
                         )}
-                        {!unread && (
+                        {unread ? (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); onMarkRead(b.id); }}
+                            className="text-[10px] uppercase tracking-[0.12em] font-semibold px-2 py-1 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30"
+                            title="Mark as read"
+                          >
+                            Mark read
+                          </button>
+                        ) : (
                           <button
                             onClick={(e) => { e.stopPropagation(); onMarkUnread(b.id); }}
                             className="text-[10px] uppercase tracking-[0.12em] font-semibold px-2 py-1 rounded-md bg-white/5 text-white/70 border border-white/10 hover:bg-white/10"
@@ -1161,6 +1170,7 @@ function AdminPage() {
               onMarkAllUnread={(ids) => {
                 markAllBookingsUnread(ids);
               }}
+              onMarkRead={(id) => markReadByBookingId(id)}
               onMarkUnread={(id) => markUnreadByBookingId(id)}
               onOpen={(id) => {
                 markReadByBookingId(id);
