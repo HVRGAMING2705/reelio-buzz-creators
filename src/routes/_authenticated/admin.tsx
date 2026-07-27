@@ -209,6 +209,11 @@ function NotificationsBell({
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [notifLimit, setNotifLimit] = useState(8);
 
+  const [readIds, setReadIds] = useState<Set<string>>(() => getReadBookingIds());
+  useEffect(() => {
+    return subscribeHistory(() => setReadIds(getReadBookingIds()));
+  }, []);
+
   useEffect(() => {
     if (!open) return;
     const onDoc = (e: MouseEvent) => {
@@ -217,13 +222,6 @@ function NotificationsBell({
     document.addEventListener("mousedown", onDoc);
     return () => document.removeEventListener("mousedown", onDoc);
   }, [open]);
-
-  // Auto-mark as read shortly after opening the dropdown
-  useEffect(() => {
-    if (!open || unreadCount === 0 || selectedIds.size > 0) return;
-    const t = setTimeout(() => onMarkAllSeen(), 600);
-    return () => clearTimeout(t);
-  }, [open, unreadCount, selectedIds.size, onMarkAllSeen]);
 
   // Clear selection and reset pagination when dropdown closes or filters change
   useEffect(() => {
