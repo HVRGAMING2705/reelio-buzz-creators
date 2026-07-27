@@ -419,7 +419,7 @@ function Index() {
         }`}
       >
 
-        <div className="mx-auto max-w-[1600px] px-4 sm:px-6 md:px-8 lg:px-10 h-16 md:h-20 lg:h-24 grid grid-cols-[minmax(0,auto)_1fr_auto] md:flex items-center md:justify-between gap-4 md:gap-6 lg:gap-10">
+        <div className="mx-auto max-w-[1600px] px-4 sm:px-6 md:px-8 lg:px-10 h-16 md:h-20 lg:h-24 flex items-center justify-between gap-4 md:gap-6 lg:gap-10">
           <a href="#top" aria-label="Reelio — back to top" className="flex items-center shrink-0 -my-3 md:-my-6 lg:-my-7">
             <img
               src={logoMark.url}
@@ -428,7 +428,7 @@ function Index() {
               height={96}
               decoding="async"
               fetchPriority="high"
-              className="h-12 md:h-16 lg:h-20 w-auto object-contain block"
+              className="h-12 md:h-16 lg:h-20 w-auto max-w-[180px] sm:max-w-[220px] md:max-w-none object-contain block"
             />
           </a>
           <nav aria-label="Primary" className="hidden md:flex items-center gap-8 lg:gap-12 text-[11px] lg:text-[12px] tracking-[0.28em] uppercase font-body font-medium">
@@ -437,7 +437,7 @@ function Index() {
             <a href="#package" className="hover:text-[color:var(--reelio-red)] transition-colors">Package</a>
             <a href="#contact" className="hover:text-[color:var(--reelio-red)] transition-colors">Contact</a>
           </nav>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 md:gap-3">
             {user ? (
               <Link
                 to="/admin"
@@ -463,13 +463,87 @@ function Index() {
             <button
               type="button"
               onClick={() => { trackClick("open_booking_modal"); setBookingOpen(true); }}
-              className="btn-red !py-2.5 !px-4 md:!px-5 !text-[10px]"
+              className="btn-red !py-2.5 !px-3 md:!px-5 !text-[10px] whitespace-nowrap"
             >
               Book a call
+            </button>
+            <button
+              type="button"
+              aria-label="Open menu"
+              aria-expanded={mobileOpen}
+              aria-controls="mobile-menu"
+              onClick={() => setMobileOpen(true)}
+              className="md:hidden inline-flex items-center justify-center h-10 w-10 rounded-full glass-chip text-white"
+            >
+              <Menu className="w-5 h-5" />
             </button>
           </div>
         </div>
       </header>
+
+      {/* Mobile menu overlay */}
+      <AnimatePresence>
+        {mobileOpen && (
+          <>
+            <motion.div
+              id="mobile-menu-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.25 }}
+              className="fixed inset-0 z-[60] bg-black/70 backdrop-blur-sm"
+              onClick={() => setMobileOpen(false)}
+            />
+            <motion.nav
+              id="mobile-menu"
+              initial={{ opacity: 0, x: "100%" }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: "100%" }}
+              transition={{ duration: 0.3, ease: [0.2, 0.7, 0.2, 1] }}
+              className="fixed top-0 right-0 bottom-0 z-[70] w-[min(85vw,320px)] glass-dark border-l border-white/10 p-6 flex flex-col"
+              aria-label="Mobile"
+            >
+              <div className="flex items-center justify-between mb-10">
+                <span className="font-display text-xs tracking-[0.25em] uppercase text-white/60">Menu</span>
+                <button
+                  type="button"
+                  aria-label="Close menu"
+                  onClick={() => setMobileOpen(false)}
+                  className="inline-flex items-center justify-center h-10 w-10 rounded-full glass-chip text-white"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="flex flex-col gap-6 font-display text-3xl tracking-[-0.01em]">
+                {[
+                  { label: "Services", href: "#services" },
+                  { label: "Niches", href: "#niches" },
+                  { label: "Package", href: "#package" },
+                  { label: "Contact", href: "#contact" },
+                ].map((item) => (
+                  <a
+                    key={item.label}
+                    href={item.href}
+                    onClick={() => setMobileOpen(false)}
+                    className="hover:text-[color:var(--reelio-red)] transition-colors"
+                  >
+                    {item.label}
+                  </a>
+                ))}
+              </div>
+              <div className="mt-auto pt-8 border-t border-white/10">
+                <button
+                  type="button"
+                  onClick={() => { setMobileOpen(false); trackClick("open_booking_modal"); setBookingOpen(true); }}
+                  className="btn-red w-full justify-center"
+                >
+                  Book a call
+                </button>
+              </div>
+            </motion.nav>
+          </>
+        )}
+      </AnimatePresence>
 
       <main id="main">
       {/* ============ MASTHEAD / HERO ============ */}
