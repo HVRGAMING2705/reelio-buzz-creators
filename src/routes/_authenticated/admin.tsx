@@ -236,6 +236,7 @@ function NotificationsBell({
   const ref = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
+  const firstUnreadRef = useRef<HTMLLIElement | null>(null);
   const [notifStatus, setNotifStatus] = useState<"all" | Status>(() => loadNotifFilters(userId).status);
   const [notifUnreadOnly, setNotifUnreadOnly] = useState(() => loadNotifFilters(userId).unreadOnly);
   const [notifTodayOnly, setNotifTodayOnly] = useState(() => loadNotifFilters(userId).todayOnly);
@@ -411,6 +412,25 @@ function NotificationsBell({
     notifSort !== "newest" ||
     notifSearch.trim() !== "";
 
+  const firstUnreadBooking = useMemo(
+    () =>
+      recent.find(
+        (b) =>
+          b?.id &&
+          new Date(b.created_at).getTime() > lastSeen &&
+          !readIds.has(b.id),
+      ),
+    [recent, lastSeen, readIds],
+  );
+
+  const jumpToFirstUnread = useCallback(() => {
+    if (firstUnreadRef.current) {
+      firstUnreadRef.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    } else if (unreadCount > 0) {
+      toast.info("Unread notifications are hidden by current filters. Try resetting filters or enabling Unread only.");
+    }
+  }, [unreadCount]);
+
   return (
     <div className="relative" ref={ref}>
       <button
@@ -435,15 +455,26 @@ function NotificationsBell({
                 {unreadCount > 0 ? `${unreadCount} new booking${unreadCount === 1 ? "" : "s"}` : "You're all caught up"}
               </p>
             </div>
-            <button
-              onClick={() => onMarkAllRead(filteredNotifications.map((b) => b.id))}
-              className={`text-[10px] uppercase tracking-[0.2em] opacity-70 hover:opacity-100 transition-opacity ${
-                unreadCount > 0 ? "" : "opacity-40 hover:opacity-60"
-              }`}
-              aria-label="Mark all filtered notifications as read"
-            >
-              Mark filtered as read
-            </button>
+            <div className="flex items-center gap-3">
+              {unreadCount > 0 && (
+                <button
+                  onClick={jumpToFirstUnread}
+                  className="text-[10px] uppercase tracking-[0.2em] text-red-400 hover:text-red-300 transition-opacity font-semibold"
+                  aria-label="Jump to first unread notification"
+                >
+                  Jump to unread
+                </button>
+              )}
+              <button
+                onClick={() => onMarkAllRead(filteredNotifications.map((b) => b.id))}
+                className={`text-[10px] uppercase tracking-[0.2em] opacity-70 hover:opacity-100 transition-opacity ${
+                  unreadCount > 0 ? "" : "opacity-40 hover:opacity-60"
+                }`}
+                aria-label="Mark all filtered notifications as read"
+              >
+                Mark filtered as read
+              </button>
+            </div>
           </div>
           <div className="px-4 py-3 border-b border-white/10 bg-white/[0.03]">
             <div className="flex items-center gap-2 flex-wrap">
@@ -614,7 +645,11 @@ function NotificationsBell({
                 const unread = new Date(b.created_at).getTime() > lastSeen && !readIds.has(b.id);
                 const checked = selectedIds.has(b.id);
                 return (
-                  <li key={b.id} className="group flex items-center gap-1 px-4 py-3 hover:bg-white/5">
+                  <li
+                    key={b.id}
+                    ref={b.id === firstUnreadBooking?.id ? firstUnreadRef : undefined}
+                    className="group flex items-center gap-1 px-4 py-3 hover:bg-white/5"
+                  >
                     <input
                       type="checkbox"
                       className="h-3.5 w-3.5 accent-red-500 shrink-0"
