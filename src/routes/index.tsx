@@ -438,9 +438,11 @@ function Index() {
         <div className="mx-auto max-w-[1600px] px-4 sm:px-6 md:px-8 lg:px-10 h-20 md:h-28 lg:h-32 flex items-center justify-between gap-6 md:gap-8 lg:gap-12">
           <a href="#top" aria-label="Reelio — back to top" className="flex items-center shrink-0 -my-1 md:-my-3 lg:-my-4">
             <img
-              src={logoMark.url}
+              src={logoMark512.url}
+              srcSet={logoSrcSet}
+              sizes={logoSizes}
               alt=""
-              width={320}
+              width={96}
               height={96}
               decoding="async"
               fetchPriority="high"
