@@ -11,6 +11,7 @@ import {
 import logoAsset from "@/assets/reelio-logo.jpeg.asset.json";
 import { useReveal } from "@/hooks/use-reveal";
 import { Magnetic, TiltCard, CursorGlow } from "@/components/motion-fx";
+import { BookingModal } from "@/components/booking-modal";
 
 export const Route = createFileRoute("/")({
   head: () => ({
