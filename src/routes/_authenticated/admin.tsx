@@ -787,6 +787,13 @@ function AdminPage() {
         counts.status && `${counts.status} status change${counts.status > 1 ? "s" : ""}`,
         counts.note && `${counts.note} note${counts.note > 1 ? "s" : ""}`,
       ].filter(Boolean).join(" · ");
+      logNotification({
+        kind: "summary",
+        category: "bookings",
+        title: `${events.length} booking updates`,
+        subtitle: parts,
+        status: "delivered",
+      });
       toast.custom(
         (t) => (
           <div className="w-full rounded-xl border border-white/10 bg-black/90 backdrop-blur-xl shadow-2xl overflow-hidden">
