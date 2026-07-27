@@ -142,6 +142,7 @@ function NotificationsBell({
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const sentinelRef = useRef<HTMLDivElement>(null);
   const [notifStatus, setNotifStatus] = useState<"all" | Status>("all");
   const [notifUnreadOnly, setNotifUnreadOnly] = useState(false);
   const [notifTodayOnly, setNotifTodayOnly] = useState(false);
