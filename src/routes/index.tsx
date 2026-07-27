@@ -569,7 +569,7 @@ function Index() {
               </span>
             </div>
             <span className="font-body text-[10px] md:text-xs uppercase tracking-[0.28em] text-white/50">
-              A Cinematic Social Consortium
+              A Cinematic Social Media Consortium
             </span>
           </div>
 
@@ -595,7 +595,7 @@ function Index() {
             <div className="md:col-span-3 flex flex-col justify-end">
               <span className="slug mb-3">The Lede</span>
               <p className="font-body text-base md:text-[17px] leading-relaxed text-white/80">
-                Reelio is a social media consortium for brands that refuse to look
+                Reelio Social Consortium is a social media agency for brands that refuse to look
                 like everyone else. We shoot the story, cut the reel, run the
                 ads, and grow the room — as one crew.
               </p>
