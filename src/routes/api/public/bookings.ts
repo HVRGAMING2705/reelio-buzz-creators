@@ -205,6 +205,50 @@ async function logBlocked(entry: BlockLog) {
   }
 }
 
+type CaptchaOutcome = "success" | "failed" | "missing" | "skipped" | "server_secret_missing";
+async function logCaptchaEvent(entry: {
+  outcome: CaptchaOutcome;
+  reason?: string | null;
+  ip?: string;
+  email?: string;
+  userAgent?: string | null;
+  bookingId?: string | null;
+}): Promise<string | null> {
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data } = await supabaseAdmin
+      .from("captcha_events")
+      .insert({
+        outcome: entry.outcome,
+        reason: entry.reason ?? null,
+        ip_hash: entry.ip ? shortHash(entry.ip) : null,
+        email_hash: entry.email ? shortHash(entry.email) : null,
+        email_domain: entry.email ? emailDomainOf(entry.email) : null,
+        user_agent: entry.userAgent ?? null,
+        booking_id: entry.bookingId ?? null,
+      })
+      .select("id")
+      .maybeSingle();
+    return data?.id ?? null;
+  } catch {
+    return null;
+  }
+}
+
+async function linkCaptchaEventToBooking(eventId: string | null, bookingId: string) {
+  if (!eventId) return;
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await supabaseAdmin
+      .from("captcha_events")
+      .update({ booking_id: bookingId })
+      .eq("id", eventId);
+  } catch {
+    // best-effort
+  }
+}
+
+
 
 // Tiny in-process cache so we don't hit the DB on every submission.
 let cachedLimits: { buckets: { ip: Bucket[]; email: Bucket[] }; at: number } | null = null;
