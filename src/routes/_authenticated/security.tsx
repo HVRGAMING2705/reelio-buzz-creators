@@ -73,8 +73,6 @@ function uaSummary(ua: string | null): string {
 
 function SecurityPage() {
   const [range, setRange] = useState<Range>("7d");
-function SecurityPage() {
-  const [range, setRange] = useState<Range>("7d");
   const [onlyFailed, setOnlyFailed] = useState(true);
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
