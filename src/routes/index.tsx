@@ -104,6 +104,7 @@ function Index() {
   useReveal();
   const [scrolled, setScrolled] = useState(false);
   const [bookingOpen, setBookingOpen] = useState(false);
+  const [user, setUser] = useState<{ email?: string; avatar_url?: string | null } | null>(null);
   const heroRef = useRef<HTMLDivElement>(null);
 
   const { scrollY } = useScroll();
@@ -114,6 +115,20 @@ function Index() {
   // Scroll progress bar
   const { scrollYProgress } = useScroll();
   const progress = useSpring(scrollYProgress, { stiffness: 100, damping: 20, restDelta: 0.001 });
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user ? { email: data.user.email, avatar_url: data.user.user_metadata?.avatar_url } : null);
+    });
+    const { data } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(
+        session?.user
+          ? { email: session.user.email, avatar_url: session.user.user_metadata?.avatar_url }
+          : null,
+      );
+    });
+    return () => data.subscription.unsubscribe();
+  }, []);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 30);
