@@ -244,7 +244,7 @@ function Index() {
                 <button
                   type="button"
                   onClick={() => setBookingOpen(true)}
-                  className="group relative inline-flex items-center gap-2 rounded-full bg-white text-[color:var(--reelio-black)] px-6 py-3.5 uppercase tracking-[0.2em] text-xs liquid-shine shadow-2xl"
+                  className="group relative inline-flex items-center gap-2 rounded-full bg-[color:var(--reelio-red)] text-white px-6 py-3.5 uppercase tracking-[0.2em] text-xs liquid-shine shadow-[var(--shadow-red-glow)] font-bold"
                 >
                   Book a call
                   <motion.span animate={{ x: [0, 4, 0] }} transition={{ duration: 1.8, repeat: Infinity }}>
