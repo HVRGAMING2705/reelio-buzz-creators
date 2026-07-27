@@ -194,9 +194,25 @@ export function BookingModal({ open, onClose }: Props) {
 
     // 1. Honeypot — silent success to avoid tipping off bots
     if (honeypot.trim() !== "") {
+      // Fire-and-forget log; don't await so bots see the same latency as normal success
+      try {
+        void fetch("/api/public/spam-attempts", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            reason: "honeypot",
+            email: form.email || undefined,
+            form: "booking",
+          }),
+          keepalive: true,
+        });
+      } catch {
+        // ignore
+      }
       setStep("sent");
       return;
     }
+
 
     // 2. Minimum time on form
     if (Date.now() - openedAtRef.current < MIN_FILL_MS) {
