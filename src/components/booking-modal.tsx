@@ -91,6 +91,7 @@ export function BookingModal({ open, onClose }: Props) {
   const [step, setStep] = useState<"form" | "sent">("form");
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [captchaError, setCaptchaError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof FormShape, string>>>({});
   const [form, setForm] = useState<FormShape>(emptyForm);
   const [honeypot, setHoneypot] = useState(""); // hidden field — bots fill it
