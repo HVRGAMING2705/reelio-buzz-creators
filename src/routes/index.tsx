@@ -205,15 +205,39 @@ function Index() {
               </motion.a>
             ))}
           </nav>
-          <Magnetic strength={0.4}>
-            <button
-              type="button"
-              onClick={() => setBookingOpen(true)}
-              className="rounded-full px-4 py-1.5 text-xs uppercase tracking-[0.2em] liquid-shine inline-block bg-[color:var(--reelio-red)] text-white font-bold shadow-[var(--shadow-red-glow)]"
-            >
-              Book a call
-            </button>
-          </Magnetic>
+          <div className="flex items-center gap-2">
+            {user ? (
+              <Link
+                to="/admin"
+                className="hidden sm:flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-3 py-1.5 text-xs uppercase tracking-[0.15em] hover:bg-white/10"
+              >
+                <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/10 overflow-hidden text-[10px]">
+                  {user.avatar_url ? (
+                    <img src={user.avatar_url} alt="" className="h-full w-full object-cover" />
+                  ) : (
+                    user.email?.[0]?.toUpperCase() ?? "U"
+                  )}
+                </span>
+                Account
+              </Link>
+            ) : (
+              <Link
+                to="/auth"
+                className="hidden sm:inline-flex rounded-full border border-white/20 bg-white/5 px-4 py-1.5 text-xs uppercase tracking-[0.2em] hover:bg-white/10"
+              >
+                Sign in
+              </Link>
+            )}
+            <Magnetic strength={0.4}>
+              <button
+                type="button"
+                onClick={() => setBookingOpen(true)}
+                className="rounded-full px-4 py-1.5 text-xs uppercase tracking-[0.2em] liquid-shine inline-block bg-[color:var(--reelio-red)] text-white font-bold shadow-[var(--shadow-red-glow)]"
+              >
+                Book a call
+              </button>
+            </Magnetic>
+          </div>
         </div>
       </motion.header>
 
