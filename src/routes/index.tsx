@@ -571,12 +571,12 @@ function Index() {
           </p>
 
           <div className="mt-12 inline-flex relative">
-            <span className="absolute inset-0 rounded-full animate-pulse-ring" />
+            <span className="absolute inset-0 rounded-full animate-pulse-ring" style={{ boxShadow: "0 0 0 0 oklch(0.62 0.24 27 / 0.6)" }} />
             <Magnetic strength={0.5}>
               <button
                 type="button"
                 onClick={() => setBookingOpen(true)}
-                className="relative inline-flex items-center gap-3 rounded-full bg-white text-[color:var(--reelio-black)] px-10 py-5 uppercase tracking-[0.25em] text-sm liquid-shine shadow-2xl"
+                className="relative inline-flex items-center gap-3 rounded-full bg-[color:var(--reelio-red)] text-white px-10 py-5 uppercase tracking-[0.25em] text-sm liquid-shine shadow-[var(--shadow-red-glow)] font-bold"
               >
                 Book a call
                 <motion.span animate={{ x: [0, 6, 0] }} transition={{ duration: 1.6, repeat: Infinity }} className="text-xl">
