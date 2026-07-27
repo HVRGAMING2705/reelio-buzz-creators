@@ -87,7 +87,19 @@ export function BookingModal({ open, onClose }: Props) {
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof FormShape, string>>>({});
   const [form, setForm] = useState<FormShape>(emptyForm);
   const [honeypot, setHoneypot] = useState(""); // hidden field — bots fill it
+  const [user, setUser] = useState<User | null>(null);
   const openedAtRef = useRef<number>(0);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setUser(data.user ?? null));
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_OUT") setUser(null);
+      else if (session) setUser(session.user);
+    });
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, []);
 
   useEffect(() => {
     if (!open) return;
