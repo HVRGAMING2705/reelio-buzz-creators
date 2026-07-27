@@ -831,8 +831,24 @@ function AdminPage() {
           notifiedIds.current.add(b.id);
           prevBookings.current.set(b.id, b);
           qc.invalidateQueries({ queryKey: ["bookings"] });
-          if (!settingsRef.current.categoryBookings) return;
-          if (!settingsRef.current.notifyNewBooking) return;
+          if (!settingsRef.current.categoryBookings) {
+            logNotification({
+              kind: "new", category: "bookings",
+              title: `New booking · ${b.name}`,
+              subtitle: b.brand ?? b.service ?? undefined,
+              bookingId: b.id, status: "suppressed", reason: "category",
+            });
+            return;
+          }
+          if (!settingsRef.current.notifyNewBooking) {
+            logNotification({
+              kind: "new", category: "bookings",
+              title: `New booking · ${b.name}`,
+              subtitle: b.brand ?? b.service ?? undefined,
+              bookingId: b.id, status: "suppressed", reason: "type",
+            });
+            return;
+          }
           enqueueEvent({ kind: "new", booking: b });
         },
       )
@@ -845,12 +861,42 @@ function AdminPage() {
           prevBookings.current.set(next.id, next);
           qc.invalidateQueries({ queryKey: ["bookings"] });
           if (!prev) return;
-          if (!settingsRef.current.categoryBookings) return;
-          if (prev.status !== next.status && settingsRef.current.notifyStatusChange) {
-            enqueueEvent({ kind: "status", booking: next, from: prev.status, to: next.status });
+          const statusChanged = prev.status !== next.status;
+          const noteChanged = (prev.notes ?? "") !== (next.notes ?? "");
+          if (!settingsRef.current.categoryBookings) {
+            if (statusChanged) logNotification({
+              kind: "status", category: "bookings",
+              title: `${next.name} · ${prev.status} → ${next.status}`,
+              bookingId: next.id, status: "suppressed", reason: "category",
+            });
+            if (noteChanged) logNotification({
+              kind: "note", category: "bookings",
+              title: `Note updated · ${next.name}`,
+              bookingId: next.id, status: "suppressed", reason: "category",
+            });
+            return;
           }
-          if ((prev.notes ?? "") !== (next.notes ?? "") && settingsRef.current.notifyNoteUpdate) {
-            enqueueEvent({ kind: "note", booking: next });
+          if (statusChanged) {
+            if (settingsRef.current.notifyStatusChange) {
+              enqueueEvent({ kind: "status", booking: next, from: prev.status, to: next.status });
+            } else {
+              logNotification({
+                kind: "status", category: "bookings",
+                title: `${next.name} · ${prev.status} → ${next.status}`,
+                bookingId: next.id, status: "suppressed", reason: "type",
+              });
+            }
+          }
+          if (noteChanged) {
+            if (settingsRef.current.notifyNoteUpdate) {
+              enqueueEvent({ kind: "note", booking: next });
+            } else {
+              logNotification({
+                kind: "note", category: "bookings",
+                title: `Note updated · ${next.name}`,
+                bookingId: next.id, status: "suppressed", reason: "type",
+              });
+            }
           }
         },
       )
