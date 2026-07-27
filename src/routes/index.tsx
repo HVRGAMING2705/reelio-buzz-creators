@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import {
   motion,
@@ -13,6 +13,7 @@ import { useReveal } from "@/hooks/use-reveal";
 import { Magnetic, TiltCard, CursorGlow } from "@/components/motion-fx";
 import { MotionShowcase } from "@/components/motion-showcase";
 import { BookingModal } from "@/components/booking-modal";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/")({
   head: () => ({
