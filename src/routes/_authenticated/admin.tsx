@@ -378,6 +378,26 @@ function NotificationsBell({
           </div>
           <div className="px-4 py-3 border-b border-white/10 bg-white/[0.03]">
             <div className="flex items-center gap-2 flex-wrap">
+              <div className="relative w-full">
+                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs opacity-50" aria-hidden>🔎</span>
+                <input
+                  type="text"
+                  value={notifSearch}
+                  onChange={(e) => setNotifSearch(e.target.value)}
+                  placeholder="Search by name, email, brand, message..."
+                  className="w-full text-xs rounded-full bg-white/5 border border-white/10 pl-8 pr-3 py-1.5 placeholder:text-white/40 focus:outline-none focus:ring-1 focus:ring-red-500/50"
+                  aria-label="Search notifications"
+                />
+                {notifSearch && (
+                  <button
+                    onClick={() => setNotifSearch("")}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] opacity-60 hover:opacity-100"
+                    aria-label="Clear search"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
               <label
                 className={`flex items-center gap-1.5 text-xs cursor-pointer select-none rounded-full px-2.5 py-1 border transition-colors ${
                   notifUnreadOnly
@@ -442,6 +462,7 @@ function NotificationsBell({
                     setNotifTodayOnly(false);
                     setNotifService("all");
                     setNotifSort("newest");
+                    setNotifSearch("");
                   }}
                   className="text-[10px] uppercase tracking-[0.15em] opacity-70 hover:opacity-100 ml-auto"
                 >
