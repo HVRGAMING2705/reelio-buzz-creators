@@ -142,6 +142,8 @@ function NotificationsBell({
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const sentinelRef = useRef<HTMLDivElement>(null);
   const [notifStatus, setNotifStatus] = useState<"all" | Status>("all");
   const [notifUnreadOnly, setNotifUnreadOnly] = useState(false);
   const [notifTodayOnly, setNotifTodayOnly] = useState(false);
@@ -207,6 +209,21 @@ function NotificationsBell({
     [bookings]
   );
 
+  // Infinite scroll: load more notifications when the sentinel enters view
+  useEffect(() => {
+    if (!open || !sentinelRef.current || !hasMoreNotifications) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          setNotifLimit((n) => n + 8);
+        }
+      },
+      { root: scrollRef.current, threshold: 0.1 },
+    );
+    observer.observe(sentinelRef.current);
+    return () => observer.disconnect();
+  }, [open, hasMoreNotifications, notifLimit]);
+
   const activeNotifFilters =
     notifStatus !== "all" ||
     notifUnreadOnly ||
@@ -230,7 +247,7 @@ function NotificationsBell({
         )}
       </button>
       {open && (
-        <div className="absolute right-0 mt-2 w-[340px] max-h-[70vh] overflow-auto rounded-2xl border border-white/10 bg-black/90 backdrop-blur-xl shadow-2xl z-30">
+        <div ref={scrollRef} className="absolute right-0 mt-2 w-[340px] max-h-[70vh] overflow-auto rounded-2xl border border-white/10 bg-black/90 backdrop-blur-xl shadow-2xl z-30">
           <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
             <div>
               <p className="text-[10px] uppercase tracking-[0.3em] opacity-60">Notifications</p>
@@ -442,6 +459,7 @@ function NotificationsBell({
                   >
                     Load more ({filteredNotifications.length - recent.length} remaining)
                   </button>
+                  <div ref={sentinelRef} className="h-1 w-full" aria-hidden />
                 </div>
               )}
             </ul>
