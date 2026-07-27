@@ -935,3 +935,104 @@ function EventDetailsModal({
     </div>
   );
 }
+
+function csvEscape(v: unknown): string {
+  if (v === null || v === undefined) return "";
+  const s = String(v);
+  return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+
+function exportSecurityCsv({
+  bookingId,
+  blocks,
+  captchaEvents,
+  fromMs,
+  toMs,
+}: {
+  bookingId: string;
+  blocks: BlockRow[];
+  captchaEvents: CaptchaEventRow[];
+  fromMs: number;
+  toMs: number;
+}) {
+  const inRange = (iso: string) => {
+    const t = new Date(iso).getTime();
+    return t >= fromMs && t <= toMs;
+  };
+
+  const header = [
+    "kind",
+    "event_id",
+    "created_at",
+    "outcome_or_reason",
+    "detail",
+    "window_label",
+    "max_allowed",
+    "retry_after_sec",
+    "ip_hash",
+    "email_hash",
+    "email_domain",
+    "user_agent",
+    "booking_id",
+  ];
+
+  const rows: string[][] = [];
+
+  for (const c of captchaEvents) {
+    if (!inRange(c.created_at)) continue;
+    rows.push([
+      "captcha",
+      c.id,
+      c.created_at,
+      c.outcome,
+      c.reason ?? "",
+      "",
+      "",
+      "",
+      c.ip_hash ?? "",
+      c.email_hash ?? "",
+      c.email_domain ?? "",
+      c.user_agent ?? "",
+      c.booking_id ?? "",
+    ].map(csvEscape));
+  }
+
+  for (const b of blocks) {
+    if (!inRange(b.created_at)) continue;
+    rows.push([
+      "blocked",
+      b.id,
+      b.created_at,
+      b.reason,
+      "",
+      b.window_label ?? "",
+      b.max_allowed != null ? String(b.max_allowed) : "",
+      b.retry_after_sec != null ? String(b.retry_after_sec) : "",
+      b.ip_hash ?? "",
+      "",
+      b.email_domain ?? "",
+      b.user_agent ?? "",
+      bookingId,
+    ].map(csvEscape));
+  }
+
+  if (rows.length === 0) {
+    toast.info("No security events in the selected range");
+    return;
+  }
+
+  rows.sort((a, b) => (a[2] < b[2] ? 1 : -1));
+
+  const csv = [header.join(","), ...rows.map((r) => r.join(","))].join("\r\n");
+  const blob = new Blob([`\ufeff${csv}`], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+  a.href = url;
+  a.download = `booking-${bookingId.slice(0, 8)}-security-${stamp}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast.success(`Exported ${rows.length} event${rows.length === 1 ? "" : "s"}`);
+}
