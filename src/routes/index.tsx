@@ -281,18 +281,18 @@ function Index() {
       </section>
 
       {/* ============ SERVICES — CASE INDEX ============ */}
-      <section id="services" className="relative py-24 md:py-40">
-        <div className="mx-auto max-w-[1400px] px-5 md:px-10">
+      <section id="services" className="relative py-24 md:py-32 lg:py-40">
+        <div className="mx-auto max-w-[1600px] px-5 sm:px-8 md:px-10 lg:px-14">
           <div className="grid md:grid-cols-12 gap-6 md:gap-8 pb-10 md:pb-16 border-b border-white/15">
-            <div className="md:col-span-4">
+            <div className="md:col-span-5 lg:col-span-4">
               <span className="slug">§ Services</span>
-              <h2 className="mt-6 font-display text-5xl md:text-7xl leading-[0.9]">
+              <h2 className="mt-6 font-display text-5xl md:text-7xl lg:text-8xl leading-[0.9]">
                 The<br />
                 <span className="text-[color:var(--reelio-red)]">Index.</span>
               </h2>
             </div>
             <div className="md:col-span-6 md:col-start-7 flex items-end">
-              <p className="font-body text-lg text-white/70 max-w-md">
+              <p className="font-body text-lg lg:text-xl text-white/70 max-w-md">
                 Six departments. One crew. Every service below is built and
                 delivered in-house — no agency-of-agencies, no handoffs.
               </p>
