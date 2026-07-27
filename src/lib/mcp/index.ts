@@ -14,11 +14,10 @@ export default defineMcp({
   version: "0.1.0",
   instructions:
     "Reelio agency ops. Read and manage bookings, review honeypot/captcha/rate-limit security events, and pull pipeline stats. All calls run as the signed-in user with RLS applied — admin role is required for booking and security data.",
-  auth: {
-    type: "oauth",
+  auth: auth.oauth.issuer({
     issuer: `https://${projectRef}.supabase.co/auth/v1`,
     acceptedAudiences: "authenticated",
-  } as never,
+  }),
   tools: [
     listBookings,
     getBooking,
