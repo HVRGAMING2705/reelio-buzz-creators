@@ -188,14 +188,13 @@ function Index() {
             ))}
           </nav>
           <Magnetic strength={0.4}>
-            <a
-              href="https://forms.gle/Px5NuE51UrGZMSKx8"
-              target="_blank"
-              rel="noreferrer"
+            <button
+              type="button"
+              onClick={() => setBookingOpen(true)}
               className="glass-chip rounded-full px-4 py-1.5 text-xs uppercase tracking-[0.2em] liquid-shine inline-block"
             >
-              Get in touch
-            </a>
+              Book a call
+            </button>
           </Magnetic>
         </div>
       </motion.header>
