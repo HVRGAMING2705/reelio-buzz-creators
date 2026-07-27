@@ -152,9 +152,9 @@ function Index() {
             : "bg-transparent"
         }`}
       >
-        <div className="mx-auto max-w-[1400px] px-5 md:px-10 h-16 md:h-20 flex items-center justify-between">
-          <a href="#top" className="flex items-center">
-            <img src={logoMark.url} alt="Reelio" className="h-6 md:h-7 w-auto object-contain" />
+        <div className="mx-auto max-w-[1400px] px-5 md:px-8 h-14 md:h-16 flex items-center justify-between gap-6">
+          <a href="#top" className="flex items-center shrink-0 -my-4">
+            <img src={logoMark.url} alt="Reelio" className="h-12 md:h-14 w-auto object-contain block" />
           </a>
           <nav className="hidden md:flex items-center gap-10 text-[11px] tracking-[0.28em] uppercase font-body font-medium">
             <a href="#services" className="hover:text-[color:var(--reelio-red)] transition-colors">Services</a>
