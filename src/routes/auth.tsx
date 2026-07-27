@@ -53,6 +53,23 @@ function AuthPage() {
     }
   };
 
+  const signInWithGoogle = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
+      });
+      if (result.error) throw result.error;
+      if (result.redirected) return;
+      await router.invalidate();
+      navigate({ to: "/admin", replace: true });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Google sign-in failed");
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen grid place-items-center p-4 bg-[color:var(--reelio-black,#0b0b0d)] text-white">
       <div className="w-full max-w-md glass rounded-3xl p-8 conic-border">
