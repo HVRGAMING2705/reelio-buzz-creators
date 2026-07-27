@@ -373,9 +373,9 @@ function NotificationsBell({
               className={`text-[10px] uppercase tracking-[0.2em] opacity-70 hover:opacity-100 transition-opacity ${
                 unreadCount > 0 ? "" : "opacity-40 hover:opacity-60"
               }`}
-              aria-label="Mark all notifications as read"
+              aria-label="Mark all filtered notifications as read"
             >
-              Mark all as read
+              Mark filtered as read
             </button>
           </div>
           <div className="px-4 py-3 border-b border-white/10 bg-white/[0.03]">
