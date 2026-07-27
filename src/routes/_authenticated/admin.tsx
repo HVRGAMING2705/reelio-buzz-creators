@@ -1370,6 +1370,63 @@ function SettingsModal({
 
 
 
+        <div className="mt-6 pt-4 border-t border-white/10">
+          <p className="text-[10px] uppercase tracking-[0.3em] opacity-50 mb-2">Delivery test</p>
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-xs opacity-70 flex-1">
+              Fires a sample toast using your current draft settings — no booking is created.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                if (!draft.realtimeEnabled) {
+                  toast.error("Realtime alerts are disabled — no toast will appear.");
+                  return;
+                }
+                if (isQuietNow(draft)) {
+                  toast.error(
+                    `Quiet hours are active${
+                      nextTransition ? ` until ${nextTransition}` : ""
+                    } — toast suppressed.`,
+                  );
+                  return;
+                }
+                toast.custom(
+                  (t) => (
+                    <div className="w-full rounded-xl border border-red-500/40 bg-black/90 backdrop-blur-xl shadow-2xl overflow-hidden">
+                      <div className="px-4 py-3">
+                        <div className="flex items-center justify-between gap-3">
+                          <p className="text-sm font-medium text-white">
+                            Test notification · Reelio Admin
+                          </p>
+                          <span className="text-[10px] uppercase tracking-wider text-red-400 shrink-0">
+                            Test
+                          </span>
+                        </div>
+                        <p className="text-xs text-white/70 mt-0.5">
+                          Realtime delivery is working. This is a preview of a new-booking toast.
+                        </p>
+                      </div>
+                      <div className="border-t border-white/10 px-4 py-2 bg-white/[0.03] flex justify-end">
+                        <button
+                          onClick={() => toast.dismiss(t)}
+                          className="text-[10px] uppercase tracking-[0.2em] opacity-70 hover:opacity-100"
+                        >
+                          Dismiss
+                        </button>
+                      </div>
+                    </div>
+                  ),
+                  { duration: 8000 },
+                );
+              }}
+              className="rounded-full glass px-4 py-2 text-xs uppercase tracking-[0.2em] hover:bg-white/10 shrink-0"
+            >
+              Send test
+            </button>
+          </div>
+        </div>
+
         <div className="flex justify-end gap-2 mt-6">
           <button
             onClick={onClose}
