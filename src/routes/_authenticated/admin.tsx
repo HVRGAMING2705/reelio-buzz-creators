@@ -227,6 +227,7 @@ function AdminPage() {
     const v = window.localStorage.getItem(LAST_SEEN_KEY);
     return v ? Number(v) : Date.now();
   });
+  const notifiedIds = useRef<Set<string>>(new Set());
   const [settings, setSettings] = useState<NotifSettings>(() => loadSettings());
   const [settingsOpen, setSettingsOpen] = useState(false);
   const settingsRef = useRef(settings);
