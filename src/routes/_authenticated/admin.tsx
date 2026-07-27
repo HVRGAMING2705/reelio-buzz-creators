@@ -236,6 +236,7 @@ function NotificationsBell({
   const ref = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
+  const firstUnreadRef = useRef<HTMLLIElement | null>(null);
   const [notifStatus, setNotifStatus] = useState<"all" | Status>(() => loadNotifFilters(userId).status);
   const [notifUnreadOnly, setNotifUnreadOnly] = useState(() => loadNotifFilters(userId).unreadOnly);
   const [notifTodayOnly, setNotifTodayOnly] = useState(() => loadNotifFilters(userId).todayOnly);
