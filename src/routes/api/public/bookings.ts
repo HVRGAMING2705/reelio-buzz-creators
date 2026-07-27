@@ -169,11 +169,8 @@ export const Route = createFileRoute("/api/public/bookings")({
               { status: 400, headers: { "content-type": "application/json" } },
             );
           }
-          const ip =
-            request.headers.get("cf-connecting-ip") ??
-            request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-            undefined;
           const verify = await verifyHCaptcha(hcaptchaSecret, captchaToken, ip);
+
           if (!verify.success) {
             const reason = verify.reason || "";
             let msg = "Captcha verification failed — please try again.";
