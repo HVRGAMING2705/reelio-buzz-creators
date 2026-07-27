@@ -678,7 +678,26 @@ function AdminPage() {
     pendingRef.current = [];
     if (events.length === 0) return;
     const s = settingsRef.current;
-    if (!s.realtimeEnabled || isQuietNow(s)) return;
+    const suppressedReason: "disabled" | "quiet" | null =
+      !s.realtimeEnabled ? "disabled" : isQuietNow(s) ? "quiet" : null;
+    if (suppressedReason) {
+      for (const ev of events) {
+        const b = ev.booking;
+        logNotification({
+          kind: ev.kind,
+          category: "bookings",
+          title:
+            ev.kind === "new" ? `New booking · ${b.name}`
+            : ev.kind === "status" ? `${b.name} · ${ev.from} → ${ev.to}`
+            : `Note updated · ${b.name}`,
+          subtitle: b.brand ?? b.service ?? undefined,
+          bookingId: b.id,
+          status: "suppressed",
+          reason: suppressedReason,
+        });
+      }
+      return;
+    }
 
     if (events.length === 1) {
       const ev = events[0];
@@ -688,6 +707,14 @@ function AdminPage() {
         ev.kind === "new" ? `New booking · ${b.name}`
         : ev.kind === "status" ? `${b.name} · ${ev.from} → ${ev.to}`
         : `Note updated · ${b.name}`;
+      logNotification({
+        kind: ev.kind,
+        category: "bookings",
+        title,
+        subtitle: b.brand ?? b.service ?? undefined,
+        bookingId: b.id,
+        status: "delivered",
+      });
       toast.custom(
         (t) => (
           <div className="w-full rounded-xl border border-white/10 bg-black/90 backdrop-blur-xl shadow-2xl overflow-hidden">
