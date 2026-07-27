@@ -250,7 +250,7 @@ function Index() {
           </div>
 
           {/* Byline strip */}
-          <div className="mt-16 md:mt-24 grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-10 pt-8 border-t border-white/15">
+          <div className="mt-16 md:mt-24 grid grid-cols-2 sm:grid-cols-4 gap-6 md:gap-10 lg:gap-14 pt-8 border-t border-white/15">
             {[
               { k: "50+", v: "Brands scaled" },
               { k: "10M+", v: "Reels views" },
