@@ -13,6 +13,10 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  nitro: {
+    // Use Vercel preset when deploying to Vercel; falls back to cloudflare otherwise.
+    preset: process.env.VERCEL ? "vercel" : undefined,
+  },
   vite: {
     plugins: [mcpPlugin()],
   },
