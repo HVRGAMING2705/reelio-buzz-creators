@@ -97,7 +97,7 @@ function NotificationsBell({
   bookings: Booking[];
   lastSeen: number;
   unreadCount: number;
-  onMarkAllSeen: () => void;
+  onMarkAllSeen: (ts?: number) => void;
   onOpen: (id: string) => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -105,6 +105,7 @@ function NotificationsBell({
   const [notifStatus, setNotifStatus] = useState<"all" | Status>("all");
   const [notifUnreadOnly, setNotifUnreadOnly] = useState(false);
   const [notifSort, setNotifSort] = useState<"newest" | "oldest">("newest");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (!open) return;
