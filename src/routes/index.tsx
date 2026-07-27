@@ -141,7 +141,199 @@ const packageIncludes = [
   { title: "Outreach support", desc: "Brand and creator outreach in the loop." },
 ];
 
-function Index() {
+const GOOGLE_FORM_URL = "https://forms.gle/Px5NuE51UrGZMSKx8";
+
+type ContactStatus =
+  | { kind: "idle" }
+  | { kind: "submitting" }
+  | { kind: "success" }
+  | { kind: "error"; message: string };
+
+function ContactForm() {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [message, setMessage] = useState("");
+  const [errors, setErrors] = useState<{ name?: string; email?: string; message?: string }>({});
+  const [status, setStatus] = useState<ContactStatus>({ kind: "idle" });
+
+  const validate = () => {
+    const next: typeof errors = {};
+    const n = name.trim();
+    const e = email.trim();
+    const m = message.trim();
+    if (n.length < 2) next.name = "Please enter your name (2+ chars).";
+    else if (n.length > 80) next.name = "Name is too long.";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e)) next.email = "Enter a valid email address.";
+    if (m.length < 10) next.message = "Tell us a bit more (10+ chars).";
+    else if (m.length > 1000) next.message = "Keep it under 1000 characters.";
+    setErrors(next);
+    return Object.keys(next).length === 0;
+  };
+
+  const onSubmit = async (ev: React.FormEvent<HTMLFormElement>) => {
+    ev.preventDefault();
+    if (!validate()) {
+      setStatus({ kind: "error", message: "Please fix the highlighted fields." });
+      return;
+    }
+    setStatus({ kind: "submitting" });
+    try {
+      const win = window.open(GOOGLE_FORM_URL, "_blank", "noopener,noreferrer");
+      if (!win) throw new Error("Popup blocked. Please allow popups or use the direct link below.");
+      setStatus({ kind: "success" });
+    } catch (err) {
+      setStatus({
+        kind: "error",
+        message: err instanceof Error ? err.message : "Something went wrong. Try the direct link below.",
+      });
+    }
+  };
+
+  if (status.kind === "success") {
+    return (
+      <div className="liquid-glass p-8 md:p-10 rounded-2xl">
+        <div className="font-body text-[10px] uppercase tracking-[0.3em] text-[color:var(--reelio-red)]">
+          Sent · Awaiting form
+        </div>
+        <h3 className="mt-4 font-display text-3xl md:text-4xl leading-tight">
+          Thanks, {name.split(" ")[0] || "friend"}.
+        </h3>
+        <p className="mt-4 font-body text-white/70">
+          We opened the intake form in a new tab. Finish there and we'll be in touch within 24 hours (weekdays).
+        </p>
+        <div className="mt-6 flex flex-wrap gap-3">
+          <a href={GOOGLE_FORM_URL} target="_blank" rel="noreferrer" className="btn-red">
+            Reopen the form
+          </a>
+          <button
+            type="button"
+            onClick={() => {
+              setName(""); setEmail(""); setMessage("");
+              setErrors({}); setStatus({ kind: "idle" });
+            }}
+            className="btn-ghost"
+          >
+            Send another
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const submitting = status.kind === "submitting";
+
+  return (
+    <form onSubmit={onSubmit} noValidate className="liquid-glass p-6 md:p-8 rounded-2xl">
+      <div className="font-body text-[10px] uppercase tracking-[0.3em] text-white/50">
+        § Contact desk
+      </div>
+      <h3 className="mt-3 font-display text-2xl md:text-3xl leading-tight">
+        Start the conversation.
+      </h3>
+      <p className="mt-2 font-body text-sm text-white/60">
+        Fill this in — we'll hand you the intake form to finish the details.
+      </p>
+
+      <div className="mt-6 space-y-4">
+        <div>
+          <label htmlFor="cf-name" className="block font-body text-[11px] uppercase tracking-[0.25em] text-white/50 mb-2">
+            Name
+          </label>
+          <input
+            id="cf-name"
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            maxLength={80}
+            autoComplete="name"
+            aria-invalid={!!errors.name}
+            aria-describedby={errors.name ? "cf-name-err" : undefined}
+            className="input-glass w-full"
+            placeholder="Your full name"
+          />
+          {errors.name && (
+            <p id="cf-name-err" className="mt-1.5 text-xs text-[color:var(--reelio-red)]">
+              {errors.name}
+            </p>
+          )}
+        </div>
+
+        <div>
+          <label htmlFor="cf-email" className="block font-body text-[11px] uppercase tracking-[0.25em] text-white/50 mb-2">
+            Email
+          </label>
+          <input
+            id="cf-email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            maxLength={120}
+            autoComplete="email"
+            aria-invalid={!!errors.email}
+            aria-describedby={errors.email ? "cf-email-err" : undefined}
+            className="input-glass w-full"
+            placeholder="you@brand.com"
+          />
+          {errors.email && (
+            <p id="cf-email-err" className="mt-1.5 text-xs text-[color:var(--reelio-red)]">
+              {errors.email}
+            </p>
+          )}
+        </div>
+
+        <div>
+          <label htmlFor="cf-msg" className="block font-body text-[11px] uppercase tracking-[0.25em] text-white/50 mb-2">
+            What are you building?
+          </label>
+          <textarea
+            id="cf-msg"
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            maxLength={1000}
+            rows={4}
+            aria-invalid={!!errors.message}
+            aria-describedby={errors.message ? "cf-msg-err" : "cf-msg-count"}
+            className="input-glass w-full resize-none"
+            placeholder="Niche, goals, timelines…"
+          />
+          <div className="mt-1.5 flex items-center justify-between">
+            {errors.message ? (
+              <p id="cf-msg-err" className="text-xs text-[color:var(--reelio-red)]">
+                {errors.message}
+              </p>
+            ) : (
+              <span id="cf-msg-count" className="text-[11px] text-white/40">
+                {message.length}/1000
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {status.kind === "error" && (
+        <div
+          role="alert"
+          className="mt-4 rounded-lg border border-[color:var(--reelio-red)]/40 bg-[color:var(--reelio-red)]/10 px-3 py-2 text-sm text-white/90"
+        >
+          {status.message}
+        </div>
+      )}
+
+      <div className="mt-6 flex flex-wrap items-center gap-3">
+        <button type="submit" disabled={submitting} className="btn-red disabled:opacity-60">
+          {submitting ? "Opening form…" : "Continue to form"}
+        </button>
+        <a href={GOOGLE_FORM_URL} target="_blank" rel="noreferrer" className="btn-ghost">
+          Open form directly
+        </a>
+      </div>
+      <p className="mt-3 text-[11px] text-white/40">
+        We use Google Forms for intake. Your responses go straight to the Reelio inbox.
+      </p>
+    </form>
+  );
+}
+
   useReveal();
   const [scrolled, setScrolled] = useState(false);
   const [bookingOpen, setBookingOpen] = useState(false);
