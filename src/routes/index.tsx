@@ -553,6 +553,7 @@ function Index() {
               <div className="flex flex-col gap-6 font-display text-3xl tracking-[-0.01em]">
                 {[
                   { label: "Services", href: "#services" },
+                  { label: "Reel", href: "#reel" },
                   { label: "Niches", href: "#niches" },
                   { label: "Package", href: "#package" },
                   { label: "Contact", href: "#contact" },
