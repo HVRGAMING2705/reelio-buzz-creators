@@ -428,8 +428,8 @@ function Index() {
         }`}
       >
 
-        <div className="mx-auto max-w-[1600px] px-4 sm:px-6 md:px-8 lg:px-10 h-16 md:h-24 lg:h-28 flex items-center justify-between gap-4 md:gap-6 lg:gap-10">
-          <a href="#top" aria-label="Reelio — back to top" className="flex items-center shrink-0 -my-2 md:-my-5 lg:-my-6">
+        <div className="mx-auto max-w-[1600px] px-4 sm:px-6 md:px-8 lg:px-10 h-20 md:h-28 lg:h-32 flex items-center justify-between gap-4 md:gap-6 lg:gap-10">
+          <a href="#top" aria-label="Reelio — back to top" className="flex items-center shrink-0 -my-1 md:-my-3 lg:-my-4">
             <img
               src={logoMark.url}
               alt=""
