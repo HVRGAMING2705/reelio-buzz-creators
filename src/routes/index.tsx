@@ -258,7 +258,7 @@ function Index() {
               { k: "24/7", v: "Content engine" },
             ].map((s) => (
               <div key={s.v}>
-                <div className="font-display text-4xl md:text-6xl text-white leading-none">{s.k}</div>
+                <div className="font-display text-4xl md:text-6xl lg:text-7xl text-white leading-none">{s.k}</div>
                 <div className="mt-2 font-body text-[10px] md:text-xs uppercase tracking-[0.28em] text-white/50">
                   {s.v}
                 </div>
