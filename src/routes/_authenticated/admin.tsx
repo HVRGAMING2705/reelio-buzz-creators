@@ -311,9 +311,12 @@ function AdminPage() {
             duration: 10000,
             action: {
               label: "View details",
-              onClick: () =>
-                navigate({ to: "/bookings/$id", params: { id: b.id } }),
+              onClick: () => {
+                markAllSeenRef.current?.();
+                navigate({ to: "/bookings/$id", params: { id: b.id } });
+              },
             },
+
           });
         },
       )
@@ -335,6 +338,12 @@ function AdminPage() {
       window.localStorage.setItem(LAST_SEEN_KEY, String(now));
     }
   };
+
+  const markAllSeenRef = useRef(markAllSeen);
+  useEffect(() => {
+    markAllSeenRef.current = markAllSeen;
+  });
+
 
   const signOut = async () => {
     await qc.cancelQueries();
@@ -399,7 +408,11 @@ function AdminPage() {
               lastSeen={lastSeen}
               unreadCount={unreadCount}
               onMarkAllSeen={markAllSeen}
-              onOpen={(id) => navigate({ to: "/bookings/$id", params: { id } })}
+              onOpen={(id) => {
+                markAllSeen();
+                navigate({ to: "/bookings/$id", params: { id } });
+              }}
+
             />
             <button
               onClick={() => setSettingsOpen(true)}
