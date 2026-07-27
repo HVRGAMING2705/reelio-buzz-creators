@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { logNotification } from "@/lib/notification-history";
+import { SpamTrendChart } from "@/components/spam-trend-chart";
 import { saveCaptchaConfig, fetchCaptchaConfig } from "@/lib/captcha-config";
 import {
   DEFAULT_RATE_LIMIT_CONFIG,
