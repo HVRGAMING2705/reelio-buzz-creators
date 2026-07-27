@@ -1203,6 +1203,35 @@ function SettingsModal({
           <button onClick={onClose} className="opacity-60 hover:opacity-100" aria-label="Close">✕</button>
         </div>
 
+        <div
+          className={`rounded-xl border px-4 py-3 mb-4 flex items-start gap-3 transition-colors ${
+            willDeliver
+              ? "border-emerald-500/40 bg-emerald-500/10"
+              : "border-amber-500/40 bg-amber-500/10"
+          }`}
+          aria-live="polite"
+        >
+          <span
+            className={`mt-1 h-2.5 w-2.5 rounded-full shrink-0 ${
+              willDeliver
+                ? "bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.9)] animate-pulse"
+                : "bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.9)]"
+            }`}
+            aria-hidden
+          />
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-sm font-medium">
+                {willDeliver ? "Notifications will be sent right now" : "Notifications are paused right now"}
+              </p>
+              <span className="text-[10px] uppercase tracking-[0.2em] opacity-60 shrink-0">
+                {now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+              </span>
+            </div>
+            <p className="text-xs opacity-75 mt-0.5">{statusReason}</p>
+          </div>
+        </div>
+
         <p className="text-[10px] uppercase tracking-[0.3em] opacity-50 mt-2 mb-1">Notifications</p>
 
         <label className="flex items-start justify-between gap-4 py-3 border-b border-white/10 cursor-pointer">
