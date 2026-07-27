@@ -691,7 +691,7 @@ function AdminPage() {
               </span>
             )}
             <NotificationsBell
-              bookings={bookings ?? []}
+              bookings={bookingsWithProfiles}
               lastSeen={lastSeen}
               unreadCount={unreadCount}
               onMarkAllSeen={markAllSeen}
@@ -699,7 +699,6 @@ function AdminPage() {
                 markAllSeen();
                 navigate({ to: "/bookings/$id", params: { id } });
               }}
-
             />
             <button
               onClick={() => setSettingsOpen(true)}
