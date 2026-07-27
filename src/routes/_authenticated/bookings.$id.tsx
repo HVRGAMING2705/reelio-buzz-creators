@@ -315,91 +315,9 @@ function BookingDetailPage() {
               />
             </section>
 
-            <section className="glass rounded-2xl p-6">
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-[10px] uppercase tracking-[0.25em] opacity-70">
-                  Activity & confirmation history
-                </p>
-                <span className="text-[10px] opacity-50">
-                  {(events?.length ?? 0) + (blocks?.length ?? 0)} events
-                  {blocks && blocks.length > 0 && (
-                    <span className="ml-2 text-red-300/80">· {blocks.length} security</span>
-                  )}
-                </span>
-              </div>
-              {(() => {
-                const items: TimelineItem[] = [
-                  ...(events ?? []).map((ev) => ({ kind: "event" as const, at: ev.created_at, ev })),
-                  ...(blocks ?? []).map((block) => ({ kind: "block" as const, at: block.created_at, block })),
-                ].sort((a, b) => (a.at < b.at ? 1 : -1));
+            <TimelineSection events={events ?? []} blocks={blocks ?? []} />
 
-                if (items.length === 0) {
-                  return <p className="text-sm opacity-60">No events recorded yet.</p>;
-                }
-                return (
-                  <ol className="relative border-l border-white/15 ml-2 space-y-4">
-                    {items.map((it) =>
-                      it.kind === "event" ? (
-                        <li key={`e-${it.ev.id}`} className="pl-4 relative">
-                          <span className="absolute -left-[6px] top-1.5 w-2.5 h-2.5 rounded-full bg-white/70 shadow-[0_0_10px_rgba(255,255,255,0.6)]" />
-                          <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                            <span className="text-sm">{eventLabel(it.ev)}</span>
-                            <span className="text-[10px] uppercase tracking-[0.2em] opacity-50">
-                              {new Date(it.ev.created_at).toLocaleString()}
-                            </span>
-                          </div>
-                          {(it.ev.from_value || it.ev.to_value) && it.ev.event_type !== "note_updated" && (
-                            <p className="text-xs opacity-70 mt-1">
-                              {it.ev.from_value ? <><span className="opacity-60">from</span> {it.ev.from_value} </> : null}
-                              {it.ev.to_value ? <><span className="opacity-60">→</span> {it.ev.to_value}</> : null}
-                            </p>
-                          )}
-                          {it.ev.event_type === "note_updated" && it.ev.to_value && (
-                            <p className="text-xs opacity-70 mt-1 whitespace-pre-wrap">"{it.ev.to_value}"</p>
-                          )}
-                        </li>
-                      ) : (
-                        <li key={`b-${it.block.id}`} className="pl-4 relative">
-                          <span className="absolute -left-[6px] top-1.5 w-2.5 h-2.5 rounded-full bg-red-400 shadow-[0_0_10px_rgba(248,113,113,0.7)]" />
-                          <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                            <span className="text-sm text-red-200">{blockLabel(it.block.reason)}</span>
-                            <span className="text-[10px] uppercase tracking-[0.2em] opacity-50">
-                              {new Date(it.block.created_at).toLocaleString()}
-                            </span>
-                          </div>
-                          <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[11px] opacity-70">
-                            {it.block.window_label && (
-                              <span>window <span className="font-mono">{it.block.window_label}</span></span>
-                            )}
-                            {it.block.max_allowed != null && (
-                              <span>max <span className="font-mono">{it.block.max_allowed}</span></span>
-                            )}
-                            {it.block.retry_after_sec != null && (
-                              <span>retry after <span className="font-mono">{it.block.retry_after_sec}s</span></span>
-                            )}
-                            {it.block.ip_hash && (
-                              <span>ip <span className="font-mono">{it.block.ip_hash.slice(0, 8)}…</span></span>
-                            )}
-                            {it.block.email_domain && (
-                              <span>@{it.block.email_domain}</span>
-                            )}
-                          </div>
-                          {it.block.user_agent && (
-                            <p className="text-[10px] opacity-50 mt-1 truncate" title={it.block.user_agent}>
-                              {it.block.user_agent}
-                            </p>
-                          )}
-                        </li>
-                      ),
-                    )}
-                  </ol>
-                );
-              })()}
-              <p className="mt-4 text-[10px] opacity-40">
-                Security events (captcha failures, rate limits) attributed by attempted email hash.
-                Email confirmations will appear here once a sender domain is configured.
-              </p>
-            </section>
+
 
 
             <div className="flex justify-end">
@@ -441,6 +359,174 @@ function blockLabel(reason: string) {
     case "email_rate_limit": return "Blocked · email rate limit";
     default: return `Blocked · ${reason}`;
   }
+}
+
+type FilterKind = "all" | "events" | "blocks" | "captcha";
+
+function TimelineSection({ events, blocks }: { events: BookingEvent[]; blocks: BlockRow[] }) {
+  const [filter, setFilter] = useState<FilterKind>("all");
+  const [from, setFrom] = useState<string>("");
+  const [to, setTo] = useState<string>("");
+
+  const fromMs = from ? new Date(from).getTime() : -Infinity;
+  const toMs = to ? new Date(to).getTime() + 24 * 60 * 60 * 1000 - 1 : Infinity;
+
+  const merged: TimelineItem[] = [
+    ...events.map((ev) => ({ kind: "event" as const, at: ev.created_at, ev })),
+    ...blocks.map((block) => ({ kind: "block" as const, at: block.created_at, block })),
+  ];
+
+  const items = merged
+    .filter((it) => {
+      const t = new Date(it.at).getTime();
+      if (t < fromMs || t > toMs) return false;
+      if (filter === "all") return true;
+      if (filter === "events") return it.kind === "event";
+      if (filter === "blocks") return it.kind === "block";
+      if (filter === "captcha")
+        return it.kind === "block" && it.block.reason.startsWith("captcha");
+      return true;
+    })
+    .sort((a, b) => (a.at < b.at ? 1 : -1));
+
+  const counts = {
+    all: merged.length,
+    events: events.length,
+    blocks: blocks.length,
+    captcha: blocks.filter((b) => b.reason.startsWith("captcha")).length,
+  };
+
+  const chip = (k: FilterKind, label: string) => (
+    <button
+      key={k}
+      onClick={() => setFilter(k)}
+      className={`rounded-full px-3 py-1.5 text-[10px] uppercase tracking-[0.15em] transition ${
+        filter === k ? "bg-white text-[color:var(--reelio-black,#0b0b0d)]" : "glass hover:bg-white/10"
+      }`}
+    >
+      {label} <span className="opacity-60">· {counts[k]}</span>
+    </button>
+  );
+
+  const activeRange = from || to;
+
+  return (
+    <section className="glass rounded-2xl p-6">
+      <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+        <p className="text-[10px] uppercase tracking-[0.25em] opacity-70">
+          Activity & confirmation history
+        </p>
+        <span className="text-[10px] opacity-50">
+          {items.length} of {merged.length} shown
+          {counts.blocks > 0 && (
+            <span className="ml-2 text-red-300/80">· {counts.blocks} security</span>
+          )}
+        </span>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2 mb-4">
+        {chip("all", "All")}
+        {chip("events", "Successful")}
+        {chip("blocks", "Blocked")}
+        {chip("captcha", "Captcha")}
+        <div className="flex items-center gap-1 ml-auto text-[10px] uppercase tracking-[0.15em] opacity-70">
+          <span>From</span>
+          <input
+            type="date"
+            value={from}
+            onChange={(e) => setFrom(e.target.value)}
+            className="glass rounded-md px-2 py-1 text-white text-[11px] bg-transparent border border-white/10 [color-scheme:dark]"
+          />
+          <span>To</span>
+          <input
+            type="date"
+            value={to}
+            onChange={(e) => setTo(e.target.value)}
+            className="glass rounded-md px-2 py-1 text-white text-[11px] bg-transparent border border-white/10 [color-scheme:dark]"
+          />
+          {activeRange && (
+            <button
+              onClick={() => {
+                setFrom("");
+                setTo("");
+              }}
+              className="text-red-300 hover:text-red-200 ml-1"
+            >
+              Clear
+            </button>
+          )}
+        </div>
+      </div>
+
+      {items.length === 0 ? (
+        <p className="text-sm opacity-60">
+          {merged.length === 0 ? "No events recorded yet." : "No events match the current filters."}
+        </p>
+      ) : (
+        <ol className="relative border-l border-white/15 ml-2 space-y-4">
+          {items.map((it) =>
+            it.kind === "event" ? (
+              <li key={`e-${it.ev.id}`} className="pl-4 relative">
+                <span className="absolute -left-[6px] top-1.5 w-2.5 h-2.5 rounded-full bg-white/70 shadow-[0_0_10px_rgba(255,255,255,0.6)]" />
+                <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                  <span className="text-sm">{eventLabel(it.ev)}</span>
+                  <span className="text-[10px] uppercase tracking-[0.2em] opacity-50">
+                    {new Date(it.ev.created_at).toLocaleString()}
+                  </span>
+                </div>
+                {(it.ev.from_value || it.ev.to_value) && it.ev.event_type !== "note_updated" && (
+                  <p className="text-xs opacity-70 mt-1">
+                    {it.ev.from_value ? <><span className="opacity-60">from</span> {it.ev.from_value} </> : null}
+                    {it.ev.to_value ? <><span className="opacity-60">→</span> {it.ev.to_value}</> : null}
+                  </p>
+                )}
+                {it.ev.event_type === "note_updated" && it.ev.to_value && (
+                  <p className="text-xs opacity-70 mt-1 whitespace-pre-wrap">"{it.ev.to_value}"</p>
+                )}
+              </li>
+            ) : (
+              <li key={`b-${it.block.id}`} className="pl-4 relative">
+                <span className="absolute -left-[6px] top-1.5 w-2.5 h-2.5 rounded-full bg-red-400 shadow-[0_0_10px_rgba(248,113,113,0.7)]" />
+                <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                  <span className="text-sm text-red-200">{blockLabel(it.block.reason)}</span>
+                  <span className="text-[10px] uppercase tracking-[0.2em] opacity-50">
+                    {new Date(it.block.created_at).toLocaleString()}
+                  </span>
+                </div>
+                <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[11px] opacity-70">
+                  {it.block.window_label && (
+                    <span>window <span className="font-mono">{it.block.window_label}</span></span>
+                  )}
+                  {it.block.max_allowed != null && (
+                    <span>max <span className="font-mono">{it.block.max_allowed}</span></span>
+                  )}
+                  {it.block.retry_after_sec != null && (
+                    <span>retry after <span className="font-mono">{it.block.retry_after_sec}s</span></span>
+                  )}
+                  {it.block.ip_hash && (
+                    <span>ip <span className="font-mono">{it.block.ip_hash.slice(0, 8)}…</span></span>
+                  )}
+                  {it.block.email_domain && (
+                    <span>@{it.block.email_domain}</span>
+                  )}
+                </div>
+                {it.block.user_agent && (
+                  <p className="text-[10px] opacity-50 mt-1 truncate" title={it.block.user_agent}>
+                    {it.block.user_agent}
+                  </p>
+                )}
+              </li>
+            ),
+          )}
+        </ol>
+      )}
+
+      <p className="mt-4 text-[10px] opacity-40">
+        Security events (captcha failures, rate limits) attributed by attempted email hash.
+        Email confirmations will appear here once a sender domain is configured.
+      </p>
+    </section>
+  );
 }
 
 function QuickActions({
