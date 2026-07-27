@@ -34,8 +34,9 @@ type NotifFilters = {
   unreadOnly: boolean;
   todayOnly: boolean;
   service: "all" | string;
+  sort: "newest" | "oldest";
 };
-const DEFAULT_NOTIF_FILTERS: NotifFilters = { unreadOnly: false, todayOnly: false, service: "all" };
+const DEFAULT_NOTIF_FILTERS: NotifFilters = { unreadOnly: false, todayOnly: false, service: "all", sort: "newest" };
 
 function loadNotifFilters(userId: string | null): NotifFilters {
   if (typeof window === "undefined") return DEFAULT_NOTIF_FILTERS;
