@@ -243,6 +243,42 @@ export type Database = {
         }
         Relationships: []
       }
+      spam_attempts: {
+        Row: {
+          attempted_email: string | null
+          created_at: string
+          email_domain: string | null
+          email_hash: string | null
+          form: string | null
+          id: string
+          ip_hash: string | null
+          reason: string
+          user_agent: string | null
+        }
+        Insert: {
+          attempted_email?: string | null
+          created_at?: string
+          email_domain?: string | null
+          email_hash?: string | null
+          form?: string | null
+          id?: string
+          ip_hash?: string | null
+          reason?: string
+          user_agent?: string | null
+        }
+        Update: {
+          attempted_email?: string | null
+          created_at?: string
+          email_domain?: string | null
+          email_hash?: string | null
+          form?: string | null
+          id?: string
+          ip_hash?: string | null
+          reason?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string

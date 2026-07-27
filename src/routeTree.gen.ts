@@ -16,6 +16,7 @@ import { Route as AuthenticatedSecurityRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
 import { Route as AuthenticatedBlockedRouteImport } from './routes/_authenticated/blocked'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as ApiPublicSpamAttemptsRouteImport } from './routes/api/public/spam-attempts'
 import { Route as ApiPublicBookingsRouteImport } from './routes/api/public/bookings'
 import { Route as AuthenticatedBookingsIdRouteImport } from './routes/_authenticated/bookings.$id'
 
@@ -54,6 +55,11 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiPublicSpamAttemptsRoute = ApiPublicSpamAttemptsRouteImport.update({
+  id: '/api/public/spam-attempts',
+  path: '/api/public/spam-attempts',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicBookingsRoute = ApiPublicBookingsRouteImport.update({
   id: '/api/public/bookings',
   path: '/api/public/bookings',
@@ -74,6 +80,7 @@ export interface FileRoutesByFullPath {
   '/security': typeof AuthenticatedSecurityRoute
   '/bookings/$id': typeof AuthenticatedBookingsIdRoute
   '/api/public/bookings': typeof ApiPublicBookingsRoute
+  '/api/public/spam-attempts': typeof ApiPublicSpamAttemptsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -84,6 +91,7 @@ export interface FileRoutesByTo {
   '/security': typeof AuthenticatedSecurityRoute
   '/bookings/$id': typeof AuthenticatedBookingsIdRoute
   '/api/public/bookings': typeof ApiPublicBookingsRoute
+  '/api/public/spam-attempts': typeof ApiPublicSpamAttemptsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -96,6 +104,7 @@ export interface FileRoutesById {
   '/_authenticated/security': typeof AuthenticatedSecurityRoute
   '/_authenticated/bookings/$id': typeof AuthenticatedBookingsIdRoute
   '/api/public/bookings': typeof ApiPublicBookingsRoute
+  '/api/public/spam-attempts': typeof ApiPublicSpamAttemptsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -108,6 +117,7 @@ export interface FileRouteTypes {
     | '/security'
     | '/bookings/$id'
     | '/api/public/bookings'
+    | '/api/public/spam-attempts'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -118,6 +128,7 @@ export interface FileRouteTypes {
     | '/security'
     | '/bookings/$id'
     | '/api/public/bookings'
+    | '/api/public/spam-attempts'
   id:
     | '__root__'
     | '/'
@@ -129,6 +140,7 @@ export interface FileRouteTypes {
     | '/_authenticated/security'
     | '/_authenticated/bookings/$id'
     | '/api/public/bookings'
+    | '/api/public/spam-attempts'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -136,6 +148,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   ApiPublicBookingsRoute: typeof ApiPublicBookingsRoute
+  ApiPublicSpamAttemptsRoute: typeof ApiPublicSpamAttemptsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -189,6 +202,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/spam-attempts': {
+      id: '/api/public/spam-attempts'
+      path: '/api/public/spam-attempts'
+      fullPath: '/api/public/spam-attempts'
+      preLoaderRoute: typeof ApiPublicSpamAttemptsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/bookings': {
       id: '/api/public/bookings'
       path: '/api/public/bookings'
@@ -230,6 +250,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   ApiPublicBookingsRoute: ApiPublicBookingsRoute,
+  ApiPublicSpamAttemptsRoute: ApiPublicSpamAttemptsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
