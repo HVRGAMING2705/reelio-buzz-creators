@@ -7,6 +7,7 @@ import {
   CAPTCHA_CONFIG_KEY,
   DEFAULT_CAPTCHA_CONFIG,
   loadCaptchaConfig,
+  fetchCaptchaConfig,
   loadHCaptchaScript,
   type CaptchaConfig,
 } from "@/lib/captcha-config";
