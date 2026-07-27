@@ -371,8 +371,12 @@ function Index() {
               transition={{ delay: i * 0.06, type: "spring", stiffness: 90, damping: 16 }}
             >
               <TiltCard className="h-full">
-                <article className="glass spotlight liquid-shine group relative rounded-3xl p-7 md:p-8 h-full">
-                  <div className="flex items-center justify-between">
+                <article className="glass spotlight liquid-shine group relative rounded-3xl p-7 md:p-8 h-full overflow-hidden hover:border-[color:var(--reelio-red)]/50 transition-colors">
+                  <div
+                    className="pointer-events-none absolute -top-24 -right-24 h-64 w-64 rounded-full blur-3xl opacity-0 group-hover:opacity-70 transition-opacity duration-500"
+                    style={{ background: "radial-gradient(circle, oklch(0.62 0.24 27 / 0.55), transparent 70%)" }}
+                  />
+                  <div className="flex items-center justify-between relative">
                     <motion.div
                       whileHover={{ scale: 1.2, rotate: 8 }}
                       transition={{ type: "spring", stiffness: 200 }}
@@ -380,13 +384,13 @@ function Index() {
                     >
                       {s.icon}
                     </motion.div>
-                    <div className="glass-chip rounded-full h-8 w-8 grid place-items-center text-xs opacity-90">
+                    <div className="rounded-md h-8 w-8 grid place-items-center text-[10px] font-bold bg-[color:var(--reelio-red)] text-white tracking-wider shadow-[var(--shadow-red-glow)]">
                       0{i + 1}
                     </div>
                   </div>
-                  <h3 className="mt-10 text-3xl md:text-4xl">{s.title}</h3>
-                  <p className="mt-3 opacity-90 leading-relaxed">{s.desc}</p>
-                  <div className="mt-8 flex items-center gap-2 text-xs uppercase tracking-[0.2em] opacity-90">
+                  <h3 className="mt-10 text-3xl md:text-4xl relative">{s.title}</h3>
+                  <p className="mt-3 opacity-80 leading-relaxed relative">{s.desc}</p>
+                  <div className="mt-8 flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-[color:var(--reelio-red)] font-bold relative">
                     Learn more
                     <motion.span
                       animate={{ x: [0, 4, 0] }}
