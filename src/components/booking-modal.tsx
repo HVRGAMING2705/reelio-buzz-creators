@@ -219,6 +219,14 @@ export function BookingModal({ open, onClose }: Props) {
       return;
     }
 
+    // 5. hCaptcha (only when admin enabled it with a site key)
+    if (captchaActive && !captchaToken) {
+      setErrorMsg("Please complete the captcha to continue.");
+      return;
+    }
+
+
+
     setSubmitting(true);
     const v = parsed.data;
     const insertPayload = {
@@ -252,6 +260,13 @@ export function BookingModal({ open, onClose }: Props) {
     setFieldErrors({});
     setErrorMsg(null);
     setHoneypot("");
+    setCaptchaToken(null);
+    if (captchaActive && typeof window !== "undefined") {
+      const hc = (window as any).hcaptcha;
+      if (hc && captchaWidgetIdRef.current) {
+        try { hc.reset(captchaWidgetIdRef.current); } catch { /* ignore */ }
+      }
+    }
     openedAtRef.current = Date.now();
   };
 
