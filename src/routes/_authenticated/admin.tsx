@@ -6,6 +6,44 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 
 const LAST_SEEN_KEY = "reelio.admin.lastSeenBookingAt";
+const SETTINGS_KEY = "reelio.admin.notifSettings";
+
+type NotifSettings = {
+  realtimeEnabled: boolean;
+  quietEnabled: boolean;
+  quietStart: string; // "HH:MM"
+  quietEnd: string;   // "HH:MM"
+};
+
+const DEFAULT_SETTINGS: NotifSettings = {
+  realtimeEnabled: true,
+  quietEnabled: false,
+  quietStart: "22:00",
+  quietEnd: "08:00",
+};
+
+function loadSettings(): NotifSettings {
+  if (typeof window === "undefined") return DEFAULT_SETTINGS;
+  try {
+    const raw = window.localStorage.getItem(SETTINGS_KEY);
+    if (!raw) return DEFAULT_SETTINGS;
+    return { ...DEFAULT_SETTINGS, ...JSON.parse(raw) };
+  } catch { return DEFAULT_SETTINGS; }
+}
+
+function toMinutes(t: string) {
+  const [h, m] = t.split(":").map(Number);
+  return (h || 0) * 60 + (m || 0);
+}
+
+function isQuietNow(s: NotifSettings, d = new Date()) {
+  if (!s.quietEnabled) return false;
+  const now = d.getHours() * 60 + d.getMinutes();
+  const start = toMinutes(s.quietStart);
+  const end = toMinutes(s.quietEnd);
+  if (start === end) return false;
+  return start < end ? now >= start && now < end : now >= start || now < end;
+}
 
 type Booking = Tables<"bookings">;
 
