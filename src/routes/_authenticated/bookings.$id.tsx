@@ -593,7 +593,7 @@ function TimelineSection({
                     {new Date(it.block.created_at).toLocaleString()}
                   </span>
                 </div>
-                <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[11px] opacity-70">
+                <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] opacity-70">
                   {it.block.window_label && (
                     <span>window <span className="font-mono">{it.block.window_label}</span></span>
                   )}
@@ -609,6 +609,12 @@ function TimelineSection({
                   {it.block.email_domain && (
                     <span>@{it.block.email_domain}</span>
                   )}
+                  <button
+                    onClick={() => setDetail({ kind: "block", block: it.block })}
+                    className="ml-auto rounded-full border border-white/15 px-2 py-0.5 text-[10px] uppercase tracking-[0.15em] hover:bg-white/10"
+                  >
+                    Details
+                  </button>
                 </div>
                 {it.block.user_agent && (
                   <p className="text-[10px] opacity-50 mt-1 truncate" title={it.block.user_agent}>
