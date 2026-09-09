@@ -6,11 +6,11 @@ export default defineTool({
   name: "update_booking_status",
   title: "Update booking status",
   description:
-    "Update the pipeline status of a Reelio booking (admins only). Emits a booking_event automatically.",
+    "Update the status of a Reelio booking (admins only). Emits a booking_event automatically.",
   inputSchema: {
     id: z.string().uuid().describe("Booking UUID."),
     status: z
-      .enum(["new", "contacted", "qualified", "won", "lost"])
+      .enum(["new", "confirmed", "canceled"])
       .describe("New status value."),
   },
   annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },

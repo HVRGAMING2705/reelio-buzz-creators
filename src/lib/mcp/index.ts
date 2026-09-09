@@ -6,7 +6,11 @@ import addBookingNote from "./tools/add-booking-note";
 import listSecurityEvents from "./tools/list-security-events";
 import bookingStats from "./tools/booking-stats";
 
-const projectRef = import.meta.env.VITE_SUPABASE_PROJECT_ID ?? "project-ref-unset";
+const projectRef = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+
+if (!projectRef) {
+  throw new Error("Missing VITE_SUPABASE_PROJECT_ID for MCP OAuth issuer configuration.");
+}
 
 export default defineMcp({
   name: "reelio-mcp",

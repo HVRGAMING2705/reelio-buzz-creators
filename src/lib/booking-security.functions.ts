@@ -10,7 +10,7 @@ const shortHash = (v: string) =>
 
 export const getBlocksForEmail = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data) =>
+  .validator((data) =>
     z.object({ email: z.string().trim().toLowerCase().email().max(160) }).parse(data),
   )
   .handler(async ({ data, context }) => {
@@ -38,7 +38,7 @@ export const getBlocksForEmail = createServerFn({ method: "GET" })
 
 export const hashEmailForSearch = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data) =>
+  .validator((data) =>
     z.object({ email: z.string().trim().toLowerCase().email().max(160) }).parse(data),
   )
   .handler(async ({ data, context }) => {
@@ -56,7 +56,7 @@ export const hashEmailForSearch = createServerFn({ method: "GET" })
 
 export const getCaptchaEventsForBooking = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data) =>
+  .validator((data) =>
     z
       .object({
         bookingId: z.string().uuid(),

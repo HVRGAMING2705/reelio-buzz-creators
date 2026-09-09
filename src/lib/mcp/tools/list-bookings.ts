@@ -9,7 +9,7 @@ export default defineTool({
     "List Reelio bookings (admins only). Returns id, name, email, service, status, and created_at, newest first.",
   inputSchema: {
     status: z
-      .enum(["new", "contacted", "qualified", "won", "lost"])
+      .enum(["new", "confirmed", "canceled"])
       .optional()
       .describe("Filter by booking status."),
     limit: z.number().int().min(1).max(100).default(25).describe("How many rows to return."),

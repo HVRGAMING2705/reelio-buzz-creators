@@ -491,6 +491,7 @@ function Index() {
             ) : (
               <Link
                 to="/auth"
+                search={{ next: undefined }}
                 className="hidden sm:inline-flex text-[10px] tracking-[0.25em] uppercase font-body font-semibold hover:text-[color:var(--reelio-red)]"
               >
                 Sign in
