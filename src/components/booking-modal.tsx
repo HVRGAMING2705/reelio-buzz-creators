@@ -10,6 +10,7 @@ import {
   fetchCaptchaConfig,
   loadHCaptchaScript,
   type CaptchaConfig,
+  type HCaptcha,
 } from "@/lib/captcha-config";
 import { trackEvent, trackFormSubmit } from "@/lib/analytics";
 
@@ -110,7 +111,13 @@ export function BookingModal({ open, onClose }: Props) {
   useEffect(() => {
     let cancelled = false;
     // Hydrate from backend (source of truth) on mount and whenever the modal opens.
-    fetchCaptchaConfig().then((cfg) => { if (!cancelled) setCaptchaCfg(cfg); }).catch(() => { /* keep cache */ });
+    fetchCaptchaConfig()
+      .then((cfg) => {
+        if (!cancelled) setCaptchaCfg(cfg);
+      })
+      .catch(() => {
+        /* keep cache */
+      });
     const refresh = () => setCaptchaCfg(loadCaptchaConfig());
     const onStorage = (e: StorageEvent) => {
       if (e.key === CAPTCHA_CONFIG_KEY) refresh();
@@ -134,16 +141,25 @@ export function BookingModal({ open, onClose }: Props) {
     }
     let cancelled = false;
     loadHCaptchaScript()
-      .then((hc: any) => {
+      .then((hc: HCaptcha) => {
         if (cancelled || !captchaContainerRef.current) return;
         // Reset any previous render (site key changed, re-opened, etc.)
         captchaContainerRef.current.innerHTML = "";
         captchaWidgetIdRef.current = hc.render(captchaContainerRef.current, {
           sitekey: captchaCfg.siteKey,
           theme: "dark",
-          callback: (token: string) => { setCaptchaToken(token); setCaptchaError(null); },
-          "expired-callback": () => { setCaptchaToken(null); setCaptchaError("Captcha expired — please tick the box again."); },
-          "error-callback": () => { setCaptchaToken(null); setCaptchaError("Captcha widget error — please retry."); },
+          callback: (token: string) => {
+            setCaptchaToken(token);
+            setCaptchaError(null);
+          },
+          "expired-callback": () => {
+            setCaptchaToken(null);
+            setCaptchaError("Captcha expired — please tick the box again.");
+          },
+          "error-callback": () => {
+            setCaptchaToken(null);
+            setCaptchaError("Captcha widget error — please retry.");
+          },
         });
       })
       .catch(() => {
@@ -216,7 +232,6 @@ export function BookingModal({ open, onClose }: Props) {
       return;
     }
 
-
     // 2. Minimum time on form
     if (Date.now() - openedAtRef.current < MIN_FILL_MS) {
       setErrorMsg("Please take a moment to review your details.");
@@ -253,8 +268,6 @@ export function BookingModal({ open, onClose }: Props) {
     }
     setCaptchaError(null);
 
-
-
     setSubmitting(true);
     const v = parsed.data;
     try {
@@ -285,20 +298,30 @@ export function BookingModal({ open, onClose }: Props) {
             const j = (await res.json()) as { error?: string; field?: string };
             if (j?.error) msg = j.error;
             field = j?.field;
-          } catch { /* ignore */ }
+          } catch {
+            /* ignore */
+          }
         }
         setErrorMsg(msg);
         if (field === "captcha" || res.status === 403) {
           setCaptchaError(msg);
         }
         if (captchaActive && typeof window !== "undefined") {
-          const hc = (window as any).hcaptcha;
+          const hc = window.hcaptcha;
           if (hc && captchaWidgetIdRef.current) {
-            try { hc.reset(captchaWidgetIdRef.current); } catch { /* ignore */ }
+            try {
+              hc.reset(captchaWidgetIdRef.current);
+            } catch {
+              /* ignore */
+            }
           }
           setCaptchaToken(null);
         }
-        trackEvent("form_submit_error", { form: "booking", status: res.status, reason: field ?? msg });
+        trackEvent("form_submit_error", {
+          form: "booking",
+          status: res.status,
+          reason: field ?? msg,
+        });
         return;
       }
     } catch {
@@ -325,9 +348,13 @@ export function BookingModal({ open, onClose }: Props) {
     setHoneypot("");
     setCaptchaToken(null);
     if (captchaActive && typeof window !== "undefined") {
-      const hc = (window as any).hcaptcha;
+      const hc = window.hcaptcha;
       if (hc && captchaWidgetIdRef.current) {
-        try { hc.reset(captchaWidgetIdRef.current); } catch { /* ignore */ }
+        try {
+          hc.reset(captchaWidgetIdRef.current);
+        } catch {
+          /* ignore */
+        }
       }
     }
     openedAtRef.current = Date.now();
@@ -364,7 +391,9 @@ export function BookingModal({ open, onClose }: Props) {
               animate={{ x: [0, 30, -20, 0], y: [0, -20, 15, 0] }}
               transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
               className="pointer-events-none absolute -top-16 -left-16 h-56 w-56 rounded-full blur-3xl opacity-60"
-              style={{ background: "radial-gradient(circle, oklch(0.75 0.22 30), transparent 70%)" }}
+              style={{
+                background: "radial-gradient(circle, oklch(0.75 0.22 30), transparent 70%)",
+              }}
             />
 
             <button
@@ -396,7 +425,14 @@ export function BookingModal({ open, onClose }: Props) {
                   {/* Honeypot: hidden from users, visible to naive bots */}
                   <div
                     aria-hidden="true"
-                    style={{ position: "absolute", left: "-10000px", top: "auto", width: 1, height: 1, overflow: "hidden" }}
+                    style={{
+                      position: "absolute",
+                      left: "-10000px",
+                      top: "auto",
+                      width: 1,
+                      height: 1,
+                      overflow: "hidden",
+                    }}
                   >
                     <label>
                       Website
@@ -544,7 +580,11 @@ export function BookingModal({ open, onClose }: Props) {
                     </div>
                   )}
 
-                  {errorMsg && <p className="text-sm text-red-300" role="alert">{errorMsg}</p>}
+                  {errorMsg && (
+                    <p className="text-sm text-red-300" role="alert">
+                      {errorMsg}
+                    </p>
+                  )}
                   {remainingCooldown > 0 && !errorMsg && (
                     <p className="text-[11px] opacity-60">
                       Cooldown active — you can submit again shortly.

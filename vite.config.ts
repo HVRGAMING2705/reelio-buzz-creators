@@ -15,4 +15,5 @@ export default defineConfig({
   nitro: {
     // Use Vercel preset when deploying to Vercel; falls back to cloudflare otherwise.
     preset: process.env.VERCEL ? "vercel" : undefined,
+  },
 });

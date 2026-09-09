@@ -62,7 +62,9 @@ export async function fetchCaptchaConfig(): Promise<CaptchaConfig> {
 }
 
 /** Upsert config to the backend (admin only via RLS). Refreshes the local cache on success. */
-export async function saveCaptchaConfig(cfg: CaptchaConfig): Promise<{ ok: boolean; error?: string }> {
+export async function saveCaptchaConfig(
+  cfg: CaptchaConfig,
+): Promise<{ ok: boolean; error?: string }> {
   const normalized = normalize(cfg);
   const { data: userRes } = await supabase.auth.getUser();
   const { error } = await supabase.from("app_settings").upsert(
@@ -81,22 +83,49 @@ export async function saveCaptchaConfig(cfg: CaptchaConfig): Promise<{ ok: boole
 
 const HCAPTCHA_SRC = "https://js.hcaptcha.com/1/api.js?render=explicit";
 
-let hcaptchaPromise: Promise<any> | null = null;
+interface HCaptcha {
+  render: (container: HTMLElement, options: HCaptchaRenderOptions) => string;
+  reset: (widgetId: string) => void;
+  execute: (widgetId: string) => void;
+  getResponse: (widgetId: string) => string;
+  setData: (widgetId: string, data: object) => void;
+}
 
-export function loadHCaptchaScript(): Promise<any> {
+interface HCaptchaRenderOptions {
+  sitekey: string;
+  theme?: "light" | "dark";
+  callback?: (token: string) => void;
+  "expired-callback"?: () => void;
+  "error-callback"?: () => void;
+  size?: "normal" | "compact";
+  tabindex?: number;
+}
+
+declare global {
+  interface Window {
+    hcaptcha?: HCaptcha;
+  }
+}
+
+let hcaptchaPromise: Promise<HCaptcha> | null = null;
+
+export function loadHCaptchaScript(): Promise<HCaptcha> {
   if (typeof window === "undefined") return Promise.reject(new Error("no window"));
-  const w = window as any;
-  if (w.hcaptcha) return Promise.resolve(w.hcaptcha);
+  if (window.hcaptcha) return Promise.resolve(window.hcaptcha);
   if (hcaptchaPromise) return hcaptchaPromise;
   hcaptchaPromise = new Promise((resolve, reject) => {
-    const existing = document.querySelector(`script[src^="${HCAPTCHA_SRC}"]`) as HTMLScriptElement | null;
+    const existing = document.querySelector(
+      `script[src^="${HCAPTCHA_SRC}"]`,
+    ) as HTMLScriptElement | null;
     const onReady = () => {
-      if ((window as any).hcaptcha) resolve((window as any).hcaptcha);
+      if (window.hcaptcha) resolve(window.hcaptcha);
       else reject(new Error("hCaptcha failed to load"));
     };
     if (existing) {
       existing.addEventListener("load", onReady, { once: true });
-      existing.addEventListener("error", () => reject(new Error("hCaptcha failed to load")), { once: true });
+      existing.addEventListener("error", () => reject(new Error("hCaptcha failed to load")), {
+        once: true,
+      });
       return;
     }
     const s = document.createElement("script");
