@@ -83,7 +83,7 @@ export async function saveCaptchaConfig(
 
 const HCAPTCHA_SRC = "https://js.hcaptcha.com/1/api.js?render=explicit";
 
-interface HCaptcha {
+export interface HCaptcha {
   render: (container: HTMLElement, options: HCaptchaRenderOptions) => string;
   reset: (widgetId: string) => void;
   execute: (widgetId: string) => void;
