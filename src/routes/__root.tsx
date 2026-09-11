@@ -89,7 +89,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      { rel: "icon", href: "/favicon.png", type: "image/png" },
+      { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
@@ -110,6 +110,16 @@ function RootShell({ children }: { children: ReactNode }) {
     <html lang="en">
       <head>
         <HeadContent />
+        <style>{`
+          #reel .grid.grid-cols-12 > div.grid.grid-cols-2 > figure:last-child {
+            background:
+              radial-gradient(circle at 70% 25%, oklch(0.58 0.22 27 / 0.42), transparent 34%),
+              linear-gradient(135deg, oklch(0.2 0 0), oklch(0.09 0 0));
+          }
+          #reel .grid.grid-cols-12 > div.grid.grid-cols-2 > figure:last-child img {
+            visibility: hidden;
+          }
+        `}</style>
       </head>
       <body>
         {children}
