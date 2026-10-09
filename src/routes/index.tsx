@@ -466,7 +466,7 @@ function Index() {
               className="relative w-full h-full object-contain block transition-transform duration-300 group-hover:scale-105"
             />
           </a>
-          <nav aria-label="Primary" className="hidden md:flex items-center gap-8 lg:gap-14 text-[11px] lg:text-[12px] tracking-[0.28em] uppercase font-body font-medium">
+          <nav aria-label="Primary" className="hidden lg:flex items-center gap-8 lg:gap-10 text-[11px] lg:text-[12px] tracking-[0.28em] uppercase font-body font-medium">
             <a href="#services" className="hover:text-[color:var(--reelio-red)] transition-colors">Services</a>
             <a href="#reel" className="hover:text-[color:var(--reelio-red)] transition-colors">Reel</a>
             <a href="#niches" className="hover:text-[color:var(--reelio-red)] transition-colors">Niches</a>
@@ -477,7 +477,7 @@ function Index() {
             {user ? (
               <Link
                 to="/admin"
-                className="hidden sm:inline-flex items-center gap-2 text-[10px] tracking-[0.25em] uppercase font-body font-semibold hover:text-[color:var(--reelio-red)]"
+                className="hidden lg:inline-flex items-center gap-2 text-[10px] tracking-[0.25em] uppercase font-body font-semibold hover:text-[color:var(--reelio-red)]"
               >
                 <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/10 overflow-hidden text-[10px]">
                   {user.avatar_url ? (
@@ -491,7 +491,7 @@ function Index() {
             ) : (
               <Link
                 to="/auth"
-                className="hidden sm:inline-flex text-[10px] tracking-[0.25em] uppercase font-body font-semibold hover:text-[color:var(--reelio-red)]"
+                className="hidden lg:inline-flex text-[10px] tracking-[0.25em] uppercase font-body font-semibold hover:text-[color:var(--reelio-red)]"
               >
                 Sign in
               </Link>
@@ -499,7 +499,7 @@ function Index() {
             <button
               type="button"
               onClick={() => { trackClick("open_booking_modal"); setBookingOpen(true); }}
-              className="btn-red !py-2.5 !px-3 md:!px-5 !text-[10px] whitespace-nowrap"
+              className="btn-red !py-2.5 !px-3 md:!px-5 !text-[10px] whitespace-nowrap min-h-[44px]"
             >
               Book a call
             </button>
@@ -509,7 +509,7 @@ function Index() {
               aria-expanded={mobileOpen}
               aria-controls="mobile-menu"
               onClick={() => setMobileOpen(true)}
-              className="md:hidden inline-flex items-center justify-center h-10 w-10 rounded-full glass-chip text-white"
+              className="lg:hidden inline-flex items-center justify-center h-11 w-11 rounded-full glass-chip text-white"
             >
               <Menu className="w-5 h-5" />
             </button>
@@ -545,7 +545,7 @@ function Index() {
                   type="button"
                   aria-label="Close menu"
                   onClick={() => setMobileOpen(false)}
-                  className="inline-flex items-center justify-center h-10 w-10 rounded-full glass-chip text-white"
+                  className="inline-flex items-center justify-center h-11 w-11 rounded-full glass-chip text-white"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -874,9 +874,9 @@ function Index() {
             {niches.map((n, i) => (
               <li
                 key={n}
-                className="flex items-baseline justify-between gap-4 py-6 md:py-10 lg:py-12 font-display text-3xl sm:text-4xl md:text-7xl lg:text-8xl uppercase tracking-[-0.01em] hover:pl-4 transition-all duration-500 break-words"
+                className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2 py-6 md:py-10 lg:py-12 font-display text-3xl sm:text-4xl md:text-6xl lg:text-8xl uppercase tracking-[-0.01em] hover:pl-4 transition-all duration-500 break-words"
               >
-                <span className="flex items-baseline gap-6">
+                <span className="flex min-w-0 items-baseline gap-4 md:gap-6">
                   <span className="font-body text-xs md:text-sm text-white/60 tabular-nums">
                     {String(i + 1).padStart(2, "0")}
                   </span>
@@ -983,7 +983,7 @@ function Index() {
                 </button>
                 <a href="#contact-form" className="btn-ghost">Send a message</a>
               </div>
-              <div className="mt-12 grid grid-cols-2 gap-6 max-w-xl">
+              <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-xl">
                 <div>
                   <span className="font-body text-[10px] uppercase tracking-[0.3em] text-white/40">Consortium</span>
                   <p className="mt-2 font-body text-white/80">Available across India · Remote worldwide</p>
