@@ -399,7 +399,7 @@ export function BookingModal({ open, onClose }: Props) {
             <button
               onClick={onClose}
               aria-label="Close"
-              className="absolute top-4 right-4 h-9 w-9 rounded-full glass-chip grid place-items-center text-lg z-10"
+              className="absolute top-4 right-4 h-11 w-11 rounded-full glass-chip grid place-items-center text-lg z-10"
             >
               ×
             </button>
@@ -505,7 +505,7 @@ export function BookingModal({ open, onClose }: Props) {
                           type="button"
                           key={s}
                           onClick={() => set("service", s)}
-                          className={`glass-chip rounded-full px-4 py-2 text-xs uppercase tracking-[0.15em] transition ${
+                          className={`glass-chip rounded-full px-4 py-2.5 min-h-[44px] inline-flex items-center justify-center text-xs uppercase tracking-[0.15em] transition ${
                             form.service === s ? "bg-white text-[color:var(--reelio-black)]" : ""
                           }`}
                         >
@@ -522,7 +522,7 @@ export function BookingModal({ open, onClose }: Props) {
                           type="button"
                           key={b}
                           onClick={() => set("budget", b)}
-                          className={`glass-chip rounded-full px-4 py-2 text-xs uppercase tracking-[0.15em] transition ${
+                          className={`glass-chip rounded-full px-4 py-2.5 min-h-[44px] inline-flex items-center justify-center text-xs uppercase tracking-[0.15em] transition ${
                             form.budget === b ? "bg-white text-[color:var(--reelio-black)]" : ""
                           }`}
                         >
