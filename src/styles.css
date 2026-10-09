@@ -140,8 +140,8 @@
     font-family: var(--font-body);
     font-weight: 400;
     letter-spacing: 0.005em;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; -webkit-text-size-adjust: 100%;
+    -moz-osx-font-smoothing: grayscale; -webkit-text-size-adjust: 100%;
     overflow-x: hidden;
   }
 
@@ -388,7 +388,7 @@ summary:focus-visible {
   padding: 0.85rem 1rem;
   color: oklch(1 0 0);
   font-family: var(--font-body);
-  font-size: 0.95rem;
+  font-size: 1rem; /* 16px — stops iOS Safari auto-zooming on field focus */
   backdrop-filter: blur(12px);
   transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
   &::placeholder { color: oklch(1 0 0 / 0.45); }
