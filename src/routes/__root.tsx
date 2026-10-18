@@ -81,13 +81,20 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Reelio SMMA — Content, Creators & Growth" },
       { name: "description", content: "Reelio is a social media marketing agency delivering content, shoots, reels, ads, and outreach for brands that want to grow." },
-      { name: "author", content: "Reelio" },
+      { name: "keywords", content: "Reelio Social Consortium, social media agency, SMMA, content creation, reels, Meta ads, influencer outreach, video production India" },
+      { name: "author", content: "Vikranth Reddy" },
+      { name: "robots", content: "index, follow" },
       { property: "og:title", content: "Reelio SMMA — Content, Creators & Growth" },
       { property: "og:description", content: "Content creation, photo/video, editing, design, ads and outreach — all under one reel." },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://reelio-buzz-creators.vercel.app/" },
+      { property: "og:site_name", content: "Reelio Social Consortium" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Reelio SMMA — Content, Creators & Growth" },
+      { name: "twitter:description", content: "Content creation, photo/video, editing, design, ads and outreach — all under one reel." },
     ],
     links: [
+      { rel: "canonical", href: "https://reelio-buzz-creators.vercel.app/" },
       { rel: "stylesheet", href: appCss },
       { rel: "icon", type: "image/png", href: "/favicon.png" },
       { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
@@ -96,6 +103,21 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=Archivo+Black&family=Hind:wght@300;400;500;600;700&display=swap",
+      },
+    ],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          name: "Reelio Social Consortium",
+          description:
+            "Cinematic social media agency delivering content, shoots, editing, ads and creator outreach.",
+          url: "https://reelio-buzz-creators.vercel.app/",
+          logo: "https://reelio-buzz-creators.vercel.app/favicon.png",
+          areaServed: "IN",
+        }),
       },
     ],
   }),
