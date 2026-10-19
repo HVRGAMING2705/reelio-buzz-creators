@@ -84,6 +84,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "keywords", content: "Reelio Social Consortium, social media agency, SMMA, content creation, reels, Meta ads, influencer outreach, video production India" },
       { name: "author", content: "Vikranth Reddy" },
       { name: "robots", content: "index, follow" },
+      { name: "google-site-verification", content: "5EchCsH88JXnn0Mc55I8joYV6mial9rsc4G8c0eg4Ls" },
       { property: "og:title", content: "Reelio SMMA — Content, Creators & Growth" },
       { property: "og:description", content: "Content creation, photo/video, editing, design, ads and outreach — all under one reel." },
       { property: "og:type", content: "website" },
