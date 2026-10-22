@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 export const Route = createFileRoute("/_authenticated/spam")({
   head: () => ({
     meta: [
-      { title: "Spam attempts — Reelio" },
+      { title: "Spam attempts: Reelio" },
       { name: "description", content: "Honeypot trips and rate-limit rejections with timestamps and reasons." },
       { name: "robots", content: "noindex" },
     ],

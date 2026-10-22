@@ -7,7 +7,7 @@ import type { Tables } from "@/integrations/supabase/types";
 export const Route = createFileRoute("/_authenticated/blocked")({
   head: () => ({
     meta: [
-      { title: "Blocked submissions — Reelio" },
+      { title: "Blocked submissions: Reelio" },
       { name: "description", content: "Audit log of rejected booking attempts with hashed IPs, emails, timestamps, and counts." },
       { name: "robots", content: "noindex" },
     ],

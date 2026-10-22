@@ -154,16 +154,16 @@ export function BookingModal({ open, onClose }: Props) {
           },
           "expired-callback": () => {
             setCaptchaToken(null);
-            setCaptchaError("Captcha expired — please tick the box again.");
+            setCaptchaError("Captcha expired. Please tick the box again.");
           },
           "error-callback": () => {
             setCaptchaToken(null);
-            setCaptchaError("Captcha widget error — please retry.");
+            setCaptchaError("Captcha widget error. Please retry.");
           },
         });
       })
       .catch(() => {
-        setErrorMsg("Couldn't load captcha — please refresh and try again.");
+        setErrorMsg("Couldn't load captcha. Please refresh and try again.");
       });
     return () => {
       cancelled = true;
@@ -291,7 +291,7 @@ export function BookingModal({ open, onClose }: Props) {
       });
       setSubmitting(false);
       if (!res.ok) {
-        let msg = "Couldn't send — please try again.";
+        let msg = "Couldn't send. Please try again.";
         let field: string | undefined;
         if (res.status === 400 || res.status === 403) {
           try {
@@ -326,7 +326,7 @@ export function BookingModal({ open, onClose }: Props) {
       }
     } catch {
       setSubmitting(false);
-      setErrorMsg("Network error — please try again.");
+      setErrorMsg("Network error. Please try again.");
       trackEvent("form_submit_error", { form: "booking", reason: "network" });
       return;
     }
@@ -376,7 +376,7 @@ export function BookingModal({ open, onClose }: Props) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-black/60 backdrop-blur-md"
+            className="absolute inset-0 bg-black/60"
           />
 
           <motion.div
@@ -408,10 +408,10 @@ export function BookingModal({ open, onClose }: Props) {
               <>
                 <p className="text-[10px] uppercase tracking-[0.4em] opacity-80">📅 Book a call</p>
                 <h3 className="mt-3 text-4xl md:text-5xl leading-[0.95]">
-                  Let's build your <span className="text-shimmer">reel</span>.
+                  Let's build your <span className="text-[color:var(--reelio-red)]">reel</span>.
                 </h3>
                 <p className="mt-3 opacity-90 text-sm md:text-base">
-                  Tell us about your brand — we'll get back within 24 hours.
+                  Tell us about your brand. We'll get back within 24 hours.
                 </p>
 
                 {user && (
@@ -587,7 +587,7 @@ export function BookingModal({ open, onClose }: Props) {
                   )}
                   {remainingCooldown > 0 && !errorMsg && (
                     <p className="text-[11px] opacity-60">
-                      Cooldown active — you can submit again shortly.
+                      Cooldown active. You can submit again shortly.
                     </p>
                   )}
 
@@ -622,7 +622,7 @@ export function BookingModal({ open, onClose }: Props) {
                 </motion.div>
                 <h3 className="mt-6 text-4xl md:text-5xl">You're on the list.</h3>
                 <p className="mt-4 opacity-90 max-w-md mx-auto">
-                  Thanks {form.name || "there"} — we've got your details. Our team will reach out to{" "}
+                  Thanks {form.name || "there"}. We've got your details. Our team will reach out to{" "}
                   <span className="underline">{form.email}</span> within 24 hours.
                 </p>
                 <div className="mt-8 flex flex-wrap gap-3 justify-center">

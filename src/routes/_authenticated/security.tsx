@@ -9,7 +9,7 @@ import type { Tables } from "@/integrations/supabase/types";
 export const Route = createFileRoute("/_authenticated/security")({
   head: () => ({
     meta: [
-      { title: "Security — Reelio" },
+      { title: "Security: Reelio" },
       { name: "description", content: "Global security log of captcha verification failures with timestamps, hashed IPs, email domains, and user agents." },
       { name: "robots", content: "noindex" },
     ],

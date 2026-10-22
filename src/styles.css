@@ -425,13 +425,8 @@ summary:focus-visible {
 }
 
 @utility reveal {
-  opacity: 0;
-  transform: translateY(28px);
-  transition: opacity 0.9s cubic-bezier(0.2, 0.7, 0.2, 1), transform 0.9s cubic-bezier(0.2, 0.7, 0.2, 1);
-  &.is-visible {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  opacity: 1;
+  transform: none;
 }
 
 /* ============ KEYFRAMES ============ */
@@ -476,17 +471,8 @@ summary:focus-visible {
 @utility aurora { background: transparent; }
 @utility cyber-grid { background: transparent; }
 @utility scanline { position: relative; }
-@utility grain { position: relative; }
 @utility orbit { animation-name: none; }
 @utility tick-up { animation-name: none; }
-@utility text-shimmer {
-  background: linear-gradient(90deg, oklch(1 0 0), var(--reelio-red), oklch(1 0 0));
-  background-size: 200% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  animation: gradient-drift 6s ease infinite;
-}
 @utility text-red-glow {
   color: var(--reelio-red);
   text-shadow: 0 0 30px oklch(0.58 0.22 27 / 0.6);

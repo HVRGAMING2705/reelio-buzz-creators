@@ -446,15 +446,15 @@ export const Route = createFileRoute("/api/public/bookings")({
 
           if (!verify.success) {
             const reason = verify.reason || "";
-            let msg = "Captcha verification failed — please try again.";
+            let msg = "Captcha verification failed. Please try again.";
             if (reason.includes("expired") || reason.includes("timeout")) {
-              msg = "Captcha expired — please tick the box again.";
+              msg = "Captcha expired. Please tick the box again.";
             } else if (reason.includes("already-seen") || reason.includes("already")) {
-              msg = "Captcha already used — please solve it again.";
+              msg = "Captcha already used. Please solve it again.";
             } else if (reason.includes("invalid-input-response") || reason.includes("missing-input-response")) {
-              msg = "Captcha response was invalid — please retry.";
+              msg = "Captcha response was invalid. Please retry.";
             } else if (reason.includes("network")) {
-              msg = "Couldn't reach captcha service — check your connection and retry.";
+              msg = "Couldn't reach captcha service. Check your connection and retry.";
             }
             await logBlocked({
               reason: "captcha_failed",

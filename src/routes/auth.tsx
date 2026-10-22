@@ -15,7 +15,7 @@ export const Route = createFileRoute("/auth")({
   }),
   head: () => ({
     meta: [
-      { title: "Admin Sign In — Reelio" },
+      { title: "Admin Sign In: Reelio" },
       { name: "robots", content: "noindex" },
     ],
   }),

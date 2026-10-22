@@ -42,50 +42,16 @@ export function Magnetic({
   );
 }
 
-/* ============ Tilt Card ============ */
+/* ============ Tilt Card (static: tilt + spotlight removed; `max` kept for API compatibility) ============ */
 export function TiltCard({
   children,
   className = "",
-  max = 12,
 }: {
   children: ReactNode;
   className?: string;
   max?: number;
 }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const rx = useMotionValue(0);
-  const ry = useMotionValue(0);
-  const srx = useSpring(rx, { stiffness: 200, damping: 18 });
-  const sry = useSpring(ry, { stiffness: 200, damping: 18 });
-
-  const handleMove = (e: MouseEvent<HTMLDivElement>) => {
-    const el = ref.current;
-    if (!el) return;
-    const r = el.getBoundingClientRect();
-    const px = (e.clientX - r.left) / r.width - 0.5;
-    const py = (e.clientY - r.top) / r.height - 0.5;
-    ry.set(px * max);
-    rx.set(-py * max);
-    // spotlight vars
-    el.style.setProperty("--mx", `${(px + 0.5) * 100}%`);
-    el.style.setProperty("--my", `${(py + 0.5) * 100}%`);
-  };
-  const handleLeave = () => {
-    rx.set(0);
-    ry.set(0);
-  };
-
-  return (
-    <motion.div
-      ref={ref}
-      onMouseMove={handleMove}
-      onMouseLeave={handleLeave}
-      style={{ rotateX: srx, rotateY: sry, transformPerspective: 900, transformStyle: "preserve-3d" }}
-      className={className}
-    >
-      {children}
-    </motion.div>
-  );
+  return <div className={className}>{children}</div>;
 }
 
 /* ============ Cursor follower ============ */

@@ -10,7 +10,6 @@ import ed1 from "@/assets/editorial/ed-1.jpg";
 import ed2 from "@/assets/editorial/ed-2.jpg";
 import ed3 from "@/assets/editorial/ed-3.jpg";
 import ed4 from "@/assets/editorial/ed-4.jpg";
-import { useReveal } from "@/hooks/use-reveal";
 import { BookingModal } from "@/components/booking-modal";
 import { supabase } from "@/integrations/supabase/client";
 import { trackClick, trackFormSubmit, trackEvent } from "@/lib/analytics";
@@ -18,27 +17,27 @@ import { trackClick, trackFormSubmit, trackEvent } from "@/lib/analytics";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Reelio Social Consortium — A Cinematic Social Media Agency for Brands" },
+      { title: "Reelio Social Consortium: A Cinematic Social Media Agency for Brands" },
       {
         name: "description",
         content:
-          "Reelio Social Consortium is a cinematic social media agency. Reels, photo/video shoots, editing, Meta ads, outreach and creator growth — one crew, monthly retainer from ₹10K.",
+          "Reelio Social Consortium is a cinematic social media agency. Reels, photo/video shoots, editing, Meta ads, outreach and creator growth. One crew, monthly retainer from ₹10K.",
       },
       { name: "keywords", content: "social media agency, SMMA, reels, content creation, Meta ads, influencer outreach, video production India, Reelio Social Consortium" },
-      { property: "og:title", content: "Reelio Social Consortium — A Cinematic Social Media Agency" },
+      { property: "og:title", content: "Reelio Social Consortium: A Cinematic Social Media Agency" },
       {
         property: "og:description",
         content:
-          "Content, shoots, editing, ads and outreach — one crew shipping weekly. Monthly plans from ₹10K.",
+          "Content, shoots, editing, ads and outreach. One crew shipping weekly. Monthly plans from ₹10K.",
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "/" },
       { property: "og:site_name", content: "Reelio Social Consortium" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Reelio Social Consortium — A Cinematic Social Media Agency" },
+      { name: "twitter:title", content: "Reelio Social Consortium: A Cinematic Social Media Agency" },
       {
         name: "twitter:description",
-        content: "Reels, shoots, editing, ads and outreach — one crew shipping weekly.",
+        content: "Reels, shoots, editing, ads and outreach. One crew shipping weekly.",
       },
     ],
     links: [
@@ -96,7 +95,7 @@ const services = [
     title: "Photo & Video",
     kicker: "Brand · Product · Event",
     desc:
-      "Cinematic shoots with a full crew — camera, light, sound, direction — turning your story into footage worth cutting.",
+      "Cinematic shoots with a full crew: camera, light, sound, direction, turning your story into footage worth cutting.",
   },
   {
     n: "03",
@@ -110,7 +109,7 @@ const services = [
     title: "Digital Marketing",
     kicker: "Meta Ads · Strategy",
     desc:
-      "Full-funnel Meta ads, weekly content plans, and a growth model tuned to your category — not a dashboard template.",
+      "Full-funnel Meta ads, weekly content plans, and a growth model tuned to your category, not a dashboard template.",
   },
   {
     n: "05",
@@ -256,7 +255,7 @@ function ContactForm() {
         Start the conversation.
       </h3>
       <p className="mt-2 font-body text-sm text-white/60">
-        Fill this in — we'll hand you the intake form to finish the details.
+        Fill this in and we'll hand you the intake form to finish the details.
       </p>
 
       <div className="mt-6 space-y-4">
@@ -360,7 +359,6 @@ function ContactForm() {
 }
 
 function Index() {
-  useReveal();
 
   const [scrolled, setScrolled] = useState(false);
   const [bookingOpen, setBookingOpen] = useState(false);
@@ -454,7 +452,7 @@ function Index() {
         <div className="mx-auto max-w-[1600px] px-4 sm:px-6 md:px-8 lg:px-10 h-24 md:h-32 lg:h-40 flex items-center justify-between gap-6 md:gap-8 lg:gap-12">
           <a
             href="#top"
-            aria-label="Reelio — back to top"
+            aria-label="Reelio: back to top"
             className="group relative flex items-center justify-center shrink-0 w-20 h-20 md:w-28 md:h-28 lg:w-32 lg:h-32 -my-2 md:-my-4 lg:-my-5"
           >
             {/* Red ambient glow */}
@@ -602,7 +600,7 @@ function Index() {
           <div className="flex items-end justify-between gap-4 pb-6 border-b border-white/15">
             <div className="flex items-baseline gap-6">
               <span className="font-display text-xs md:text-sm tracking-[0.3em] text-[color:var(--reelio-red)]">
-                REELIO — ISSUE №{issue}
+                REELIO: ISSUE №{issue}
               </span>
               <span className="hidden md:inline font-body text-xs uppercase tracking-[0.28em] text-white/50">
                 Vol. 01 · {year}
@@ -624,7 +622,7 @@ function Index() {
               >
                 <span className="block">STORIES</span>
                 <span className="block">
-                  <span className="text-shimmer">SHOT.</span>{" "}
+                  <span className="text-[color:var(--reelio-red)]">SHOT.</span>{" "}
                   <span className="italic font-body font-light lowercase text-white/70 text-[9vw] sm:text-[9.5vw] md:text-[6.5vw] xl:text-[5.5vw] 2xl:text-[92px]">
                     cut,
                   </span>
@@ -637,7 +635,7 @@ function Index() {
               <p className="font-body text-base md:text-[17px] leading-relaxed text-white/80">
                 Reelio Social Consortium is a social media agency for brands that refuse to look
                 like everyone else. We shoot the story, cut the reel, run the
-                ads, and grow the room — as one crew.
+                ads, and grow the room, as one crew.
               </p>
               <div className="mt-6 flex flex-wrap gap-3">
                 <button type="button" onClick={() => { trackClick("open_booking_modal"); setBookingOpen(true); }} className="btn-red">
@@ -701,7 +699,7 @@ function Index() {
             </div>
             <div className="md:col-span-4 md:col-start-9 flex items-end">
               <p className="font-body text-base md:text-lg text-white/70">
-                Studio nights, street reels, cutting rooms — a slice of what the
+                Studio nights, street reels, cutting rooms: a slice of what the
                 Reelio crew has been shooting between drops.
               </p>
             </div>
@@ -718,7 +716,7 @@ function Index() {
             >
               <img
                 src={ed1}
-                alt="Editorial shoot — solo talent under red rim light"
+                alt="Editorial shoot: solo talent under red rim light"
                 width={1280}
                 height={1600}
                 loading="lazy"
@@ -727,7 +725,7 @@ function Index() {
               />
               <figcaption className="absolute bottom-0 left-0 right-0 p-4 md:p-6 bg-gradient-to-t from-black/80 to-transparent">
                 <span className="font-body text-[10px] uppercase tracking-[0.3em] text-white/70">Plate 01 · Editorial</span>
-                <p className="mt-1 font-display text-lg md:text-2xl">Cover Test — Studio A</p>
+                <p className="mt-1 font-display text-lg md:text-2xl">Cover Test: Studio A</p>
               </figcaption>
             </motion.figure>
 
@@ -801,7 +799,7 @@ function Index() {
 
           <div className="mt-10 flex flex-wrap items-center justify-between gap-4 pt-6 border-t border-white/15">
             <p className="font-body text-xs uppercase tracking-[0.28em] text-white/50">
-              More on the feed — @reelio.agency
+              More on the feed: @reelio.agency
             </p>
             <a
               href="https://www.instagram.com/reelio.agency"
@@ -830,7 +828,7 @@ function Index() {
             <div className="md:col-span-6 md:col-start-7 flex items-end">
               <p className="font-body text-lg lg:text-xl text-white/70 max-w-md">
                 Six departments. One crew. Every service below is built and
-                delivered in-house — no agency-of-agencies, no handoffs.
+                delivered in-house. No agency-of-agencies, no handoffs.
               </p>
             </div>
           </div>
@@ -875,7 +873,7 @@ function Index() {
             </div>
             <div className="md:col-span-6 md:col-start-7 flex flex-col justify-end">
               <p className="font-body text-lg md:text-xl lg:text-2xl leading-relaxed text-white/90 max-w-lg">
-                We work with brands that treat social as a stage — not a
+                We work with brands that treat social as a stage, not a
                 checkbox. If you have a room to fill, a product to move, or a
                 story that hasn't been told properly, you're on the list.
               </p>
@@ -921,7 +919,7 @@ function Index() {
                 </span>
               </div>
               <p className="mt-4 font-body text-white/60">
-                Or <span className="text-white">₹10,000</span> — starter plan for
+                Or <span className="text-white">₹10,000</span>, a starter plan for
                 launching brands. One rate. No performance fees.
               </p>
 

@@ -46,7 +46,7 @@ type AdminOption = { user_id: string; display_name: string | null; avatar_url: s
 export const Route = createFileRoute("/_authenticated/bookings/$id")({
   head: () => ({
     meta: [
-      { title: "Booking Details — Reelio Admin" },
+      { title: "Booking Details: Reelio Admin" },
       { name: "robots", content: "noindex" },
     ],
   }),

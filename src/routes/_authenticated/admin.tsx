@@ -577,8 +577,8 @@ function NotificationsBell({
               )}
               <button
                 onClick={() => onMarkAllRead(filteredNotifications.map((b) => b.id))}
-                className={`text-[10px] uppercase tracking-[0.2em] opacity-70 hover:opacity-100 transition-opacity ${
-                  unreadCount > 0 ? "" : "opacity-40 hover:opacity-60"
+                className={`text-[10px] uppercase tracking-[0.2em] opacity-70 hover:opacity-100 transition ${
+                  unreadCount > 0 ? "" : "opacity-40 hover:bg-white/10"
                 }`}
                 aria-label="Mark all filtered notifications as read"
               >
@@ -922,7 +922,7 @@ function NotificationsBell({
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({
     meta: [
-      { title: "Bookings Dashboard — Reelio Admin" },
+      { title: "Bookings Dashboard: Reelio Admin" },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -1894,15 +1894,15 @@ function SettingsModal({
   const statusReason = !anyChannel
     ? "All delivery channels are turned off."
     : quietActive && activeChannels.length === 0
-      ? `Quiet hours active${nextTransition ? ` — resumes at ${nextTransition}` : ""}.`
+      ? `Quiet hours active${nextTransition ? `, resumes at ${nextTransition}` : ""}.`
       : quietActive
-        ? `Quiet hours active — only ${activeChannels.join(" + ")} will deliver.`
+        ? `Quiet hours active: only ${activeChannels.join(" + ")} will deliver.`
         : activeChannels.length === 0
           ? draft.channelPush && pushPerm !== "granted"
             ? "Push is enabled but browser permission hasn't been granted."
             : "No channels are active right now."
           : `Delivering via ${activeChannels.join(" + ")}${
-              draft.quietEnabled && nextTransition ? ` — quiet hours begin at ${nextTransition}` : ""
+              draft.quietEnabled && nextTransition ? `, quiet hours begin at ${nextTransition}` : ""
             }.`;
   return (
     <div
@@ -1988,7 +1988,7 @@ function SettingsModal({
               {pushPerm === "unsupported"
                 ? "This browser doesn't support notifications."
                 : pushPerm === "denied"
-                  ? "Notifications are blocked in browser settings — allow them for this site to use push."
+                  ? "Notifications are blocked in browser settings. Allow them for this site to use push."
                   : pushPerm === "granted"
                     ? "System notifications will fire even when this tab is in the background."
                     : "We'll ask for permission when you enable this."}
@@ -2015,7 +2015,7 @@ function SettingsModal({
                 toast.error(
                   perm === "unsupported"
                     ? "Push notifications aren't supported in this browser."
-                    : "Push permission was blocked — update browser settings to allow them.",
+                    : "Push permission was blocked. Update browser settings to allow them.",
                 );
               }
             }}
@@ -2287,7 +2287,7 @@ function SettingsModal({
         <div className="mt-6 pt-4 border-t border-white/10">
           <p className="text-[10px] uppercase tracking-[0.3em] opacity-50 mb-2">Delivery test</p>
           <p className="text-xs opacity-70 mb-3">
-            Fires a sample toast for a specific category using your current draft settings — no booking is created. Only enabled categories are testable.
+            Fires a sample toast for a specific category using your current draft settings. No booking is created. Only enabled categories are testable.
           </p>
           {(() => {
             const CATEGORIES: {
@@ -2314,7 +2314,7 @@ function SettingsModal({
                   title, subtitle: "All channels disabled",
                   status: "suppressed", reason: "disabled",
                 });
-                toast.error("All delivery channels are off — nothing to deliver.");
+                toast.error("All delivery channels are off. Nothing to deliver.");
                 return;
               }
               if (!inAppOn && !pushOn && !emailOn) {
@@ -2324,7 +2324,7 @@ function SettingsModal({
                   status: "suppressed", reason: "quiet",
                 });
                 toast.error(
-                  `Quiet hours are active${nextTransition ? ` until ${nextTransition}` : ""} — nothing to deliver.`,
+                  `Quiet hours are active${nextTransition ? ` until ${nextTransition}` : ""}. Nothing to deliver.`,
                 );
                 return;
               }
@@ -2341,7 +2341,7 @@ function SettingsModal({
                 firePushNotification(title, `${cat.label} push delivery is working.`, `reelio-test-${cat.key}`);
               }
               if (!inAppOn) {
-                toast.success(`${cat.label} test recorded — ${tags.join(" + ")}`);
+                toast.success(`${cat.label} test recorded: ${tags.join(" + ")}`);
                 return;
               }
               toast.custom(
@@ -2386,7 +2386,7 @@ function SettingsModal({
                       <div className="min-w-0">
                         <p className="text-sm">{cat.label}</p>
                         <p className="text-[11px] opacity-60 truncate">
-                          {enabled ? cat.blurb : "Category disabled — enable it above to test."}
+                          {enabled ? cat.blurb : "Category disabled. Enable it above to test."}
                         </p>
                       </div>
                       <button
@@ -2673,7 +2673,7 @@ function RateLimitsSection({
         </button>
       </div>
       <p className="text-xs opacity-60 mb-3">
-        Blocks repeated booking submissions from the same visitor or email. Two windows each — a
+        Blocks repeated booking submissions from the same visitor or email. Two windows each: a
         short burst limit and a longer sustained limit.
       </p>
 
