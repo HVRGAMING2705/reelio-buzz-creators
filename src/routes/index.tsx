@@ -165,6 +165,7 @@ function ContactForm() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
+  const [companyWebsite, setCompanyWebsite] = useState("");
   const [errors, setErrors] = useState<{ name?: string; email?: string; message?: string }>({});
   const [status, setStatus] = useState<ContactStatus>({ kind: "idle" });
 
@@ -184,6 +185,7 @@ function ContactForm() {
 
   const onSubmit = async (ev: React.FormEvent<HTMLFormElement>) => {
     ev.preventDefault();
+    if (companyWebsite) return; // honeypot filled — silently drop bot submission
     if (!validate()) {
       setStatus({ kind: "error", message: "Please fix the highlighted fields." });
       trackEvent("form_submit_error", { form: "contact", reason: "validation" });
@@ -237,6 +239,16 @@ function ContactForm() {
 
   return (
     <form onSubmit={onSubmit} noValidate className="liquid-glass p-6 md:p-8 rounded-2xl">
+      <div style={{ display: "none" }} aria-hidden="true">
+        <input
+          type="text"
+          name="company_website"
+          value={companyWebsite}
+          onChange={(e) => setCompanyWebsite(e.target.value)}
+          autoComplete="off"
+          tabIndex={-1}
+        />
+      </div>
       <div className="font-body text-[10px] uppercase tracking-[0.3em] text-white/50">
         § Contact desk
       </div>
@@ -1015,6 +1027,7 @@ function Index() {
             <a href="#services" className="hover:text-white">Services</a>
             <a href="#package" className="hover:text-white">Package</a>
             <a href="#contact" className="hover:text-white">Contact</a>
+            <a href="/legal.html" className="hover:text-white">Privacy · Terms</a>
           </nav>
         </div>
       </footer>

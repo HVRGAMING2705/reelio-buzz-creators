@@ -90,9 +90,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://reelio-buzz-creators.vercel.app/" },
       { property: "og:site_name", content: "Reelio Social Consortium" },
+      { property: "og:image", content: "https://reelio.social/og.png" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Reelio SMMA — Content, Creators & Growth" },
       { name: "twitter:description", content: "Content creation, photo/video, editing, design, ads and outreach — all under one reel." },
+      { name: "twitter:image", content: "https://reelio.social/og.png" },
     ],
     links: [
       { rel: "canonical", href: "https://reelio-buzz-creators.vercel.app/" },
@@ -107,6 +109,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
     ],
     scripts: [
+      { src: "/_vercel/insights/script.js", defer: true },
       {
         type: "application/ld+json",
         children: JSON.stringify({
